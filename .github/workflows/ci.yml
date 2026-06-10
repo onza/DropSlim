@@ -58,6 +58,4 @@ jobs:
         run: npm run tauri -- build
 
       - name: Verify macOS bundle
-        run: |
-          APP=$(bash scripts/find-app-bundle.sh)
-          node scripts/verify-release.mjs "$APP"
+        run: bash scripts/verify-release-bundle.sh

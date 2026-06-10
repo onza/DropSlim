@@ -74,6 +74,4 @@ jobs:
 
       - name: Verify macOS bundle
         if: matrix.platform == 'macos-latest'
-        run: |
-          APP=$(bash scripts/find-app-bundle.sh)
-          node scripts/verify-release.mjs "$APP"
+        run: bash scripts/verify-release-bundle.sh

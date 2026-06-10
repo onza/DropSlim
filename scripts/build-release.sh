@@ -6,9 +6,7 @@ cd "$root"
 
 npm run tauri:build
 
-app=$(bash "$root/scripts/find-app-bundle.sh")
-
-node scripts/verify-release.mjs "$app"
+bash "$root/scripts/verify-release-bundle.sh"
 
 dmg=$(find "$root/src-tauri/target" -name '*.dmg' -path '*/release/bundle/dmg/*' 2>/dev/null | head -1)
 
