@@ -34,6 +34,9 @@ jobs:
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
 
+      - name: Install system dependencies
+        run: brew install dav1d
+
       - name: Install dependencies
         run: npm ci
 
