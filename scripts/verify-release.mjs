@@ -13,6 +13,15 @@ const fail = (message) => {
   process.exit(1)
 }
 
+const isExecutable = (filePath) => {
+  try {
+    fs.accessSync(filePath, fs.constants.X_OK)
+    return true
+  } catch {
+    return false
+  }
+}
+
 const executable = path.resolve(appPath, 'Contents/MacOS/dropslim')
 const resources = path.join(appPath, 'Contents/Resources/resources')
 const gifsicle = path.join(resources, 'vendor', 'gifsicle', 'gifsicle')
@@ -32,7 +41,7 @@ if (!fs.existsSync(executable)) {
   fail(`main executable missing: ${executable}`)
 }
 
-if ((fs.statSync(executable).mode & 0o111) === 0) {
+if (!isExecutable(executable)) {
   fail(`main executable is not marked executable: ${executable}`)
 }
 
@@ -40,7 +49,7 @@ if (!fs.existsSync(gifsicle)) {
   fail(`gifsicle binary missing: ${gifsicle}`)
 }
 
-if ((fs.statSync(gifsicle).mode & 0o111) === 0) {
+if (!isExecutable(gifsicle)) {
   fail(`gifsicle is not marked executable: ${gifsicle}`)
 }
 

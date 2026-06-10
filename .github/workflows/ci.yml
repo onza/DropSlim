@@ -24,8 +24,6 @@ jobs:
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-apple-darwin
 
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
@@ -57,10 +55,9 @@ jobs:
         run: npm test
 
       - name: Build Tauri app
-        run: npm run tauri -- build --target aarch64-apple-darwin
+        run: npm run tauri -- build
 
       - name: Verify macOS bundle
         run: |
-          APP=$(find src-tauri/target -name 'DropSlim.app' -path '*/release/bundle/macos/*' | head -1)
-          test -n "$APP"
+          APP=$(bash scripts/find-app-bundle.sh)
           node scripts/verify-release.mjs "$APP"

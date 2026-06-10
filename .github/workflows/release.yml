@@ -75,6 +75,5 @@ jobs:
       - name: Verify macOS bundle
         if: matrix.platform == 'macos-latest'
         run: |
-          APP=$(find src-tauri/target -name 'DropSlim.app' -path '*/release/bundle/macos/*' | head -1)
-          test -n "$APP"
+          APP=$(bash scripts/find-app-bundle.sh)
           node scripts/verify-release.mjs "$APP"
