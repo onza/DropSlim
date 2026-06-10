@@ -68,6 +68,7 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: DropSlim ${{ github.ref_name }}
           generateReleaseNotes: true
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') || contains(github.ref_name, 'alpha') }}
           uploadUpdaterJson: false
           uploadUpdaterSignatures: false
           args: ${{ matrix.args }}
