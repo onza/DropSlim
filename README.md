@@ -47,26 +47,7 @@ macOS may show a security notice the first time — DropSlim is not signed with 
 
 ## Development
 
-Requirements: macOS, [Node.js](https://nodejs.org/) (see `.nvmrc`), and [Rust](https://rustup.rs/).
-
-```bash
-npm ci
-npm run dev
-npm test
-npm run ui:build
-npm run build-release
-npm run icons
-```
-
-Use **`npm run dev`** and drag & drop for day-to-day development. Do **not** install the Finder Quick Action from a dev build if you keep a release copy in `/Applications` — install it only from the app in Applications.
-
-To test startup paths without the Quick Action:
-
-```bash
-./src-tauri/target/debug/dropslim /path/to/image.png
-```
-
-Keep **`/Applications/DropSlim.app`** as your stable release install for Finder Quick Actions and manual testing of shipped builds.
+Do **not** install the Finder Quick Action from a dev build if you keep a release copy in `/Applications`.
 
 <br>
 
