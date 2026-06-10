@@ -1,0 +1,54 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "DropSlim",
+  "version": "1.0.0",
+  "identifier": "com.onza.dropslim",
+  "build": {
+    "beforeDevCommand": "npm run ui:dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run sync-icons && npm run ui:build && npm run tauri:prepare-resources",
+    "frontendDist": "../dist-ui"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "DropSlim",
+        "width": 340,
+        "height": 550,
+        "minWidth": 340,
+        "minHeight": 550,
+        "resizable": true,
+        "transparent": true,
+        "titleBarStyle": "Overlay",
+        "acceptFirstMouse": true,
+        "dragDropEnabled": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg"],
+    "icon": ["icons/icon.icns"],
+    "fileAssociations": [
+      {
+        "ext": ["png", "jpg", "jpeg", "gif", "svg", "webp", "avif"],
+        "name": "Image",
+        "role": "Editor"
+      }
+    ],
+    "resources": ["resources/**/*"],
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "dmg": {
+        "appPosition": { "x": 168, "y": 240 },
+        "applicationFolderPosition": { "x": 372, "y": 240 }
+      }
+    }
+  },
+  "plugins": {}
+}

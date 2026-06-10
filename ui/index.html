@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>DropSlim</title>
+    <link rel="stylesheet" href="styles/dropslim.css" />
+  </head>
+  <body>
+    <div class="titlebar-drag" data-tauri-drag-region aria-hidden="true"></div>
+    <div class="wrapper">
+      <div class="app-main">
+        <section id="dragzone">
+          <p id="dragzoneStatus" class="dragzone-status" hidden></p>
+          <h1>Drop images or folders here</h1>
+          <strong>PNG, JPG, GIF, SVG, WebP, and AVIF</strong>
+        </section>
+        <section id="result"></section>
+      </div>
+
+      <section id="menuSettings">
+        <div class="settings-content">
+          <h3>Settings</h3>
+
+          <div class="setting-row">
+            <span class="setting-label"
+              >Save optimized files in same folder</span
+            >
+            <label class="toggle">
+              <input
+                id="folderswitch"
+                name="folderswitch"
+                type="checkbox"
+                checked
+              />
+              <span class="toggle-track" aria-hidden="true"></span>
+            </label>
+          </div>
+
+          <div id="wrapperSavePath" class="save-path is-hidden">
+            <span class="save-path-label">Choose folder</span>
+            <button type="button" id="btnSavepath" class="btn">Open</button>
+          </div>
+
+          <div class="setting-row">
+            <span class="setting-label"
+              >Add .min suffix to optimized files</span
+            >
+            <label class="toggle">
+              <input id="suffix" name="suffix" type="checkbox" checked />
+              <span class="toggle-track" aria-hidden="true"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <span class="setting-label"
+              >Add &quot;minified&quot; subfolder</span
+            >
+            <label class="toggle">
+              <input id="subfolder" name="subfolder" type="checkbox" />
+              <span class="toggle-track" aria-hidden="true"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <span class="setting-label"
+              >Clear result list when optimizing new images</span
+            >
+            <label class="toggle">
+              <input id="clearlist" name="clearlist" type="checkbox" />
+              <span class="toggle-track" aria-hidden="true"></span>
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <span class="setting-label">Install Finder Quick Action</span>
+            <button type="button" id="btnInstallQuickAction" class="btn">
+              Install
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        <button type="button" id="btnOpenSettings" class="text-btn">
+          Settings
+        </button>
+        <button type="button" id="btnCloseSettings" class="text-btn">
+          Close
+        </button>
+      </footer>
+    </div>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>

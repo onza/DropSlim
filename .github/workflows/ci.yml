@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format
+        run: npm run format:check
+
+      - name: Sync icons
+        run: npm run sync-icons
+
+      - name: Build UI
+        run: npm run ui:build
+
+      - name: Test
+        run: npm test
+
+      - name: Build Tauri app
+        run: npm run tauri -- build --target aarch64-apple-darwin
+
+      - name: Verify macOS bundle
+        run: |
+          APP=$(find src-tauri/target -name 'DropSlim.app' -path '*/release/bundle/macos/*' | head -1)
+          test -n "$APP"
+          node scripts/verify-release.mjs "$APP"

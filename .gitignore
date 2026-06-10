@@ -1,0 +1,27 @@
+node_modules/
+dist/
+dist-ui/
+src-tauri/target/
+src-tauri/resources/
+src-tauri/gen/
+
+vendor/gifsicle/gifsicle
+vendor/gifsicle/gifsicle.exe
+vendor/gifsicle/build-*/
+vendor/gifsicle/share/
+vendor/source/*.tar.gz
+
+build/icon.iconset/
+build/icon-macos.png
+build/Optimize with DropSlim.workflow/
+assets/icon/icon-1024.png
+
+.env
+.tauri/
+
+.DS_Store
+.vscode/
+*.swp
+*.swo
+*~
+.netrwhist

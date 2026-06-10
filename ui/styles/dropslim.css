@@ -1,0 +1,392 @@
+:root {
+  color-scheme: light dark;
+  --color-accent: #007aff;
+  --color-accent-rgb: 0 122 255;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-text: #1d1d1f;
+    --color-text-rgb: 29 29 31;
+    --color-surface-rgb: 255 255 255;
+    --color-glass: rgb(255 255 255 / 0.55);
+    --color-border: rgb(0 0 0 / 0.12);
+    --color-muted: rgb(0 0 0 / 0.5);
+    --color-fill: rgb(0 0 0 / 0.05);
+    --color-processing: rgb(0 122 255 / 0.1);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-text: #f5f5f7;
+    --color-text-rgb: 245 245 247;
+    --color-surface-rgb: 28 28 30;
+    --color-glass: rgb(30 30 32 / 0.45);
+    --color-border: rgb(255 255 255 / 0.14);
+    --color-muted: rgb(255 255 255 / 0.5);
+    --color-fill: rgb(255 255 255 / 0.16);
+    --color-processing: rgb(0 122 255 / 0.15);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+.wrapper {
+  background: transparent !important;
+}
+
+body.platform-mac::before {
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: fixed;
+  z-index: 0;
+}
+
+@media (prefers-color-scheme: light) {
+  body.platform-mac::before {
+    background: rgb(255 255 255 / 0.32);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body.platform-mac::before {
+    background: rgb(28 28 30 / 0.45);
+  }
+}
+
+body {
+  background: transparent !important;
+  color: var(--color-text);
+  font-family:
+    -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  margin: 0;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 2rem 0.5rem;
+  position: relative;
+}
+
+.titlebar-drag {
+  height: 2rem;
+  left: 0;
+  pointer-events: auto;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 1000;
+}
+
+button {
+  font: inherit;
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 4rem);
+  position: relative;
+  z-index: 1;
+}
+
+.app-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.wrapper.is--settings-open .app-main {
+  display: none;
+}
+
+#dragzone {
+  background: transparent;
+  border: 1px dashed var(--color-border);
+  border-radius: 0.5rem;
+  color: var(--color-text);
+  cursor: pointer;
+  font-style: italic;
+  margin-top: 4px;
+  padding: 1.25em 1em;
+  position: relative;
+  text-align: center;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+#dragzone.drag-active {
+  background: rgb(var(--color-accent-rgb) / 0.065);
+  border-color: rgb(var(--color-accent-rgb) / 0.4);
+}
+
+#dragzone::after {
+  background-color: transparent;
+  border-radius: 0.5rem;
+  content: ' ';
+  display: block;
+  height: 100%;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  transition: opacity 0.2s ease;
+  width: 100%;
+}
+
+#dragzone.is--processing::after {
+  background: var(--color-processing) url('../img/tail-spin.min.svg') no-repeat
+    center center;
+  background-size: 15%;
+  opacity: 1;
+}
+
+#dragzone:hover {
+  background: rgb(var(--color-text-rgb) / 0.045);
+}
+
+#dragzone h1,
+#dragzone strong,
+.dragzone-status {
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
+}
+
+#dragzone strong {
+  color: var(--color-muted);
+  font-style: italic;
+  font-weight: 400;
+}
+
+#dragzone h1 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.dragzone-status {
+  color: var(--color-accent);
+  font-size: 0.85rem;
+  font-style: normal;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.dragzone-status[hidden] {
+  display: none;
+}
+
+#result {
+  flex: 1;
+  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 0.75rem;
+}
+
+.app-footer {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: center;
+  padding-top: 0.75rem;
+}
+
+.wrapper.is--settings-open #btnOpenSettings {
+  display: none;
+}
+
+.wrapper.is--settings-open #btnCloseSettings {
+  display: inline-block;
+}
+
+#btnCloseSettings {
+  display: none;
+}
+
+.resLine {
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 0.25rem;
+}
+
+.resLine span {
+  color: var(--color-muted);
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.resLine--processing span {
+  color: var(--color-text);
+  font-style: italic;
+}
+
+.resLine--summary span {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.resLine a {
+  color: var(--color-accent);
+  display: block;
+  font-size: 0.7rem;
+  font-style: normal;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+  word-break: break-all;
+}
+
+.text-btn {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.text-btn:hover {
+  opacity: 0.75;
+}
+
+#menuSettings {
+  background: transparent;
+  color: var(--color-text);
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  font-size: 0.675rem;
+  min-height: 0;
+  padding: 3rem 1rem 1rem;
+}
+
+#menuSettings.is--open {
+  display: flex;
+}
+
+.settings-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.settings-content h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+
+.setting-row {
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr auto;
+  padding: 0.5rem 0;
+}
+
+.setting-label {
+  line-height: 1.2;
+}
+
+.toggle {
+  cursor: pointer;
+  display: inline-block;
+  height: 0.9rem;
+  position: relative;
+  width: 1.6rem;
+}
+
+.toggle input {
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.toggle-track {
+  background: var(--color-fill);
+  border-radius: 0.45rem;
+  display: block;
+  height: 0.9rem;
+  position: relative;
+  transition: background 0.2s ease;
+  width: 1.6rem;
+}
+
+.toggle-track::before {
+  background: rgb(var(--color-surface-rgb));
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
+  content: '';
+  height: 0.8rem;
+  left: 0;
+  position: absolute;
+  top: 0.05rem;
+  transition: left 0.2s ease;
+  width: 0.8rem;
+}
+
+.toggle input:checked + .toggle-track {
+  background: var(--color-accent);
+}
+
+.toggle input:checked + .toggle-track::before {
+  left: 0.75rem;
+}
+
+.save-path {
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0 1rem;
+}
+
+.save-path-label {
+  line-height: 1.2;
+}
+
+.btn {
+  appearance: none;
+  background: var(--color-accent);
+  border: 0;
+  border-radius: 0.35rem;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.65rem;
+  padding: 0.35rem 0.6rem;
+  text-align: center;
+  transition: opacity 0.2s ease;
+  width: 100%;
+}
+
+.btn:hover {
+  opacity: 0.85;
+}
+
+#btnSavepath {
+  width: 100%;
+}
