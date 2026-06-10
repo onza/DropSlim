@@ -11,6 +11,7 @@ if pids=$(lsof -ti:"$PORT" 2>/dev/null); then
 fi
 
 npm run sync-icons
+npm run tauri:prepare-resources
 
 # Re-embed icons when they change (generate_context! + include_bytes!)
 cargo build --manifest-path "$ROOT/src-tauri/Cargo.toml"

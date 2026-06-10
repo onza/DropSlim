@@ -47,6 +47,9 @@ jobs:
       - name: Sync icons
         run: npm run sync-icons
 
+      - name: Prepare Tauri resources
+        run: npm run tauri:prepare-resources
+
       - name: Build UI
         run: npm run ui:build
 
