@@ -120,7 +120,6 @@ export const initRenderer = (api) => {
           wrapperSavePath.classList.add('is-hidden')
         }
       }
-
     }
   })
 
