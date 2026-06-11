@@ -75,6 +75,15 @@ try {
   )
 }
 
+const codesignInfo = execFileSync('codesign', ['-dvvv', executable], {
+  encoding: 'utf8',
+})
+if (!/runtime/.test(codesignInfo)) {
+  fail(
+    'main executable is missing hardened runtime (app may crash on recent macOS)'
+  )
+}
+
 const bundledIcon = path.join(appPath, 'Contents/Resources/icon.icns')
 const expectedIcon = path.join(projectRoot, 'src-tauri/icons/icon.icns')
 
