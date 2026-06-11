@@ -37,7 +37,11 @@ Requires macOS 11 (Big Sur) or later and an Apple Silicon Mac.
 2. Open the DMG and drag **DropSlim** to **Applications**.
 3. Open DropSlim from Applications.
 
-macOS may show a security notice the first time — DropSlim is not signed with an Apple Developer ID.
+macOS may show a security notice the first time — DropSlim is not signed with an Apple Developer ID. After drag-install to Applications, either **right-click DropSlim → Open → Open** once, or run:
+
+```bash
+xattr -rd com.apple.quarantine /Applications/DropSlim.app && open -a DropSlim
+```
 
 **Finder Quick Action (optional):** In DropSlim, use **Settings → Install** or **Install Finder Quick Action** in the app menu.
 

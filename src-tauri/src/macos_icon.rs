@@ -1,5 +1,5 @@
-/// Dev-only: set dock icon from the macOS-formatted `icon.png` (82% art grid + rounded corners).
-#[cfg(all(target_os = "macos", debug_assertions))]
+/// Set dock icon from the macOS-formatted `icon.png` (82% art grid + rounded corners).
+#[cfg(target_os = "macos")]
 pub fn set_dock_icon() {
     use objc2::AnyThread;
     use objc2::MainThreadMarker;
@@ -21,5 +21,5 @@ pub fn set_dock_icon() {
     }
 }
 
-#[cfg(not(all(target_os = "macos", debug_assertions)))]
+#[cfg(not(target_os = "macos"))]
 pub fn set_dock_icon() {}

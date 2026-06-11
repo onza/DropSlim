@@ -57,5 +57,8 @@ jobs:
       - name: Build Tauri app
         run: npm run tauri -- build
 
+      - name: Sign and repackage macOS DMG
+        run: bash scripts/sign-macos-release.sh
+
       - name: Verify macOS bundle
         run: bash scripts/verify-release-bundle.sh
