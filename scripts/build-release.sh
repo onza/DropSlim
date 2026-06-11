@@ -4,7 +4,7 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
-npm run tauri -- build --bundles app
+npm run tauri -- build --bundles dmg
 bash "$root/scripts/sign-macos-release.sh"
 bash "$root/scripts/verify-release-bundle.sh"
 

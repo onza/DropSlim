@@ -57,10 +57,10 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Build Tauri app
-        run: npm run tauri -- build --bundles app
+      - name: Build Tauri app and DMG
+        run: npm run tauri -- build --bundles dmg
 
-      - name: Sign app and bundle DMG
+      - name: Sign release DMG
         run: bash scripts/sign-macos-release.sh
 
       - name: Verify macOS bundle

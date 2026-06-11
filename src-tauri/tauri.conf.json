@@ -32,7 +32,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["app"],
+    "targets": ["dmg"],
     "icon": ["icons/icon.png", "icons/icon.icns"],
     "fileAssociations": [
       {
