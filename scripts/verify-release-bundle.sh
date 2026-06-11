@@ -43,6 +43,12 @@ if [[ -z "$app" ]]; then
     exit 1
   fi
 
+  if [[ ! -e "$mount_point/Applications" ]]; then
+    echo "verify-release-bundle: Applications drop link missing inside $dmg" >&2
+    ls -la "$mount_point" >&2 || true
+    exit 1
+  fi
+
   echo "verify-release-bundle: verifying app from $(basename "$dmg")" >&2
 fi
 

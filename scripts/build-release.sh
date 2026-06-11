@@ -4,8 +4,7 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
-npm run tauri:build
-
+npm run tauri -- build --bundles app
 bash "$root/scripts/sign-macos-release.sh"
 bash "$root/scripts/verify-release-bundle.sh"
 
@@ -16,9 +15,7 @@ if [[ ! -f "$dmg" ]]; then
   exit 1
 fi
 
-DMG="$dmg"
-
 mkdir -p "$root/dist"
-cp "$DMG" "$root/dist/$(basename "$DMG")"
+cp "$dmg" "$root/dist/$(basename "$dmg")"
 
-echo "build-release: ok (dist/$(basename "$DMG"))"
+echo "build-release: ok (dist/$(basename "$dmg"))"
