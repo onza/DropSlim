@@ -12,6 +12,7 @@
   "homepage": "https://github.com/onza/DropSlim",
   "scripts": {
     "postinstall": "node scripts/install-gifsicle.mjs",
+    "prepare": "husky",
     "dev": "bash scripts/start-tauri-dev.sh",
     "test": "cargo test --manifest-path src-tauri/Cargo.toml",
     "lint": "eslint .",
@@ -51,7 +52,12 @@
     "globals": "^16.5.0",
     "prettier": "^3.6.2",
     "sharp": "^0.34.5",
-    "vite": "^6.4.3"
+    "vite": "^6.4.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,json,yml,yaml,md,css,html}": "prettier --write"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.11.0",
