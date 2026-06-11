@@ -1,5 +1,10 @@
+import crypto from 'node:crypto'
+import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
 const appPath = process.argv[2]
 
@@ -55,6 +60,28 @@ if (!isExecutable(gifsicle)) {
 
 if (!fs.existsSync(quickAction)) {
   fail(`Quick Action workflow missing: ${quickAction}`)
+}
+
+try {
+  execFileSync('codesign', ['--verify', '--deep', '--strict', appPath], {
+    stdio: 'pipe',
+  })
+} catch {
+  fail(
+    'app bundle has an invalid code signature (macOS may report the app as damaged)'
+  )
+}
+
+const expectedIcon = path.join(projectRoot, 'src-tauri/icons/icon.icns')
+const bundledIcon = path.join(appPath, 'Contents/Resources/icon.icns')
+
+if (fs.existsSync(expectedIcon) && fs.existsSync(bundledIcon)) {
+  const hash = (filePath) =>
+    crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex')
+
+  if (hash(expectedIcon) !== hash(bundledIcon)) {
+    fail('bundle icon.icns does not match src-tauri/icons/icon.icns')
+  }
 }
 
 console.log(`verify-release: ok (${appPath})`)

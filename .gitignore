@@ -13,8 +13,11 @@ vendor/source/*.tar.gz
 
 build/icon.iconset/
 build/icon-macos.png
+build/icon.icns
 build/Optimize with DropSlim.workflow/
 assets/icon/icon-1024.png
+src-tauri/icons/icon.icns
+src-tauri/icons/icon.png
 
 .env
 .tauri/
