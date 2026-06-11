@@ -1,8 +1,6 @@
 mod app_menu;
 mod commands;
 mod macos_dialog;
-#[cfg(target_os = "macos")]
-mod macos_icon;
 pub mod optimize;
 mod startup_paths;
 
@@ -75,11 +73,6 @@ pub fn run() {
         .expect("error while building tauri application");
 
     app.run(|app_handle, event| {
-        if matches!(event, RunEvent::Ready) {
-            #[cfg(target_os = "macos")]
-            macos_icon::set_dock_icon();
-        }
-
         if let RunEvent::Opened { urls } = event {
             let paths: Vec<String> = urls
                 .iter()
