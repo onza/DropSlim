@@ -75,19 +75,19 @@ try {
   )
 }
 
-const expectedIcon = path.join(projectRoot, 'assets/icon/icon-1024.png')
-const bundledPng = path.join(appPath, 'Contents/Resources/icon.png')
+const bundledIcon = path.join(appPath, 'Contents/Resources/icon.icns')
+const expectedIcon = path.join(projectRoot, 'src-tauri/icons/icon.icns')
 
-if (!fs.existsSync(bundledPng)) {
-  fail(`bundle icon.png missing: ${bundledPng}`)
+if (!fs.existsSync(bundledIcon)) {
+  fail(`bundle icon.icns missing: ${bundledIcon}`)
 }
 
 if (fs.existsSync(expectedIcon)) {
   const hash = (filePath) =>
     crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex')
 
-  if (hash(expectedIcon) !== hash(bundledPng)) {
-    fail('bundle icon.png does not match assets/icon/icon-1024.png')
+  if (hash(expectedIcon) !== hash(bundledIcon)) {
+    fail('bundle icon.icns does not match src-tauri/icons/icon.icns')
   }
 }
 
