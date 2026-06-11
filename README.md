@@ -25,7 +25,7 @@ Built with [Tauri](https://tauri.app/).
 
 ## Releases
 
-GitHub Releases are built with [`tauri-apps/tauri-action`](https://github.com/tauri-apps/tauri-action) on tag push (`v*`). macOS Apple Silicon is active today; Intel/Linux/Windows matrix entries can be added later.
+GitHub Releases are built on tag push (`v*`) via GitHub Actions. macOS Apple Silicon is active today; Intel/Linux/Windows matrix entries can be added later.
 
 <br>
 
@@ -35,19 +35,16 @@ Requires macOS 11 (Big Sur) or later and an Apple Silicon Mac.
 
 1. Download **`DropSlim_*.dmg`** from **[GitHub Releases](https://github.com/onza/DropSlim/releases)** (not **Code → Download ZIP**).
 2. Open the DMG and drag **DropSlim** to **Applications**.
-3. Open DropSlim from Applications.
+3. **First launch only:** macOS shows a security dialog (_„Apple konnte nicht überprüfen …“_). That is normal for apps distributed outside the Mac App Store without Apple notarization.
+   - **Recommended:** In **Applications**, right-click **DropSlim.app** → **Open** → **Open**.
+   - **Alternative:** **System Settings** → **Privacy & Security** → **Open Anyway** (visible for about an hour after the first launch attempt).
+4. From the second launch onward, open DropSlim with a normal double-click.
 
-macOS may show **„Apple konnte nicht überprüfen …“** after downloading from GitHub — every unsigned app gets quarantine. After drag-install to Applications, run once:
-
-```bash
-xattr -rd com.apple.quarantine /Applications/DropSlim.app && open -a DropSlim
-```
-
-Or: right-click **DropSlim.app** → **Open** → **Open** (one time only).
+Without an Apple Developer ID, macOS cannot fully “trust” a downloaded app on first open — there is no installer trick that avoids this one-time confirmation. A paid Apple Developer account plus notarization would remove that step in a future release.
 
 **Finder Quick Action (optional):** In DropSlim, use **Settings → Install** or **Install Finder Quick Action** in the app menu.
 
-**Updates:** Download the new DMG and drag DropSlim to Applications again.
+**Updates:** Download the new DMG and drag DropSlim to Applications again (repeat the one-time **Open** step if macOS asks).
 
 <br>
 

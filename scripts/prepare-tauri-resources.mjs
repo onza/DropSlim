@@ -25,4 +25,11 @@ copyDir(
   path.join(target, 'build', 'Optimize with DropSlim.workflow')
 )
 
+if (process.platform === 'darwin') {
+  execSync('bash scripts/sign-resource-binaries.sh', {
+    cwd: root,
+    stdio: 'inherit',
+  })
+}
+
 console.log(`prepare-tauri-resources: ok (${target})`)
