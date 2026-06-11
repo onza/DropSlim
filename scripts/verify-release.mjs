@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -75,10 +75,10 @@ try {
   )
 }
 
-const codesignInfo = execFileSync('codesign', ['-dvvv', executable], {
+const { stderr: codesignInfo } = spawnSync('codesign', ['-dvvv', executable], {
   encoding: 'utf8',
 })
-if (!/runtime/.test(codesignInfo)) {
+if (!/runtime/.test(codesignInfo ?? '')) {
   fail(
     'main executable is missing hardened runtime (app may crash on recent macOS)'
   )

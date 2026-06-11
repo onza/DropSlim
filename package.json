@@ -1,6 +1,6 @@
 {
   "name": "dropslim",
-  "version": "1.0.0-beta.7",
+  "version": "1.0.0-beta.6",
   "description": "Optimize your images and graphics in a single drag and drop.",
   "productName": "DropSlim",
   "author": "Martin Farkas",
@@ -18,8 +18,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "icons": "bash scripts/build-icons.sh",
-    "sync-icons": "bash scripts/sync-icons.sh",
+    "sync-icons": "bash scripts/build-icons.sh",
     "quick-action": "node scripts/build-quick-action.mjs",
     "build": "npm run tauri:build",
     "build-release": "bash scripts/build-release.sh",

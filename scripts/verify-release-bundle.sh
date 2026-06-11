@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-target="$root/src-tauri/target"
+target="${CARGO_TARGET_DIR:-$root/src-tauri/target}"
 mount_point=""
 
 cleanup() {

@@ -25,7 +25,22 @@ Built with [Tauri](https://tauri.app/).
 
 ## Releases
 
-GitHub Releases are built on tag push (`v*`) via GitHub Actions. macOS Apple Silicon is active today; Intel/Linux/Windows matrix entries can be added later.
+Releases are built **locally on macOS** (Apple Silicon). CI only runs lint, format, and tests.
+
+```bash
+npm run build-release
+```
+
+The DMG is copied to `dist/`. Then tag and publish:
+
+```bash
+git tag v1.0.0-beta.99
+git push origin v1.0.0-beta.99
+gh release create v1.0.0-beta.99 dist/DropSlim_*.dmg \
+  --title "DropSlim v1.0.0-beta.99" --generate-notes --prerelease
+```
+
+Drop `--prerelease` for stable versions. When the Apple Developer Program is active, sign and notarize before uploading.
 
 <br>
 
