@@ -1,17 +1,25 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { parseArgs } from 'node:util'
 import { fileURLToPath } from 'node:url'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const rootDir = path.join(__dirname, '..')
-const workflowDir = path.join(
-  rootDir,
-  'build',
-  'Optimize with DropSlim.workflow',
-  'Contents'
-)
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
-const shellScript = `RELEASE="/Applications/DropSlim.app/Contents/MacOS/dropslim"
+const { values } = parseArgs({
+  options: {
+    dev: { type: 'boolean', default: false },
+    binary: { type: 'string' },
+  },
+})
+
+const escapeBashDoubleQuoted = (value) =>
+  value
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\$/g, '\\$')
+    .replace(/`/g, '\\`')
+
+const releaseShellScript = `RELEASE="/Applications/DropSlim.app/Contents/MacOS/dropslim"
 
 if [ "$#" -eq 0 ]; then
   exit 0
@@ -30,7 +38,32 @@ osascript -e 'display alert "DropSlim not found" message "Install DropSlim in Ap
 exit 1
 `
 
-const documentWflow = `<?xml version="1.0" encoding="UTF-8"?>
+const devShellScript = (binary) => {
+  if (!binary) {
+    console.error('build-quick-action: --binary is required for --dev')
+    process.exit(1)
+  }
+
+  const devBinary = escapeBashDoubleQuoted(path.resolve(binary))
+
+  return `DEV="${devBinary}"
+
+if [ "$#" -eq 0 ]; then
+  exit 0
+fi
+
+if [ ! -x "$DEV" ]; then
+  osascript -e 'display alert "DropSlim (Dev) not found" message "Run npm run dev first to build the debug binary." as warning'
+  exit 1
+fi
+
+exec "$DEV" "$@"
+`
+}
+
+const buildDocumentWflow = (
+  shellScript
+) => `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -133,7 +166,10 @@ const documentWflow = `<?xml version="1.0" encoding="UTF-8"?>
 </plist>
 `
 
-const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
+const buildInfoPlist = ({
+  bundleName,
+  bundleId,
+}) => `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -142,11 +178,11 @@ const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 	<key>CFBundleExecutable</key>
 	<string>Application Stub</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.onza.dropslim.quickaction</string>
+	<string>${bundleId}</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>1.0</string>
 	<key>CFBundleName</key>
-	<string>Optimize with DropSlim</string>
+	<string>${bundleName}</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleShortVersionString</key>
@@ -159,7 +195,28 @@ const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 </plist>
 `
 
+const isDev = values.dev
+const workflowName = isDev
+  ? 'Optimize with DropSlim (Dev).workflow'
+  : 'Optimize with DropSlim.workflow'
+const shellScript = isDev ? devShellScript(values.binary) : releaseShellScript
+const workflowDir = path.join(rootDir, 'build', workflowName, 'Contents')
+
 fs.mkdirSync(workflowDir, { recursive: true })
-fs.writeFileSync(path.join(workflowDir, 'document.wflow'), documentWflow)
-fs.writeFileSync(path.join(workflowDir, 'Info.plist'), infoPlist)
-console.log('Generated Finder Quick Action workflow')
+fs.writeFileSync(
+  path.join(workflowDir, 'document.wflow'),
+  buildDocumentWflow(shellScript)
+)
+fs.writeFileSync(
+  path.join(workflowDir, 'Info.plist'),
+  buildInfoPlist({
+    bundleName: isDev
+      ? 'Optimize with DropSlim (Dev)'
+      : 'Optimize with DropSlim',
+    bundleId: isDev
+      ? 'com.onza.dropslim.quickaction.dev'
+      : 'com.onza.dropslim.quickaction',
+  })
+)
+
+console.log(`Generated Finder Quick Action workflow (${workflowName})`)

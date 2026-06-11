@@ -16,4 +16,6 @@ npm run tauri:prepare-resources
 # Re-embed icons when they change (generate_context! + include_bytes!)
 cargo build --manifest-path "$ROOT/src-tauri/Cargo.toml"
 
+bash "$ROOT/scripts/install-dev-quick-action.sh"
+
 exec npx tauri dev

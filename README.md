@@ -23,27 +23,6 @@ Built with [Tauri](https://tauri.app/).
 
 <br>
 
-## Releases
-
-Releases are built **locally on macOS** (Apple Silicon). CI only runs lint, format, and tests.
-
-```bash
-npm run build-release
-```
-
-The DMG is copied to `dist/`. Then tag and publish:
-
-```bash
-git tag v1.0.0-beta.99
-git push origin v1.0.0-beta.99
-gh release create v1.0.0-beta.99 dist/DropSlim_*.dmg \
-  --title "DropSlim v1.0.0-beta.99" --generate-notes --prerelease
-```
-
-Drop `--prerelease` for stable versions. When the Apple Developer Program is active, sign and notarize before uploading.
-
-<br>
-
 ## Install (macOS)
 
 Requires macOS 11 (Big Sur) or later and an Apple Silicon Mac.
@@ -62,7 +41,7 @@ DropSlim is open source and free. Nevertheless, in the Apple ecosystem, it appar
 
 That’s because Apple requires me to join its paid Developer Program, which costs 99 EUR per year. On top of that: identity verification, certificate signing requests, Developer ID certificates, app-specific passwords, authorizations, and a registration process that feels like the administration from “Asterix Conquers Rome” digitized the A38 pass to make breathing fresh air subject to approval.
 
-None of this makes the app any better. It merely serves to satisfy Gatekeeper so that app users aren’t greeted with _“Apple couldn’t verify…”_ and a useless **Done** button, only to then have to click an “Open Anyway” button buried deep in the security settings.
+None of this makes the app any better. It merely serves to satisfy Gatekeeper so that app users aren’t greeted with _“Apple couldn’t verify…”_ and a useless “Done” button, only to then have to click an “Open Anyway” button buried deep in the security settings.
 
 This project covers that fee, so you don’t have to worry about it. If any developer knows a trick to bypass the Developer Program without compromising the installation process, I’d be very happy to hear from you :)
 
@@ -70,7 +49,11 @@ This project covers that fee, so you don’t have to worry about it. If any deve
 
 ## Development
 
-Do **not** install the Finder Quick Action from a dev build if you keep a release copy in `/Applications`.
+```bash
+npm run dev
+```
+
+Window title: **DropSlim (Dev)**. Installs a separate Finder Quick Action **Optimize with DropSlim (Dev)** alongside the release Quick Action.
 
 <br>
 

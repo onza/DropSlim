@@ -54,6 +54,11 @@ pub fn run() {
             app_menu::setup_app_menu(app.handle())?;
 
             if let Some(window) = app.get_webview_window("main") {
+                #[cfg(debug_assertions)]
+                {
+                    let _ = window.set_title("DropSlim (Dev)");
+                }
+
                 #[cfg(target_os = "macos")]
                 {
                     use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
