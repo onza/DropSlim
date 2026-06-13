@@ -24,7 +24,7 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }
 image = { version = "0.25.10", features = ["avif-native", "webp", "jpeg", "png", "gif"] }
 imagequant = "4.4.1"
 png = "0.18.1"
-mozjpeg = "0.10.13"
+zenjpeg = "0.8"
 webp = "0.3.1"
 ravif = "0.13.0"
 walkdir = "2.5.0"

@@ -11,7 +11,7 @@ Built with [Tauri](https://tauri.app/).
 ## Why DropSlim
 
 - **Drag & drop** — drop files or folders on the window; whole folders are processed recursively
-- **Small and fast** — lightweight app, fast compression; built with imagequant, mozjpeg, OXVG, gifsicle, WebP, and AVIF encoders (Rust)
+- **Small and fast** — lightweight app, fast compression; built with imagequant, zenjpeg, OXVG, gifsicle, WebP, and AVIF encoders (Rust)
 - **Runs offline** — no internet required; compression runs entirely on your Mac
 - **Privacy** — no upload, no tracking; your images never leave your machine
 - **Batch processing** — hundreds of files in one go; new file alongside the original, or replace in place

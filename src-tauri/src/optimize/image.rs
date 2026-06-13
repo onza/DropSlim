@@ -7,6 +7,7 @@ use oxvg_ast::serialize::Node;
 use oxvg_ast::visitor::Info;
 use oxvg_optimiser::Jobs;
 use ravif::{Encoder, Img, RGBA8};
+use zenjpeg::encoder::{ChromaSubsampling, EncoderConfig, PixelLayout, Unstoppable};
 
 use super::formats::{ImageFormat, SUPPORTED_FORMATS_LABEL};
 use super::tools::gifsicle_path;
@@ -58,18 +59,14 @@ fn optimize_jpeg(input: &Path, output: &Path) -> Result<(), String> {
     let rgb = img.to_rgb8();
     let (width, height) = rgb.dimensions();
 
-    let mut comp = mozjpeg::Compress::new(mozjpeg::ColorSpace::JCS_RGB);
-    comp.set_size(width as usize, height as usize);
-    comp.set_quality(85.0);
-    comp.set_progressive_mode();
-    comp.set_optimize_coding(true);
+    let config = EncoderConfig::ycbcr(85, ChromaSubsampling::Quarter).progressive(true);
 
-    let mut comp = comp
-        .start_compress(Vec::new())
+    let mut enc = config
+        .encode_from_bytes(width, height, PixelLayout::Rgb8Srgb)
         .map_err(|error| error.to_string())?;
-    comp.write_scanlines(rgb.as_raw())
+    enc.push_packed(rgb.as_raw(), Unstoppable)
         .map_err(|error| error.to_string())?;
-    let jpeg = comp.finish().map_err(|error| error.to_string())?;
+    let jpeg = enc.finish().map_err(|error| error.to_string())?;
 
     fs::write(output, jpeg).map_err(|error| error.to_string())
 }
