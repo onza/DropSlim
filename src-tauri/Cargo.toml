@@ -30,6 +30,7 @@ ravif = "0.13.0"
 walkdir = "2.5.0"
 oxvg_ast = { version = "0.0.5", features = ["parse", "roxmltree", "visitor", "serialize"] }
 oxvg_optimiser = "0.0.5"
+oxipng = "10.1.1"
 
 [dev-dependencies]
 tempfile = "3.27.0"

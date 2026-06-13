@@ -6,6 +6,7 @@ use oxvg_ast::parse::roxmltree::parse;
 use oxvg_ast::serialize::Node;
 use oxvg_ast::visitor::Info;
 use oxvg_optimiser::Jobs;
+use oxipng::{optimize_from_memory, Options, StripChunks};
 use ravif::{Encoder, Img, RGBA8};
 use zenjpeg::encoder::{ChromaSubsampling, EncoderConfig, PixelLayout, Unstoppable};
 
@@ -71,6 +72,18 @@ fn optimize_jpeg(input: &Path, output: &Path) -> Result<(), String> {
     fs::write(output, jpeg).map_err(|error| error.to_string())
 }
 
+fn png_recompress_options() -> Options {
+    let mut opts = Options::default();
+    opts.bit_depth_reduction = false;
+    opts.color_type_reduction = false;
+    opts.palette_reduction = false;
+    opts.grayscale_reduction = false;
+    opts.scale_16 = false;
+    opts.strip = StripChunks::Safe;
+    opts.fast_evaluation = true;
+    opts
+}
+
 fn optimize_png(input: &Path, output: &Path) -> Result<(), String> {
     let img = image::open(input).map_err(|error| error.to_string())?;
     let rgba = img.to_rgba8();
@@ -120,7 +133,10 @@ fn optimize_png(input: &Path, output: &Path) -> Result<(), String> {
             .map_err(|error| error.to_string())?;
     }
 
-    fs::write(output, buffer).map_err(|error| error.to_string())
+    let optimized = optimize_from_memory(&buffer, &png_recompress_options())
+        .map_err(|error| error.to_string())?;
+
+    fs::write(output, optimized).map_err(|error| error.to_string())
 }
 
 fn optimize_gif(input: &Path, output: &Path, gifsicle: &Path) -> Result<(), String> {
