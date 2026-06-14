@@ -1,0 +1,17 @@
+name: Trigger website deploy
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify DropSlim_Website
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.WEBSITE_REPO_PAT }}
+          repository: onza/DropSlim_Website
+          event-type: app-release
+          client-payload: '{"tag":"${{ github.event.release.tag_name }}"}'
