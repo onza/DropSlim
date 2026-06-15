@@ -38,6 +38,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
             commands::optimize::optimize_paths,
+            commands::optimize::cancel_optimization,
             commands::pick_paths::pick_paths,
             commands::pick_paths::pick_save_folder,
             commands::install_quick_action::install_quick_action,
@@ -49,7 +50,7 @@ pub fn run() {
             app.manage(StartupState {
                 paths: Mutex::new(initial_paths),
             });
-            app.manage(commands::optimize::OptimizationGuard::default());
+            app.manage(commands::optimize::OptimizationState::default());
 
             app_menu::setup_app_menu(app.handle())?;
 

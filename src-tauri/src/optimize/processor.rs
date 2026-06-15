@@ -1,8 +1,8 @@
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use tauri::AppHandle;
-use tokio::sync::Semaphore;
 use tokio::task::JoinSet;
 
 use super::collect::{self, SUPPORTED_FORMATS_LABEL};
@@ -12,6 +12,7 @@ use super::image::optimize_image_file;
 use super::output_path::{build_output_path, custom_save_folder_missing, UserSettings};
 
 const OPTIMIZATION_CONCURRENCY: usize = 3;
+pub const MAX_BATCH_FILES: usize = 10_000;
 
 struct BatchState {
     total: usize,
@@ -34,6 +35,10 @@ impl BatchState {
         }
     }
 
+    fn done(&self) -> u32 {
+        (self.succeeded + self.failed) as u32
+    }
+
     fn complete_success(&mut self, bytes_before: u64, bytes_after: u64) {
         self.pending -= 1;
         self.succeeded += 1;
@@ -46,8 +51,15 @@ impl BatchState {
         self.failed += 1;
     }
 
+    fn emit_progress<E: EventSink + ?Sized>(&self, sink: &E) {
+        sink.send(ProcessorEvent::BatchProgress(super::events::BatchProgress {
+            done: self.done(),
+            total: self.total as u32,
+        }));
+    }
+
     fn finish_if_done<E: EventSink + ?Sized>(&self, sink: &E) {
-        if self.pending != 0 || self.total <= 1 {
+        if self.pending != 0 {
             return;
         }
 
@@ -86,11 +98,7 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
     settings: UserSettings,
     project_root: PathBuf,
     batch: Arc<tokio::sync::Mutex<BatchState>>,
-    semaphore: Arc<Semaphore>,
 ) {
-    let Ok(_permit) = semaphore.acquire().await else {
-        return;
-    };
     let file_name = file_path
         .file_name()
         .and_then(|name| name.to_str())
@@ -103,7 +111,8 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
 
     let result = tokio::task::spawn_blocking(move || {
         let size_orig = format::file_size(&file_path).map_err(|error| error.to_string())?;
-        let output_path = build_output_path(&file_path, &settings).map_err(|error| error.to_string())?;
+        let output_path =
+            build_output_path(&file_path, &settings).map_err(|error| error.to_string())?;
 
         let previous_output_size = format::file_size(&output_path).ok();
 
@@ -135,6 +144,7 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
         }
     }
 
+    batch.emit_progress(sink.as_ref());
     batch.finish_if_done(sink.as_ref());
 }
 
@@ -143,6 +153,7 @@ pub async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
     input_paths: Vec<String>,
     settings: UserSettings,
     project_root: PathBuf,
+    cancel: Arc<AtomicBool>,
 ) -> Result<(), String> {
     if input_paths.is_empty() {
         return Ok(());
@@ -171,6 +182,17 @@ pub async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
         return Ok(());
     }
 
+    if image_paths.len() > MAX_BATCH_FILES {
+        sink.send(drop_error(
+            "Batch",
+            format!(
+                "Too many images ({}). Maximum is {MAX_BATCH_FILES} per batch.",
+                image_paths.len()
+            ),
+        ));
+        return Ok(());
+    }
+
     if custom_save_folder_missing(&settings) {
         sink.send(drop_error(
             "Settings",
@@ -179,23 +201,62 @@ pub async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
         return Ok(());
     }
 
-    let batch = Arc::new(tokio::sync::Mutex::new(BatchState::new(image_paths.len())));
-    let semaphore = Arc::new(Semaphore::new(OPTIMIZATION_CONCURRENCY));
+    let total = image_paths.len();
+    sink.send(ProcessorEvent::BatchStarted {
+        total: total as u32,
+    });
+
+    let paths = Arc::new(image_paths);
+    let batch = Arc::new(tokio::sync::Mutex::new(BatchState::new(total)));
+    let next_index = Arc::new(AtomicUsize::new(0));
+    let worker_count = OPTIMIZATION_CONCURRENCY.min(total);
     let mut tasks = JoinSet::new();
 
-    for file_path in image_paths {
+    for _ in 0..worker_count {
         let sink = Arc::clone(&sink);
         let settings = settings.clone();
         let project_root = project_root.clone();
         let batch = Arc::clone(&batch);
-        let semaphore = Arc::clone(&semaphore);
+        let paths = Arc::clone(&paths);
+        let next_index = Arc::clone(&next_index);
+        let cancel = Arc::clone(&cancel);
 
         tasks.spawn(async move {
-            process_file(sink, file_path, settings, project_root, batch, semaphore).await;
+            loop {
+                if cancel.load(Ordering::Relaxed) {
+                    break;
+                }
+
+                let index = next_index.fetch_add(1, Ordering::Relaxed);
+                if index >= paths.len() {
+                    break;
+                }
+
+                process_file(
+                    Arc::clone(&sink),
+                    paths[index].clone(),
+                    settings.clone(),
+                    project_root.clone(),
+                    Arc::clone(&batch),
+                )
+                .await;
+            }
         });
     }
 
     while tasks.join_next().await.is_some() {}
+
+    if cancel.load(Ordering::Relaxed) {
+        let batch = batch.lock().await;
+        if batch.pending > 0 {
+            sink.send(ProcessorEvent::BatchCancelled {
+                done: batch.done(),
+                total: total as u32,
+                succeeded: batch.succeeded as u32,
+                failed: batch.failed as u32,
+            });
+        }
+    }
 
     Ok(())
 }
@@ -205,12 +266,14 @@ pub async fn process_paths(
     input_paths: Vec<String>,
     settings: UserSettings,
     project_root: PathBuf,
+    cancel: Arc<AtomicBool>,
 ) -> Result<(), String> {
     process_paths_with_sink(
         app_event_sink(app),
         input_paths,
         settings,
         project_root,
+        cancel,
     )
     .await
 }
@@ -223,6 +286,10 @@ mod tests {
     use std::fs;
     use std::sync::Arc;
     use tempfile::tempdir;
+
+    fn no_cancel() -> Arc<AtomicBool> {
+        Arc::new(AtomicBool::new(false))
+    }
 
     fn write_png(path: &std::path::Path) {
         let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
@@ -247,10 +314,18 @@ mod tests {
     }
 
     #[test]
-    fn single_file_batch_skips_summary() {
-        let batch = BatchState::new(1);
-        assert_eq!(batch.pending, 1);
-        assert_eq!(batch.total, 1);
+    fn single_file_batch_emits_summary_when_done() {
+        let recording = RecordingEventSink::new();
+        let mut batch = BatchState::new(1);
+        batch.complete_success(100_000, 40_000);
+        batch.finish_if_done(&recording);
+
+        assert_eq!(
+            recording.events(),
+            vec![ProcessorEvent::BatchComplete(
+                "1 image · saved 60 KB (60%)".to_string()
+            )]
+        );
     }
 
     #[test]
@@ -272,6 +347,7 @@ mod tests {
                 savepath: None,
             },
             project_root(),
+            no_cancel(),
         )
         .await
         .expect("process paths");
@@ -292,6 +368,7 @@ mod tests {
                 savepath: None,
             },
             project_root(),
+            no_cancel(),
         )
         .await
         .expect("process paths");
@@ -322,6 +399,7 @@ mod tests {
                 savepath: None,
             },
             project_root(),
+            no_cancel(),
         )
         .await
         .expect("process paths");
@@ -352,6 +430,7 @@ mod tests {
                 savepath: Some(vec![]),
             },
             project_root(),
+            no_cancel(),
         )
         .await
         .expect("process paths");
@@ -382,6 +461,7 @@ mod tests {
                 savepath: None,
             },
             project_root(),
+            no_cancel(),
         )
         .await
         .expect("process paths");
@@ -396,7 +476,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn single_image_emits_processing_and_optimized_without_batch_summary() {
+    async fn single_image_emits_processing_optimized_and_batch_summary() {
         let dir = tempdir().expect("tempdir");
         let file = dir.path().join("photo.png");
         write_png(&file);
@@ -412,18 +492,21 @@ mod tests {
                 savepath: None,
             },
             project_root(),
+            no_cancel(),
         )
         .await
         .expect("process paths");
 
         let events = recording.events();
-        assert_eq!(events.len(), 2);
+        assert!(events.iter().any(|event| {
+            matches!(event, ProcessorEvent::BatchStarted { total: 1 })
+        }));
         assert!(matches!(
-            events[0],
-            ProcessorEvent::FileProcessing(ref name) if name == "photo.png"
+            events.iter().find(|event| matches!(event, ProcessorEvent::FileProcessing(_))),
+            Some(ProcessorEvent::FileProcessing(ref name)) if name == "photo.png"
         ));
-        assert!(matches!(events[1], ProcessorEvent::ImageOptimized { .. }));
-        assert!(!events.iter().any(|event| matches!(event, ProcessorEvent::BatchComplete(_))));
+        assert!(events.iter().any(|event| matches!(event, ProcessorEvent::ImageOptimized { .. })));
+        assert!(events.iter().any(|event| matches!(event, ProcessorEvent::BatchComplete(_))));
     }
 
     #[tokio::test]
@@ -448,6 +531,7 @@ mod tests {
                 savepath: None,
             },
             project_root(),
+            no_cancel(),
         )
         .await
         .expect("process paths");
@@ -474,5 +558,55 @@ mod tests {
                 .count(),
             1
         );
+    }
+
+    #[tokio::test]
+    async fn cancel_stops_remaining_files() {
+        let dir = tempdir().expect("tempdir");
+        let paths: Vec<String> = (0..6)
+            .map(|index| {
+                let file = dir.path().join(format!("photo-{index}.png"));
+                write_png(&file);
+                file.to_string_lossy().to_string()
+            })
+            .collect();
+
+        let cancel = Arc::new(AtomicBool::new(false));
+        let recording = Arc::new(RecordingEventSink::new());
+        let sink = Arc::clone(&recording);
+        let cancel_flag = Arc::clone(&cancel);
+        let paths_clone = paths.clone();
+
+        let handle = tokio::spawn(async move {
+            process_paths_with_sink(
+                sink,
+                paths_clone,
+                UserSettings {
+                    folderswitch: true,
+                    suffix: true,
+                    subfolder: false,
+                    savepath: None,
+                },
+                project_root(),
+                cancel_flag,
+            )
+            .await
+            .expect("process paths");
+        });
+
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        cancel.store(true, Ordering::SeqCst);
+        handle.await.expect("join batch");
+
+        let events = recording.events();
+        let optimized = events
+            .iter()
+            .filter(|event| matches!(event, ProcessorEvent::ImageOptimized { .. }))
+            .count();
+        assert!(optimized < 6);
+        assert!(events.iter().any(|event| matches!(
+            event,
+            ProcessorEvent::BatchCancelled { total: 6, .. }
+        )));
     }
 }

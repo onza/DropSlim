@@ -62,9 +62,15 @@ const clearResultsIfNeeded = () => {
   }
 
   const resultBox = document.getElementById('result')
+  const batchSummary = document.getElementById('batchSummary')
 
   if (resultBox) {
     resultBox.innerHTML = ''
+  }
+
+  if (batchSummary) {
+    batchSummary.textContent = ''
+    batchSummary.hidden = true
   }
 }
 
@@ -194,8 +200,13 @@ export const createDropslimApi = () => ({
     return { canceled: false, filePaths }
   },
   installQuickAction: () => invoke('install_quick_action'),
+  cancelOptimization: () => invoke('cancel_optimization'),
   showItemInFolder: (filePath) => revealItemInDir(filePath),
   onOpenSettings: (callback) => emitEvent('open-settings', callback),
+  onBatchStarted: (callback) =>
+    emitEvent('batch-started', (total) => callback(total)),
+  onBatchProgress: (callback) =>
+    emitEvent('batch-progress', (done, total) => callback(done, total)),
   onOptimized: (callback) =>
     emitEvent('image-optimized', (filePath, summary, sourceFileName) =>
       callback(filePath, summary, sourceFileName)
@@ -206,4 +217,8 @@ export const createDropslimApi = () => ({
     emitEvent('drop-error', (fileName, message) => callback(fileName, message)),
   onBatchComplete: (callback) =>
     emitEvent('batch-complete', (summary) => callback(summary)),
+  onBatchCancelled: (callback) =>
+    emitEvent('batch-cancelled', (done, total, succeeded, failed) =>
+      callback(done, total, succeeded, failed)
+    ),
 })

@@ -14,13 +14,14 @@
           <h1>Drop images or folders here</h1>
           <strong>PNG, JPG, GIF, SVG, WebP, and AVIF</strong>
         </section>
-        <section id="result"></section>
+        <div class="results-panel">
+          <p id="batchSummary" class="batch-summary" hidden></p>
+          <section id="result"></section>
+        </div>
       </div>
-
       <section id="menuSettings">
         <div class="settings-content">
           <h3>Settings</h3>
-
           <div class="setting-row">
             <span class="setting-label"
               >Save optimized files in same folder</span
@@ -35,12 +36,10 @@
               <span class="toggle-track" aria-hidden="true"></span>
             </label>
           </div>
-
           <div id="wrapperSavePath" class="save-path is-hidden">
             <span class="save-path-label">Choose folder</span>
             <button type="button" id="btnSavepath" class="btn">Open</button>
           </div>
-
           <div class="setting-row">
             <span class="setting-label"
               >Add .min suffix to optimized files</span
@@ -50,7 +49,6 @@
               <span class="toggle-track" aria-hidden="true"></span>
             </label>
           </div>
-
           <div class="setting-row">
             <span class="setting-label"
               >Add &quot;minified&quot; subfolder</span
@@ -60,7 +58,6 @@
               <span class="toggle-track" aria-hidden="true"></span>
             </label>
           </div>
-
           <div class="setting-row">
             <span class="setting-label"
               >Clear result list when optimizing new images</span
@@ -70,7 +67,6 @@
               <span class="toggle-track" aria-hidden="true"></span>
             </label>
           </div>
-
           <div class="setting-row">
             <span class="setting-label">Install Finder Quick Action</span>
             <button type="button" id="btnInstallQuickAction" class="btn">
@@ -79,8 +75,15 @@
           </div>
         </div>
       </section>
-
       <footer class="app-footer">
+        <button
+          type="button"
+          id="btnCancelOptimization"
+          class="text-btn"
+          hidden
+        >
+          Cancel
+        </button>
         <button type="button" id="btnOpenSettings" class="text-btn">
           Settings
         </button>

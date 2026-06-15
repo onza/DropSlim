@@ -151,6 +151,14 @@ mod tests {
     }
 
     #[test]
+    fn summarizes_single_image_batch() {
+        assert_eq!(
+            build_batch_summary(1, 1, 0, 100_000, 40_000),
+            "1 image · saved 60 KB (60%)"
+        );
+    }
+
+    #[test]
     fn summarizes_batch() {
         assert_eq!(
             build_batch_summary(3, 3, 0, 300_000, 120_000),

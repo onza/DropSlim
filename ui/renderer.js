@@ -1,11 +1,14 @@
 export const initRenderer = (api) => {
   const settings = api.settings
+  const MAX_RESULT_ROWS = 100
 
   const dragzone = document.getElementById('dragzone'),
     dragzoneStatus = document.getElementById('dragzoneStatus'),
+    batchSummary = document.getElementById('batchSummary'),
     resultBox = document.getElementById('result'),
     btnOpenSettings = document.getElementById('btnOpenSettings'),
     btnCloseSettings = document.getElementById('btnCloseSettings'),
+    btnCancelOptimization = document.getElementById('btnCancelOptimization'),
     menuSettings = document.getElementById('menuSettings'),
     wrapper = document.querySelector('.wrapper'),
     switches = menuSettings.querySelectorAll('input[type="checkbox"]'),
@@ -18,6 +21,11 @@ export const initRenderer = (api) => {
     subfolder = document.getElementById('subfolder')
 
   let userSetting = settings.getSync()
+  let batchActive = false
+  let batchDone = 0
+  let batchTotal = 0
+  let hiddenResultCount = 0
+
   clearlist.checked = userSetting.clearlist
   suffix.checked = userSetting.suffix
   subfolder.checked = userSetting.subfolder
@@ -46,6 +54,82 @@ export const initRenderer = (api) => {
     dragzoneStatus.hidden = !message
   }
 
+  const setCancelVisible = (visible) => {
+    if (btnCancelOptimization) {
+      btnCancelOptimization.hidden = !visible
+    }
+  }
+
+  const setBatchSummary = (message) => {
+    if (!batchSummary) {
+      return
+    }
+
+    batchSummary.textContent = message
+    batchSummary.hidden = !message
+  }
+
+  const clearBatchSummary = () => {
+    setBatchSummary('')
+  }
+
+  const formatBatchStatus = (fileName) => {
+    if (batchTotal > 1) {
+      const progress = `${batchDone} / ${batchTotal}`
+      return fileName ? `${progress} — ${fileName}` : progress
+    }
+
+    return fileName ? `Compressing ${fileName}…` : ''
+  }
+
+  const updateBatchStatus = (fileName) => {
+    const message = formatBatchStatus(fileName)
+
+    if (message) {
+      setDragzoneStatus(message)
+    }
+  }
+
+  const trimResultRows = () => {
+    const lines = resultBox.querySelectorAll(
+      '.resLine:not(.resLine--processing):not(.resLine--truncated)'
+    )
+
+    let removed = 0
+
+    for (let index = lines.length - 1; index >= MAX_RESULT_ROWS; index -= 1) {
+      lines[index].remove()
+      removed += 1
+    }
+
+    if (removed > 0) {
+      hiddenResultCount += removed
+      updateTruncationNotice()
+    }
+  }
+
+  const updateTruncationNotice = () => {
+    let notice = resultBox.querySelector('.resLine--truncated')
+
+    if (hiddenResultCount <= 0) {
+      notice?.remove()
+      return
+    }
+
+    const label =
+      hiddenResultCount === 1
+        ? `1 older result not shown — only the latest ${MAX_RESULT_ROWS} are listed.`
+        : `${hiddenResultCount} older results not shown — only the latest ${MAX_RESULT_ROWS} are listed.`
+
+    if (!notice) {
+      notice = createTextLine('resLine resLine--truncated', label)
+      resultBox.appendChild(notice)
+    } else {
+      notice.querySelector('span').textContent = label
+      resultBox.appendChild(notice)
+    }
+  }
+
   const createTextLine = (className, text) => {
     const line = document.createElement('div')
     line.className = className
@@ -64,6 +148,7 @@ export const initRenderer = (api) => {
     )
     line.dataset.fileName = fileName
     resultBox.prepend(line)
+    trimResultRows()
   }
 
   const removeProcessingLine = (fileName) => {
@@ -77,10 +162,25 @@ export const initRenderer = (api) => {
   const finishProcessing = (fileName) => {
     removeProcessingLine(fileName)
 
+    if (batchActive) {
+      return
+    }
+
     if (!resultBox.querySelector('.resLine--processing')) {
       dragzone.classList.remove('is--processing')
       setDragzoneStatus('')
+      setCancelVisible(false)
     }
+  }
+
+  const endBatch = () => {
+    batchActive = false
+    batchDone = 0
+    batchTotal = 0
+    dragzone.classList.remove('is--processing')
+    setDragzoneStatus('')
+    setCancelVisible(false)
+    removeProcessingLine()
   }
 
   dragzone.onclick = () => {
@@ -94,6 +194,17 @@ export const initRenderer = (api) => {
       .catch((err) => {
         console.error(err)
       })
+  }
+
+  if (btnCancelOptimization) {
+    btnCancelOptimization.onclick = (event) => {
+      event.preventDefault()
+      btnCancelOptimization.disabled = true
+      api.cancelOptimization().catch((err) => {
+        console.error(err)
+        btnCancelOptimization.disabled = false
+      })
+    }
   }
 
   btnSavepath.onclick = () => {
@@ -160,9 +271,36 @@ export const initRenderer = (api) => {
     }
   }
 
+  api.onBatchStarted((total) => {
+    batchActive = total > 1
+    batchDone = 0
+    batchTotal = total
+
+    if (settings.getSync().clearlist) {
+      hiddenResultCount = 0
+    }
+
+    clearBatchSummary()
+    dragzone.classList.add('is--processing')
+
+    if (batchActive) {
+      setCancelVisible(true)
+      if (btnCancelOptimization) {
+        btnCancelOptimization.disabled = false
+      }
+      updateBatchStatus()
+    }
+  })
+
+  api.onBatchProgress((done, total) => {
+    batchDone = done
+    batchTotal = total
+    updateBatchStatus()
+  })
+
   api.onFileProcessing((fileName) => {
     dragzone.classList.add('is--processing')
-    setDragzoneStatus('Compressing ' + fileName + '…')
+    updateBatchStatus(fileName)
     addProcessingLine(fileName)
   })
 
@@ -187,6 +325,7 @@ export const initRenderer = (api) => {
 
     resContainer.appendChild(resElement)
     resultBox.prepend(resContainer)
+    trimResultRows()
   })
 
   api.onDropError((fileName, message) => {
@@ -194,11 +333,17 @@ export const initRenderer = (api) => {
     resultBox.prepend(
       createTextLine('resLine', `Could not optimize ${fileName}: ${message}`)
     )
+    trimResultRows()
   })
 
   api.onBatchComplete((summary) => {
-    dragzone.classList.remove('is--processing')
-    setDragzoneStatus(summary)
-    resultBox.prepend(createTextLine('resLine resLine--summary', summary))
+    endBatch()
+    setBatchSummary(summary)
+  })
+
+  api.onBatchCancelled((done, total, succeeded, failed) => {
+    const summary = `Cancelled after ${done} / ${total} (${succeeded} optimized, ${failed} failed)`
+    endBatch()
+    setBatchSummary(summary)
   })
 }

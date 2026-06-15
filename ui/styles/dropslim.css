@@ -36,6 +36,11 @@
   box-sizing: border-box;
 }
 
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
 html,
 body,
 .wrapper {
@@ -65,14 +70,17 @@ body.platform-mac::before {
 body {
   background: transparent !important;
   color: var(--color-text);
+  display: flex;
+  flex-direction: column;
   font-family:
     -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', sans-serif;
   font-size: 16px;
   font-weight: 400;
+  height: 100%;
   line-height: 1.5;
   margin: 0;
-  min-height: 100vh;
+  min-height: 0;
   overflow: hidden;
   padding: 2rem 0.5rem;
   position: relative;
@@ -98,8 +106,9 @@ button {
 
 .wrapper {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  min-height: calc(100vh - 4rem);
+  min-height: 0;
   position: relative;
   z-index: 1;
 }
@@ -109,6 +118,7 @@ button {
   flex: 1;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
 }
 
 .wrapper.is--settings-open .app-main {
@@ -121,6 +131,7 @@ button {
   border-radius: 0.5rem;
   color: var(--color-text);
   cursor: pointer;
+  flex-shrink: 0;
   font-style: italic;
   margin-top: 4px;
   padding: 1.25em 1em;
@@ -194,19 +205,52 @@ button {
   display: none;
 }
 
+.results-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 0.75rem;
+}
+
+.batch-summary {
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0.5rem 0.25rem 0.75rem;
+}
+
+.batch-summary[hidden] {
+  display: none;
+}
+
 #result {
   flex: 1;
-  max-height: none;
   min-height: 0;
+  -webkit-overflow-scrolling: touch;
   overflow-y: auto;
-  padding-top: 0.75rem;
+  overscroll-behavior: contain;
 }
 
 .app-footer {
   display: flex;
   flex-shrink: 0;
+  gap: 1rem;
   justify-content: center;
   padding-top: 0.75rem;
+}
+
+#btnCancelOptimization[hidden] {
+  display: none;
+}
+
+#btnCancelOptimization {
+  color: var(--color-accent);
 }
 
 .wrapper.is--settings-open #btnOpenSettings {
@@ -239,9 +283,9 @@ button {
   font-style: italic;
 }
 
-.resLine--summary span {
-  color: var(--color-text);
-  font-weight: 600;
+.resLine--truncated span {
+  color: var(--color-muted);
+  font-style: italic;
 }
 
 .resLine a {
