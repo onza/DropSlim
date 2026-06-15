@@ -33,13 +33,6 @@ const isExecutable = (filePath) => {
 const executable = path.resolve(appPath, 'Contents/MacOS/dropslim')
 const resources = path.join(appPath, 'Contents/Resources/resources')
 const gifsicle = path.join(resources, 'vendor', 'gifsicle', 'gifsicle')
-const quickAction = path.join(
-  resources,
-  'build',
-  'Optimize with DropSlim.workflow',
-  'Contents',
-  'document.wflow'
-)
 
 if (!fs.existsSync(appPath)) {
   fail(`app bundle not found: ${appPath}`)
@@ -59,10 +52,6 @@ if (!fs.existsSync(gifsicle)) {
 
 if (!isExecutable(gifsicle)) {
   fail(`gifsicle is not marked executable: ${gifsicle}`)
-}
-
-if (!fs.existsSync(quickAction)) {
-  fail(`Quick Action workflow missing: ${quickAction}`)
 }
 
 try {

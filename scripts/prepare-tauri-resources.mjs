@@ -15,16 +15,6 @@ fs.mkdirSync(target, { recursive: true })
 
 copyDir(path.join(root, 'vendor'), path.join(target, 'vendor'))
 
-execSync('node scripts/build-quick-action.mjs', {
-  cwd: root,
-  stdio: 'inherit',
-})
-
-copyDir(
-  path.join(root, 'build', 'Optimize with DropSlim.workflow'),
-  path.join(target, 'build', 'Optimize with DropSlim.workflow')
-)
-
 if (process.platform === 'darwin') {
   execSync('bash scripts/sign-resource-binaries.sh', {
     cwd: root,

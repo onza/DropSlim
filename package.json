@@ -19,7 +19,6 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "sync-icons": "bash scripts/build-icons.sh",
-    "quick-action": "node scripts/build-quick-action.mjs",
     "build": "npm run tauri:build",
     "build-release": "bash scripts/build-release.sh",
     "ui:dev": "vite",

@@ -199,7 +199,6 @@ export const createDropslimApi = () => ({
 
     return { canceled: false, filePaths }
   },
-  installQuickAction: () => invoke('install_quick_action'),
   cancelOptimization: () => invoke('cancel_optimization'),
   showItemInFolder: (filePath) => revealItemInDir(filePath),
   onOpenSettings: (callback) => emitEvent('open-settings', callback),

@@ -14,7 +14,7 @@ Drop your images. DropSlim crunches the numbers. Done. Everything stays on your 
 - **Privacy** — no upload, no tracking; your images never leave your machine
 - **Batch processing** — hundreds of files in one go; new file alongside the original, or replace in place
 - **All common formats** — PNG, JPEG, GIF, SVG, WebP, and AVIF
-- **Finder Quick Action** — optimize selected files or folders from Finder
+- **Open with DropSlim** — right-click an image in Finder → **Open With** → DropSlim
 - **Review results** in a simple list and reveal outputs in Finder
 - **Open source** — [MIT](LICENSE.md) on [GitHub](https://github.com/onza/DropSlim); inspect, fork, contribute
 
@@ -47,7 +47,7 @@ Requires macOS 11 (Big Sur) or later and an **Apple Silicon** Mac (M1 or newer).
 npm run dev
 ```
 
-Window title: **DropSlim (Dev)**. Installs a separate Finder Quick Action **Optimize with DropSlim (Dev)** alongside the release Quick Action.
+Window title: **DropSlim (Dev)**.
 
 <br>
 

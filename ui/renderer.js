@@ -13,7 +13,6 @@ export const initRenderer = (api) => {
     wrapper = document.querySelector('.wrapper'),
     switches = menuSettings.querySelectorAll('input[type="checkbox"]'),
     btnSavepath = document.getElementById('btnSavepath'),
-    btnInstallQuickAction = document.getElementById('btnInstallQuickAction'),
     wrapperSavePath = document.getElementById('wrapperSavePath'),
     folderswitch = document.getElementById('folderswitch'),
     clearlist = document.getElementById('clearlist'),
@@ -252,13 +251,6 @@ export const initRenderer = (api) => {
   btnCloseSettings.onclick = (e) => {
     e.preventDefault()
     closeSettings()
-  }
-
-  btnInstallQuickAction.onclick = (e) => {
-    e.preventDefault()
-    api.installQuickAction().catch((err) => {
-      console.error(err)
-    })
   }
 
   api.onOpenSettings(() => {

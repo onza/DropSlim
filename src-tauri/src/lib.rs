@@ -41,7 +41,6 @@ pub fn run() {
             commands::optimize::cancel_optimization,
             commands::pick_paths::pick_paths,
             commands::pick_paths::pick_save_folder,
-            commands::install_quick_action::install_quick_action,
             commands::startup::consume_startup_paths,
         ])
         .setup(|app| {
