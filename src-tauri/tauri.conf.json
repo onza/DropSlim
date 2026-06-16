@@ -1,12 +1,12 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "DropSlim",
-  "version": "1.0.0-beta.7",
+  "version": "../package.json",
   "identifier": "com.onza.dropslim",
   "build": {
     "beforeDevCommand": "npm run ui:dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run sync-icons && npm run ui:build && npm run tauri:prepare-resources",
+    "beforeBuildCommand": "npm run sync-version && npm run sync-icons && npm run ui:build && npm run tauri:prepare-resources",
     "frontendDist": "../dist-ui"
   },
   "app": {
