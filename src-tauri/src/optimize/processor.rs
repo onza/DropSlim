@@ -7,7 +7,7 @@ use tokio::task::JoinSet;
 
 use super::collect::{self, SUPPORTED_FORMATS_LABEL};
 use super::events::{app_event_sink, EventSink, ProcessorEvent};
-use super::format::{self, build_batch_summary, build_optimize_summary};
+use super::summary::{build_batch_summary, build_optimize_summary, file_size};
 use super::image::optimize_image_file;
 use super::output_path::{build_output_path, custom_save_folder_missing, UserSettings};
 
@@ -110,15 +110,15 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
     let error_file_name = file_name.clone();
 
     let result = tokio::task::spawn_blocking(move || {
-        let size_orig = format::file_size(&file_path).map_err(|error| error.to_string())?;
+        let size_orig = file_size(&file_path).map_err(|error| error.to_string())?;
         let output_path =
             build_output_path(&file_path, &settings).map_err(|error| error.to_string())?;
 
-        let previous_output_size = format::file_size(&output_path).ok();
+        let previous_output_size = file_size(&output_path).ok();
 
         optimize_image_file(&file_path, &output_path, &project_root)?;
 
-        let size_optimized = format::file_size(&output_path).map_err(|error| error.to_string())?;
+        let size_optimized = file_size(&output_path).map_err(|error| error.to_string())?;
         let summary = build_optimize_summary(size_orig, size_optimized, previous_output_size);
 
         Ok::<_, String>((output_path, summary, file_name, size_orig, size_optimized))
@@ -340,12 +340,7 @@ mod tests {
         process_paths_with_sink(
             Arc::clone(&recording),
             vec![],
-            UserSettings {
-                folderswitch: true,
-                suffix: true,
-                subfolder: false,
-                savepath: None,
-            },
+            UserSettings::default(),
             project_root(),
             no_cancel(),
         )
@@ -361,12 +356,7 @@ mod tests {
         process_paths_with_sink(
             Arc::clone(&recording),
             vec!["/no/such/photo.png".to_string()],
-            UserSettings {
-                folderswitch: true,
-                suffix: true,
-                subfolder: false,
-                savepath: None,
-            },
+            UserSettings::default(),
             project_root(),
             no_cancel(),
         )
@@ -392,12 +382,7 @@ mod tests {
         process_paths_with_sink(
             Arc::clone(&recording),
             vec![file.to_string_lossy().to_string()],
-            UserSettings {
-                folderswitch: true,
-                suffix: true,
-                subfolder: false,
-                savepath: None,
-            },
+            UserSettings::default(),
             project_root(),
             no_cancel(),
         )
@@ -425,9 +410,8 @@ mod tests {
             vec![file.to_string_lossy().to_string()],
             UserSettings {
                 folderswitch: false,
-                suffix: true,
-                subfolder: false,
                 savepath: Some(vec![]),
+                ..Default::default()
             },
             project_root(),
             no_cancel(),
@@ -456,9 +440,8 @@ mod tests {
             vec![file.to_string_lossy().to_string()],
             UserSettings {
                 folderswitch: false,
-                suffix: true,
-                subfolder: false,
                 savepath: None,
+                ..Default::default()
             },
             project_root(),
             no_cancel(),
@@ -485,12 +468,7 @@ mod tests {
         process_paths_with_sink(
             Arc::clone(&recording),
             vec![file.to_string_lossy().to_string()],
-            UserSettings {
-                folderswitch: true,
-                suffix: true,
-                subfolder: false,
-                savepath: None,
-            },
+            UserSettings::default(),
             project_root(),
             no_cancel(),
         )
@@ -524,12 +502,7 @@ mod tests {
                 first.to_string_lossy().to_string(),
                 second.to_string_lossy().to_string(),
             ],
-            UserSettings {
-                folderswitch: true,
-                suffix: true,
-                subfolder: false,
-                savepath: None,
-            },
+            UserSettings::default(),
             project_root(),
             no_cancel(),
         )
@@ -581,12 +554,7 @@ mod tests {
             process_paths_with_sink(
                 sink,
                 paths_clone,
-                UserSettings {
-                    folderswitch: true,
-                    suffix: true,
-                    subfolder: false,
-                    savepath: None,
-                },
+                UserSettings::default(),
                 project_root(),
                 cancel_flag,
             )

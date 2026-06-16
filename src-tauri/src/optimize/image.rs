@@ -13,6 +13,14 @@ use zenjpeg::encoder::{ChromaSubsampling, EncoderConfig, PixelLayout, Unstoppabl
 use super::formats::{ImageFormat, SUPPORTED_FORMATS_LABEL};
 use super::tools::gifsicle_path;
 
+const JPEG_QUALITY: u8 = 85;
+const PNG_QUANTIZE_MIN_QUALITY: u8 = 70;
+const PNG_QUANTIZE_MAX_QUALITY: u8 = 100;
+const PNG_DITHERING_LEVEL: f32 = 1.0;
+const WEBP_QUALITY: f32 = 80.0;
+const AVIF_QUALITY: f32 = 50.0;
+const AVIF_SPEED: u8 = 4;
+
 fn temp_source_path(output: &Path) -> PathBuf {
     let extension = output
         .extension()
@@ -60,7 +68,7 @@ fn optimize_jpeg(input: &Path, output: &Path) -> Result<(), String> {
     let rgb = img.to_rgb8();
     let (width, height) = rgb.dimensions();
 
-    let config = EncoderConfig::ycbcr(85, ChromaSubsampling::Quarter).progressive(true);
+    let config = EncoderConfig::ycbcr(JPEG_QUALITY, ChromaSubsampling::Quarter).progressive(true);
 
     let mut enc = config
         .encode_from_bytes(width, height, PixelLayout::Rgb8Srgb)
@@ -90,7 +98,7 @@ fn optimize_png(input: &Path, output: &Path) -> Result<(), String> {
     let (width, height) = rgba.dimensions();
 
     let mut liq = imagequant::new();
-    liq.set_quality(70, 100)
+    liq.set_quality(PNG_QUANTIZE_MIN_QUALITY, PNG_QUANTIZE_MAX_QUALITY)
         .map_err(|error| error.to_string())?;
 
     let pixels: Vec<imagequant::RGBA> = rgba
@@ -105,7 +113,7 @@ fn optimize_png(input: &Path, output: &Path) -> Result<(), String> {
         .quantize(&mut liq_image)
         .map_err(|error| error.to_string())?;
     quantization
-        .set_dithering_level(1.0)
+        .set_dithering_level(PNG_DITHERING_LEVEL)
         .map_err(|error| error.to_string())?;
 
     let (palette, pixels) = quantization
@@ -164,7 +172,7 @@ fn optimize_webp(input: &Path, output: &Path) -> Result<(), String> {
     let (width, height) = rgba.dimensions();
 
     let encoder = webp::Encoder::from_rgba(rgba.as_raw(), width, height);
-    let webp = encoder.encode(80.0);
+    let webp = encoder.encode(WEBP_QUALITY);
 
     fs::write(output, &*webp).map_err(|error| error.to_string())
 }
@@ -179,7 +187,9 @@ fn optimize_avif(input: &Path, output: &Path) -> Result<(), String> {
         .map(|pixel| RGBA8::new(pixel[0], pixel[1], pixel[2], pixel[3]))
         .collect();
 
-    let encoder = Encoder::new().with_quality(50.0).with_speed(4);
+    let encoder = Encoder::new()
+        .with_quality(AVIF_QUALITY)
+        .with_speed(AVIF_SPEED);
     let encoded = encoder
         .encode_rgba(Img::new(
             pixels.as_slice(),

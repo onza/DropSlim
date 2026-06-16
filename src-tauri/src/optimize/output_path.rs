@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct UserSettings {
     #[serde(default = "default_true")]
     pub folderswitch: bool,
@@ -11,6 +12,17 @@ pub struct UserSettings {
     #[serde(default)]
     pub subfolder: bool,
     pub savepath: Option<Vec<String>>,
+}
+
+impl Default for UserSettings {
+    fn default() -> Self {
+        Self {
+            folderswitch: true,
+            suffix: true,
+            subfolder: false,
+            savepath: None,
+        }
+    }
 }
 
 fn default_true() -> bool {
@@ -82,16 +94,7 @@ mod tests {
         let input = dir.path().join("photo.png");
         fs::write(&input, b"x").unwrap();
 
-        let output = build_output_path(
-            &input,
-            &UserSettings {
-                folderswitch: true,
-                suffix: true,
-                subfolder: false,
-                savepath: None,
-            },
-        )
-        .unwrap();
+        let output = build_output_path(&input, &UserSettings::default()).unwrap();
 
         assert_eq!(output, dir.path().join("photo.min.png"));
     }
@@ -105,10 +108,8 @@ mod tests {
         let output = build_output_path(
             &input,
             &UserSettings {
-                folderswitch: true,
                 suffix: false,
-                subfolder: false,
-                savepath: None,
+                ..Default::default()
             },
         )
         .unwrap();
@@ -125,10 +126,8 @@ mod tests {
         let output = build_output_path(
             &input,
             &UserSettings {
-                folderswitch: true,
-                suffix: true,
                 subfolder: true,
-                savepath: None,
+                ..Default::default()
             },
         )
         .unwrap();
@@ -150,9 +149,8 @@ mod tests {
             &input,
             &UserSettings {
                 folderswitch: false,
-                suffix: true,
-                subfolder: false,
                 savepath: Some(vec![custom_dir.to_string_lossy().to_string()]),
+                ..Default::default()
             },
         )
         .unwrap();
@@ -164,9 +162,8 @@ mod tests {
     fn empty_savepath_is_missing() {
         assert!(custom_save_folder_missing(&UserSettings {
             folderswitch: false,
-            suffix: true,
-            subfolder: false,
             savepath: Some(vec![]),
+            ..Default::default()
         }));
     }
 
@@ -174,9 +171,8 @@ mod tests {
     fn blank_savepath_is_missing() {
         assert!(custom_save_folder_missing(&UserSettings {
             folderswitch: false,
-            suffix: true,
-            subfolder: false,
             savepath: Some(vec!["  ".into()]),
+            ..Default::default()
         }));
     }
 }

@@ -4,10 +4,16 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { load } from '@tauri-apps/plugin-store'
 
-// UI-only settings (plugin-store). Rust UserSettings ignores unknown keys such as clearlist.
+const OPTIMIZE_SETTING_KEYS = [
+  'folderswitch',
+  'suffix',
+  'subfolder',
+  'savepath',
+]
+
 const defaults = {
   folderswitch: true,
-  clearlist: false, // clear result list before each new batch (not sent to optimize_paths)
+  clearlist: false,
   suffix: true,
   subfolder: false,
 }
@@ -28,6 +34,14 @@ const dragzone = () => document.getElementById('dragzone')
 
 const dragzoneStatus = () => document.getElementById('dragzoneStatus')
 
+const pickOptimizeSettings = (settings) =>
+  Object.fromEntries(
+    OPTIMIZE_SETTING_KEYS.filter((key) => key in settings).map((key) => [
+      key,
+      settings[key],
+    ])
+  )
+
 const setDragzoneStatus = (message) => {
   const status = dragzoneStatus()
 
@@ -39,13 +53,26 @@ const setDragzoneStatus = (message) => {
   status.hidden = !message
 }
 
+const setProcessing = (active) => {
+  const zone = dragzone()
+
+  if (!zone) {
+    return
+  }
+
+  zone.classList.toggle('is--processing', active)
+
+  if (!active) {
+    setDragzoneStatus('')
+  }
+}
+
 const beginProcessing = () => {
-  dragzone()?.classList.add('is--processing')
+  setProcessing(true)
 }
 
 const endProcessing = () => {
-  dragzone()?.classList.remove('is--processing')
-  setDragzoneStatus('')
+  setProcessing(false)
 }
 
 const emitEvent = (name, callback) => {
@@ -81,7 +108,7 @@ const submitPaths = async (paths) => {
 
   await invoke('optimize_paths', {
     paths,
-    settings: cachedSettings,
+    settings: pickOptimizeSettings(cachedSettings),
   })
 }
 
@@ -174,6 +201,9 @@ export const createDropslimApi = () => ({
         .catch((error) => console.error(error))
     },
   },
+  setStatus: setDragzoneStatus,
+  setProcessing,
+  endProcessing,
   pickAndOptimize: async () => {
     if (optimizeInFlight) {
       setDragzoneStatus('Already compressing images…')

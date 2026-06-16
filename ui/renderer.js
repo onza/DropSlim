@@ -3,7 +3,6 @@ export const initRenderer = (api) => {
   const MAX_RESULT_ROWS = 100
 
   const dragzone = document.getElementById('dragzone'),
-    dragzoneStatus = document.getElementById('dragzoneStatus'),
     batchSummary = document.getElementById('batchSummary'),
     resultBox = document.getElementById('result'),
     btnOpenSettings = document.getElementById('btnOpenSettings'),
@@ -44,15 +43,6 @@ export const initRenderer = (api) => {
     btnSavepath.innerText = cutFolderName(userSetting.savepath[0], 48)
   }
 
-  const setDragzoneStatus = (message) => {
-    if (!dragzoneStatus) {
-      return
-    }
-
-    dragzoneStatus.textContent = message
-    dragzoneStatus.hidden = !message
-  }
-
   const setCancelVisible = (visible) => {
     if (btnCancelOptimization) {
       btnCancelOptimization.hidden = !visible
@@ -85,7 +75,7 @@ export const initRenderer = (api) => {
     const message = formatBatchStatus(fileName)
 
     if (message) {
-      setDragzoneStatus(message)
+      api.setStatus(message)
     }
   }
 
@@ -166,8 +156,7 @@ export const initRenderer = (api) => {
     }
 
     if (!resultBox.querySelector('.resLine--processing')) {
-      dragzone.classList.remove('is--processing')
-      setDragzoneStatus('')
+      api.endProcessing()
       setCancelVisible(false)
     }
   }
@@ -176,8 +165,7 @@ export const initRenderer = (api) => {
     batchActive = false
     batchDone = 0
     batchTotal = 0
-    dragzone.classList.remove('is--processing')
-    setDragzoneStatus('')
+    api.endProcessing()
     setCancelVisible(false)
     removeProcessingLine()
   }
@@ -187,7 +175,7 @@ export const initRenderer = (api) => {
       .pickAndOptimize()
       .then((result) => {
         if (result.busy) {
-          setDragzoneStatus('Already compressing images…')
+          api.setStatus('Already compressing images…')
         }
       })
       .catch((err) => {
@@ -273,7 +261,7 @@ export const initRenderer = (api) => {
     }
 
     clearBatchSummary()
-    dragzone.classList.add('is--processing')
+    api.setProcessing(true)
 
     if (batchActive) {
       setCancelVisible(true)
@@ -291,7 +279,7 @@ export const initRenderer = (api) => {
   })
 
   api.onFileProcessing((fileName) => {
-    dragzone.classList.add('is--processing')
+    api.setProcessing(true)
     updateBatchStatus(fileName)
     addProcessingLine(fileName)
   })
