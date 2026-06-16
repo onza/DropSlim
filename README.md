@@ -1,5 +1,7 @@
 # DropSlim
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) [![CI](https://github.com/onza/DropSlim/actions/workflows/ci.yml/badge.svg)](https://github.com/onza/DropSlim/actions/workflows/ci.yml)
+
 Make large image files **small** — on your Mac, with drag & drop. Local, fast, privacy, free, and open source.
 
 Drop your images. DropSlim crunches the numbers. Done. Everything stays on your Mac — no account, no server.
