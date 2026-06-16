@@ -2,7 +2,6 @@
   "name": "dropslim",
   "version": "1.0.0-beta.8",
   "description": "Optimize your images and graphics in a single drag and drop.",
-  "productName": "DropSlim",
   "author": "Martin Farkas",
   "license": "MIT",
   "repository": {
@@ -13,20 +12,18 @@
   "scripts": {
     "postinstall": "node scripts/install-gifsicle.mjs",
     "prepare": "husky",
-    "dev": "bash scripts/start-tauri-dev.sh",
+    "dev": "bash scripts/dev.sh",
+    "build": "bash scripts/build.sh",
     "test": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "ci": "npm run lint && npm run format:check && npm run prepare:tauri && npm run ui:build && npm test",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "sync-icons": "bash scripts/build-icons.sh",
-    "sync-version": "node scripts/sync-version.mjs",
+    "prepare:tauri": "node scripts/prepare-tauri.mjs",
     "version": "node scripts/sync-version.mjs",
-    "build": "bash scripts/build.sh",
     "ui:dev": "vite",
     "ui:build": "vite build",
-    "tauri": "tauri",
-    "tauri:build": "tauri build",
-    "tauri:prepare-resources": "node scripts/prepare-tauri-resources.mjs"
+    "tauri": "tauri"
   },
   "keywords": [
     "image",

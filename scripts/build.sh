@@ -6,7 +6,7 @@ target="${CARGO_TARGET_DIR:-$root/src-tauri/target}"
 cd "$root"
 
 npm run tauri -- build --bundles dmg
-bash "$root/scripts/verify-release-bundle.sh"
+node "$root/scripts/verify-release.mjs" --bundle
 
 dmg=$(find "$target" -name '*.dmg' -path '*/release/bundle/dmg/*' 2>/dev/null | head -1)
 

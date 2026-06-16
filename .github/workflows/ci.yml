@@ -36,20 +36,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Format
-        run: npm run format:check
-
-      - name: Sync icons
-        run: npm run sync-icons
-
-      - name: Prepare Tauri resources
-        run: npm run tauri:prepare-resources
-
-      - name: Build UI
-        run: npm run ui:build
-
-      - name: Test
-        run: npm test
+      - name: CI
+        run: npm run ci

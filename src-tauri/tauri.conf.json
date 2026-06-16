@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "npm run ui:dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm run sync-version && npm run sync-icons && npm run ui:build && npm run tauri:prepare-resources",
+    "beforeBuildCommand": "npm run prepare:tauri && npm run ui:build",
     "frontendDist": "../dist-ui"
   },
   "app": {
