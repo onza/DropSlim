@@ -11,11 +11,11 @@ bash "$root/scripts/verify-release-bundle.sh"
 dmg=$(find "$target" -name '*.dmg' -path '*/release/bundle/dmg/*' 2>/dev/null | head -1)
 
 if [[ ! -f "$dmg" ]]; then
-  echo "build-release: DMG not found under $target" >&2
+  echo "build: DMG not found under $target" >&2
   exit 1
 fi
 
 mkdir -p "$root/dist"
 /bin/cp -f "$dmg" "$root/dist/$(basename "$dmg")"
 
-echo "build-release: ok (dist/$(basename "$dmg"))"
+echo "build: ok (dist/$(basename "$dmg"))"
