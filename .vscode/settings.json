@@ -9,5 +9,19 @@
   },
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#003D7A",
+    "activityBar.foreground": "#F5F5F7",
+    "activityBar.activeBorder": "#007AFF",
+    "activityBar.inactiveForeground": "#8E8E93",
+    "titleBar.activeBackground": "#007AFF",
+    "titleBar.activeForeground": "#FFFFFF",
+    "titleBar.inactiveBackground": "#003D7A",
+    "titleBar.inactiveForeground": "#C7C7CC",
+    "statusBar.background": "#007AFF",
+    "statusBar.foreground": "#FFFFFF",
+    "statusBar.noFolderBackground": "#003D7A",
+    "statusBar.debuggingBackground": "#0066D6"
   }
 }

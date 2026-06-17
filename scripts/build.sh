@@ -5,6 +5,8 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 target="${CARGO_TARGET_DIR:-$root/src-tauri/target}"
 cd "$root"
 
+export DROPSLIM_RELEASE=1
+
 npm run tauri -- build --bundles dmg
 node "$root/scripts/verify-release.mjs" --bundle
 

@@ -5,47 +5,46 @@ import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const target = path.join(root, 'src-tauri', 'resources')
+const gifsicleSource = path.join(root, 'vendor', 'gifsicle', 'gifsicle')
+const gifsicleTarget = path.join(target, 'vendor', 'gifsicle', 'gifsicle')
 
-const copyDir = (from, to) => {
-  fs.cpSync(from, to, { recursive: true })
-}
+const releaseBuild = process.env.DROPSLIM_RELEASE === '1'
+const signingIdentity = releaseBuild
+  ? process.env.APPLE_SIGNING_IDENTITY || process.env.CODESIGN_IDENTITY || ''
+  : '-'
 
-const signResources = (resourcesDir) => {
-  if (process.platform !== 'darwin') {
-    console.log('prepare-resources: signing skipped (not macOS)')
-    return
+const isReleaseSign = Boolean(signingIdentity && signingIdentity !== '-')
+
+const signBinary = (filePath) => {
+  const args = ['--force', '--sign', signingIdentity]
+
+  if (isReleaseSign) {
+    args.push('--options', 'runtime', '--timestamp')
   }
 
-  let signed = 0
-
-  const walk = (dir) => {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const fullPath = path.join(dir, entry.name)
-
-      if (entry.isDirectory()) {
-        walk(fullPath)
-        continue
-      }
-
-      const isExecutable = (fs.statSync(fullPath).mode & 0o111) !== 0
-      if (!isExecutable && entry.name !== 'gifsicle') {
-        continue
-      }
-
-      execFileSync('codesign', ['--force', '--sign', '-', fullPath], {
-        stdio: 'ignore',
-      })
-      signed += 1
-    }
-  }
-
-  walk(resourcesDir)
-  console.log(`prepare-resources: signed ${signed} binaries`)
+  args.push(filePath)
+  execFileSync('codesign', args, { stdio: 'inherit' })
 }
 
 fs.rmSync(target, { recursive: true, force: true })
-fs.mkdirSync(target, { recursive: true })
-copyDir(path.join(root, 'vendor'), path.join(target, 'vendor'))
-signResources(target)
+fs.mkdirSync(path.dirname(gifsicleTarget), { recursive: true })
+
+if (!fs.existsSync(gifsicleSource)) {
+  console.error(`prepare-resources: gifsicle missing at ${gifsicleSource}`)
+  console.error('prepare-resources: run npm ci first')
+  process.exit(1)
+}
+
+fs.copyFileSync(gifsicleSource, gifsicleTarget)
+fs.chmodSync(gifsicleTarget, 0o755)
+
+if (process.platform === 'darwin') {
+  console.log(
+    `prepare-resources: signing gifsicle (${isReleaseSign ? signingIdentity : 'ad-hoc'})`
+  )
+  signBinary(gifsicleTarget)
+} else {
+  console.log('prepare-resources: signing skipped (not macOS)')
+}
 
 console.log(`prepare-resources: ok (${target})`)
