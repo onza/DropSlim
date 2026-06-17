@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process'
+import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -19,11 +19,36 @@ const signBinary = (filePath) => {
   const args = ['--force', '--sign', signingIdentity]
 
   if (isReleaseSign) {
-    args.push('--options', 'runtime', '--timestamp')
+    args.push(
+      '--options',
+      'runtime',
+      '--timestamp=http://timestamp.apple.com/ts01'
+    )
   }
 
   args.push(filePath)
-  execFileSync('codesign', args, { stdio: 'inherit' })
+
+  if (isReleaseSign) {
+    console.log(
+      'prepare-resources: signing gifsicle (keychain dialog may appear — choose Always Allow)'
+    )
+  }
+
+  const result = spawnSync('codesign', args, {
+    stdio: 'inherit',
+    timeout: 120_000,
+  })
+
+  if (result.error?.code === 'ETIMEDOUT') {
+    console.error(
+      'prepare-resources: codesign timed out after 2 minutes (keychain or network)'
+    )
+    process.exit(1)
+  }
+
+  if (result.status !== 0) {
+    process.exit(result.status ?? 1)
+  }
 }
 
 fs.rmSync(target, { recursive: true, force: true })
