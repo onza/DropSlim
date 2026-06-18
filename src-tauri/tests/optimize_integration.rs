@@ -85,55 +85,7 @@ fn optimizes_avif_fixture() {
 #[test]
 #[cfg(target_os = "macos")]
 fn optimizes_heic_fixture() {
-    let dir = tempfile::tempdir().expect("tempdir");
-    let input = create_raster_fixture(&dir, "sample.heic", |path| {
-        use image::{ImageBuffer, Rgba};
-        use objc2_core_foundation::{CFDictionary, CFNumber, CFString};
-        use objc2_foundation::{NSString, NSURL};
-        use objc2_image_io::{
-            kCGImageDestinationLossyCompressionQuality, CGImageDestination, CGImageSource,
-        };
-
-        let png_path = dir.path().join("sample-source.png");
-        let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
-            ImageBuffer::from_fn(512, 384, |x, y| Rgba([x as u8, y as u8, 200, 255]));
-        img.save(&png_path).expect("save png");
-
-        let png_url = NSURL::fileURLWithPath(&NSString::from_str(
-            png_path.to_str().expect("png path"),
-        ));
-        let source = unsafe { CGImageSource::with_url(png_url.as_ref(), None) }
-            .expect("png image source");
-
-        let heic_url = NSURL::fileURLWithPath(&NSString::from_str(
-            path.to_str().expect("heic path"),
-        ));
-        let destination = unsafe {
-            CGImageDestination::with_url(
-                heic_url.as_ref(),
-                &CFString::from_str("public.heic"),
-                1,
-                None,
-            )
-        }
-        .expect("heic destination");
-
-        let quality = CFNumber::new_f32(1.0);
-
-        unsafe {
-            let quality_key = &*kCGImageDestinationLossyCompressionQuality;
-            let properties = CFDictionary::<CFString, CFNumber>::from_slices(
-                &[quality_key],
-                &[&*quality],
-            );
-
-            destination.add_image_from_source(&source, 0, Some(properties.as_ref()));
-            assert!(destination.finalize());
-        }
-
-        fs::remove_file(png_path).expect("remove png");
-    });
-
+    let input = fixtures_dir().join("sample.heic");
     optimize_to_temp(&input, ".heic");
 }
 

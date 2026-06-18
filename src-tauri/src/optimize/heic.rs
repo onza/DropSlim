@@ -88,61 +88,22 @@ pub fn optimize_heic(_input: &Path, _output: &Path) -> Result<(), String> {
 mod tests {
     use super::*;
     use std::fs;
-    use std::path::Path;
+    use std::path::PathBuf;
 
-    #[cfg(target_os = "macos")]
-    fn write_heic_fixture(path: &Path) {
-        use image::{ImageBuffer, Rgba};
-        use objc2_core_foundation::{CFDictionary, CFNumber, CFString};
-        use objc2_foundation::{NSString, NSURL};
-        use objc2_image_io::{
-            kCGImageDestinationLossyCompressionQuality, CGImageDestination, CGImageSource,
-        };
-
-        let dir = path.parent().expect("fixture parent");
-        let png_path = dir.join("heic-fixture-source.png");
-        let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
-            ImageBuffer::from_fn(512, 384, |x, y| Rgba([x as u8, y as u8, 128, 255]));
-        img.save(&png_path).expect("write png fixture");
-
-        let png_url = NSURL::fileURLWithPath(&NSString::from_str(
-            png_path.to_str().expect("png path"),
-        ));
-        let source = unsafe { CGImageSource::with_url(png_url.as_ref(), None) }
-            .expect("png image source");
-
-        let heic_url = NSURL::fileURLWithPath(&NSString::from_str(
-            path.to_str().expect("heic path"),
-        ));
-        let heic_type = CFString::from_str("public.heic");
-        let destination = unsafe {
-            CGImageDestination::with_url(heic_url.as_ref(), &heic_type, 1, None)
-        }
-        .expect("heic destination");
-
-        let quality = CFNumber::new_f32(1.0);
-
-        unsafe {
-            let quality_key = &*kCGImageDestinationLossyCompressionQuality;
-            let properties = CFDictionary::<CFString, CFNumber>::from_slices(
-                &[quality_key],
-                &[&*quality],
-            );
-
-            destination.add_image_from_source(&source, 0, Some(properties.as_ref()));
-            assert!(destination.finalize());
-        }
-
-        let _ = fs::remove_file(png_path);
+    fn heic_fixture() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../test/fixtures/sample.heic")
     }
 
     #[test]
     #[cfg(target_os = "macos")]
     fn optimizes_heic_fixture() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        let input = dir.path().join("photo.heic");
-        write_heic_fixture(&input);
+        let input = heic_fixture();
+        assert!(
+            input.is_file(),
+            "missing test/fixtures/sample.heic — run: cargo run --example write_heic_fixture"
+        );
 
+        let dir = tempfile::tempdir().expect("tempdir");
         let output = dir.path().join("photo.min.heic");
 
         optimize_heic(&input, &output).expect("optimize heic");
