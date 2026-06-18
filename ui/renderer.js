@@ -16,7 +16,10 @@ export const initRenderer = (api) => {
     folderswitch = document.getElementById('folderswitch'),
     clearlist = document.getElementById('clearlist'),
     suffix = document.getElementById('suffix'),
-    subfolder = document.getElementById('subfolder')
+    subfolder = document.getElementById('subfolder'),
+    autoCheckUpdates = document.getElementById('autoCheckUpdates'),
+    autoInstallUpdates = document.getElementById('autoInstallUpdates'),
+    btnCheckUpdates = document.getElementById('btnCheckUpdates')
 
   let userSetting = settings.getSync()
   let batchActive = false
@@ -27,6 +30,8 @@ export const initRenderer = (api) => {
   clearlist.checked = userSetting.clearlist
   suffix.checked = userSetting.suffix
   subfolder.checked = userSetting.subfolder
+  autoCheckUpdates.checked = userSetting.autoCheckUpdates
+  autoInstallUpdates.checked = userSetting.autoInstallUpdates
 
   if (userSetting.folderswitch === false) {
     folderswitch.checked = false
@@ -206,6 +211,21 @@ export const initRenderer = (api) => {
       .catch((err) => {
         console.error(err)
       })
+  }
+
+  if (btnCheckUpdates) {
+    btnCheckUpdates.onclick = (event) => {
+      event.preventDefault()
+      btnCheckUpdates.disabled = true
+      api
+        .checkForUpdates({ autoInstall: false })
+        .catch((err) => {
+          console.error(err)
+        })
+        .finally(() => {
+          btnCheckUpdates.disabled = false
+        })
+    }
   }
 
   Array.from(switches).forEach((switchEl) => {

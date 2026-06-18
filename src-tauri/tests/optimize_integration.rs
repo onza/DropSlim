@@ -26,11 +26,7 @@ fn optimize_to_temp(input: &Path, ext: &str) -> (TempDir, PathBuf) {
     (dir, output)
 }
 
-fn create_raster_fixture(
-    dir: &TempDir,
-    name: &str,
-    create: impl FnOnce(&Path),
-) -> PathBuf {
+fn create_raster_fixture(dir: &TempDir, name: &str, create: impl FnOnce(&Path)) -> PathBuf {
     let path = dir.path().join(name);
     create(&path);
     path
@@ -79,11 +75,7 @@ fn optimizes_avif_fixture() {
     let dir = tempfile::tempdir().expect("tempdir");
     let input = create_raster_fixture(&dir, "sample.avif", |path| {
         let img = image::RgbImage::from_fn(320, 240, |x, y| {
-            image::Rgb([
-                (x % 255) as u8,
-                (y % 255) as u8,
-                ((x + y) % 255) as u8,
-            ])
+            image::Rgb([(x % 255) as u8, (y % 255) as u8, ((x + y) % 255) as u8])
         });
         img.save(path).expect("save avif");
     });
@@ -95,7 +87,11 @@ fn optimizes_gif_fixture() {
     let gifsicle = project_root()
         .join("vendor")
         .join("gifsicle")
-        .join(if cfg!(windows) { "gifsicle.exe" } else { "gifsicle" });
+        .join(if cfg!(windows) {
+            "gifsicle.exe"
+        } else {
+            "gifsicle"
+        });
 
     if !gifsicle.exists() {
         panic!(

@@ -340,6 +340,13 @@ button {
   margin: 0 0 1rem;
 }
 
+.app-version {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  margin: 1rem 0 0;
+  text-align: center;
+}
+
 .setting-row {
   align-items: center;
   border-bottom: 1px solid var(--color-border);

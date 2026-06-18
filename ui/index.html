@@ -67,6 +67,36 @@
               <span class="toggle-track" aria-hidden="true"></span>
             </label>
           </div>
+          <div class="setting-row">
+            <span class="setting-label">Check for updates automatically</span>
+            <label class="toggle">
+              <input
+                id="autoCheckUpdates"
+                name="autoCheckUpdates"
+                type="checkbox"
+                checked
+              />
+              <span class="toggle-track" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Install updates without asking</span>
+            <label class="toggle">
+              <input
+                id="autoInstallUpdates"
+                name="autoInstallUpdates"
+                type="checkbox"
+              />
+              <span class="toggle-track" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="setting-row setting-row--action">
+            <span class="setting-label">Updates</span>
+            <button type="button" id="btnCheckUpdates" class="btn">
+              Check now
+            </button>
+          </div>
+          <p id="appVersion" class="app-version" aria-live="polite"></p>
         </div>
       </section>
       <footer class="app-footer">

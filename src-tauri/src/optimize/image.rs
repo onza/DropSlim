@@ -2,11 +2,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use oxipng::{optimize_from_memory, Options, StripChunks};
 use oxvg_ast::parse::roxmltree::parse;
 use oxvg_ast::serialize::Node;
 use oxvg_ast::visitor::Info;
 use oxvg_optimiser::Jobs;
-use oxipng::{optimize_from_memory, Options, StripChunks};
 use ravif::{Encoder, Img, RGBA8};
 use zenjpeg::encoder::{ChromaSubsampling, EncoderConfig, PixelLayout, Unstoppable};
 
@@ -133,9 +133,7 @@ fn optimize_png(input: &Path, output: &Path) -> Result<(), String> {
         encoder.set_palette(palette_bytes.as_slice());
         encoder.set_trns(transparency.as_slice());
 
-        let mut writer = encoder
-            .write_header()
-            .map_err(|error| error.to_string())?;
+        let mut writer = encoder.write_header().map_err(|error| error.to_string())?;
         writer
             .write_image_data(&pixels)
             .map_err(|error| error.to_string())?;
@@ -191,21 +189,13 @@ fn optimize_avif(input: &Path, output: &Path) -> Result<(), String> {
         .with_quality(AVIF_QUALITY)
         .with_speed(AVIF_SPEED);
     let encoded = encoder
-        .encode_rgba(Img::new(
-            pixels.as_slice(),
-            width as usize,
-            height as usize,
-        ))
+        .encode_rgba(Img::new(pixels.as_slice(), width as usize, height as usize))
         .map_err(|error| error.to_string())?;
 
     fs::write(output, encoded.avif_file).map_err(|error| error.to_string())
 }
 
-pub fn optimize_image_file(
-    input: &Path,
-    output: &Path,
-    project_root: &Path,
-) -> Result<(), String> {
+pub fn optimize_image_file(input: &Path, output: &Path, project_root: &Path) -> Result<(), String> {
     let format = ImageFormat::from_path(input)
         .ok_or_else(|| format!("Only {SUPPORTED_FORMATS_LABEL} are supported."))?;
 

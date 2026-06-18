@@ -7,9 +7,9 @@ use tokio::task::JoinSet;
 
 use super::collect::{self, SUPPORTED_FORMATS_LABEL};
 use super::events::{app_event_sink, EventSink, ProcessorEvent};
-use super::summary::{build_batch_summary, build_optimize_summary, file_size};
 use super::image::optimize_image_file;
 use super::output_path::{build_output_path, custom_save_folder_missing, UserSettings};
+use super::summary::{build_batch_summary, build_optimize_summary, file_size};
 
 const OPTIMIZATION_CONCURRENCY: usize = 3;
 pub const MAX_BATCH_FILES: usize = 10_000;
@@ -52,10 +52,12 @@ impl BatchState {
     }
 
     fn emit_progress<E: EventSink + ?Sized>(&self, sink: &E) {
-        sink.send(ProcessorEvent::BatchProgress(super::events::BatchProgress {
-            done: self.done(),
-            total: self.total as u32,
-        }));
+        sink.send(ProcessorEvent::BatchProgress(
+            super::events::BatchProgress {
+                done: self.done(),
+                total: self.total as u32,
+            },
+        ));
     }
 
     fn finish_if_done<E: EventSink + ?Sized>(&self, sink: &E) {
@@ -476,15 +478,19 @@ mod tests {
         .expect("process paths");
 
         let events = recording.events();
-        assert!(events.iter().any(|event| {
-            matches!(event, ProcessorEvent::BatchStarted { total: 1 })
-        }));
+        assert!(events
+            .iter()
+            .any(|event| { matches!(event, ProcessorEvent::BatchStarted { total: 1 }) }));
         assert!(matches!(
             events.iter().find(|event| matches!(event, ProcessorEvent::FileProcessing(_))),
             Some(ProcessorEvent::FileProcessing(ref name)) if name == "photo.png"
         ));
-        assert!(events.iter().any(|event| matches!(event, ProcessorEvent::ImageOptimized { .. })));
-        assert!(events.iter().any(|event| matches!(event, ProcessorEvent::BatchComplete(_))));
+        assert!(events
+            .iter()
+            .any(|event| matches!(event, ProcessorEvent::ImageOptimized { .. })));
+        assert!(events
+            .iter()
+            .any(|event| matches!(event, ProcessorEvent::BatchComplete(_))));
     }
 
     #[tokio::test]
@@ -572,9 +578,8 @@ mod tests {
             .filter(|event| matches!(event, ProcessorEvent::ImageOptimized { .. }))
             .count();
         assert!(optimized < 6);
-        assert!(events.iter().any(|event| matches!(
-            event,
-            ProcessorEvent::BatchCancelled { total: 6, .. }
-        )));
+        assert!(events
+            .iter()
+            .any(|event| matches!(event, ProcessorEvent::BatchCancelled { total: 6, .. })));
     }
 }

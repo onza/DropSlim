@@ -1,6 +1,6 @@
 [package]
 name = "dropslim"
-version = "1.0.0"
+version = "1.0.1"
 description = "Optimize your images and graphics in a single drag and drop."
 authors = ["Martin Farkas"]
 edition = "2021"
@@ -40,3 +40,7 @@ window-vibrancy = "0.6"
 objc2 = "0.6"
 objc2-foundation = { version = "0.3", features = ["NSArray", "NSString", "NSURL"] }
 objc2-app-kit = { version = "0.3", features = ["NSApplication", "NSImage", "NSOpenPanel", "NSPanel"] }
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"

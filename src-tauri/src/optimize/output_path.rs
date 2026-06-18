@@ -65,7 +65,10 @@ pub fn build_output_path(input: &Path, settings: &UserSettings) -> std::io::Resu
         .file_stem()
         .and_then(|value| value.to_str())
         .unwrap_or("output");
-    let extension = input.extension().and_then(|value| value.to_str()).unwrap_or("");
+    let extension = input
+        .extension()
+        .and_then(|value| value.to_str())
+        .unwrap_or("");
 
     let file_name = if settings.suffix {
         if extension.is_empty() {

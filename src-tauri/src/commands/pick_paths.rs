@@ -10,8 +10,7 @@ pub async fn pick_paths(app: AppHandle) -> Result<Vec<String>, String> {
     })
     .map_err(|error| error.to_string())?;
 
-    rx.await
-        .map_err(|error| error.to_string())?
+    rx.await.map_err(|error| error.to_string())?
 }
 
 #[tauri::command]
@@ -23,6 +22,5 @@ pub async fn pick_save_folder(app: AppHandle) -> Result<Vec<String>, String> {
     })
     .map_err(|error| error.to_string())?;
 
-    rx.await
-        .map_err(|error| error.to_string())?
+    rx.await.map_err(|error| error.to_string())?
 }

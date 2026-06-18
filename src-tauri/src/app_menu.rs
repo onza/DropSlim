@@ -4,8 +4,7 @@ pub fn setup_app_menu(app: &tauri::AppHandle) -> tauri::Result<()> {
     use tauri::Emitter;
 
     let about = PredefinedMenuItem::about(app, None, None)?;
-    let preferences =
-        MenuItem::with_id(app, "preferences", "Preferences…", true, Some("Cmd+,"))?;
+    let preferences = MenuItem::with_id(app, "preferences", "Preferences…", true, Some("Cmd+,"))?;
     let separator = PredefinedMenuItem::separator(app)?;
     let quit = PredefinedMenuItem::quit(app, None)?;
     let app_name = app.package_info().name.clone();
@@ -14,7 +13,13 @@ pub fn setup_app_menu(app: &tauri::AppHandle) -> tauri::Result<()> {
         app,
         &app_name,
         true,
-        &[&about, &separator, &preferences, &PredefinedMenuItem::separator(app)?, &quit],
+        &[
+            &about,
+            &separator,
+            &preferences,
+            &PredefinedMenuItem::separator(app)?,
+            &quit,
+        ],
     )?;
 
     let minimize = PredefinedMenuItem::minimize(app, None)?;

@@ -3,6 +3,7 @@ import { listen } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { load } from '@tauri-apps/plugin-store'
+import { checkForUpdates } from './updates.js'
 
 const OPTIMIZE_SETTING_KEYS = [
   'folderswitch',
@@ -16,6 +17,8 @@ const defaults = {
   clearlist: false,
   suffix: true,
   subfolder: false,
+  autoCheckUpdates: true,
+  autoInstallUpdates: false,
 }
 
 let storePromise
@@ -250,4 +253,9 @@ export const createDropslimApi = () => ({
     emitEvent('batch-cancelled', (done, total, succeeded, failed) =>
       callback(done, total, succeeded, failed)
     ),
+  checkForUpdates: (options) =>
+    checkForUpdates({
+      ...options,
+      onStatus: options?.onStatus ?? setDragzoneStatus,
+    }),
 })

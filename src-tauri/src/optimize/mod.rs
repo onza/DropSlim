@@ -1,11 +1,11 @@
 mod collect;
 mod events;
+pub mod formats;
 mod image;
 mod output_path;
 mod processor;
 mod summary;
 mod tools;
-pub mod formats;
 
 pub use events::{EventSink, ProcessorEvent, RecordingEventSink};
 pub use image::optimize_image_file;
