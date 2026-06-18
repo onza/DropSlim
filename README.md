@@ -41,14 +41,6 @@ Requires macOS 11 (Big Sur) or later and an **Apple Silicon** Mac (M1 or newer).
 
 <br>
 
-## Development
-
-```bash
-npm run dev
-```
-
-<br>
-
 ## A Frustrating Side Note
 
 DropSlim is open source and free. Nevertheless, in the Apple ecosystem, it apparently costs money just to download an app, drag it into the “Applications” folder, and open it without any further hassle.
