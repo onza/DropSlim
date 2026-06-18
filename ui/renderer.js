@@ -214,16 +214,36 @@ export const initRenderer = (api) => {
   }
 
   if (btnCheckUpdates) {
-    const defaultCheckLabel = btnCheckUpdates.textContent
+    const CHECK_LABEL = 'Check now'
+    const INSTALL_LABEL = 'Install'
+
+    const syncUpdateAction = (version) => {
+      btnCheckUpdates.textContent = version ? INSTALL_LABEL : CHECK_LABEL
+    }
 
     btnCheckUpdates.onclick = (event) => {
       event.preventDefault()
       btnCheckUpdates.disabled = true
+
+      if (api.hasPendingUpdate()) {
+        btnCheckUpdates.textContent = 'Installing…'
+        api
+          .installPendingUpdate()
+          .catch((err) => {
+            console.error(err)
+          })
+          .finally(() => {
+            btnCheckUpdates.disabled = false
+            syncUpdateAction(api.getPendingUpdateVersion())
+          })
+        return
+      }
+
       btnCheckUpdates.textContent = 'Checking…'
       api.setUpdateStatus('Checking for updates…')
       api
         .checkForUpdates({
-          autoInstall: false,
+          onUpdateAvailable: syncUpdateAction,
         })
         .catch((err) => {
           console.error(err)
@@ -231,9 +251,11 @@ export const initRenderer = (api) => {
         })
         .finally(() => {
           btnCheckUpdates.disabled = false
-          btnCheckUpdates.textContent = defaultCheckLabel
+          syncUpdateAction(api.getPendingUpdateVersion())
         })
     }
+
+    api.syncUpdateAction = syncUpdateAction
   }
 
   Array.from(switches).forEach((switchEl) => {
@@ -253,6 +275,7 @@ export const initRenderer = (api) => {
     menuSettings.classList.add('is--open')
     wrapper.classList.add('is--settings-open')
     api.reapplyUpdateStatus()
+    api.syncUpdateAction?.(api.getPendingUpdateVersion())
   }
 
   const closeSettings = () => {

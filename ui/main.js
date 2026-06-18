@@ -19,11 +19,17 @@ const boot = async () => {
     }
   }
 
-  void maybeCheckForUpdates(api.settings, (message) => {
-    if (message) {
-      api.setUpdateStatus(message)
+  void maybeCheckForUpdates(
+    api.settings,
+    (message) => {
+      if (message) {
+        api.setUpdateStatus(message)
+      }
+    },
+    (version) => {
+      api.syncUpdateAction?.(version)
     }
-  }).catch((error) => {
+  ).catch((error) => {
     console.error(error)
   })
 }

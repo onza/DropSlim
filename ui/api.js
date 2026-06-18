@@ -3,7 +3,12 @@ import { listen } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { load } from '@tauri-apps/plugin-store'
-import { checkForUpdates } from './updates.js'
+import {
+  checkForUpdates,
+  getPendingUpdateVersion,
+  hasPendingUpdate,
+  installPendingUpdate,
+} from './updates.js'
 
 const OPTIMIZE_SETTING_KEYS = [
   'folderswitch',
@@ -291,6 +296,13 @@ export const createDropslimApi = () => ({
     ),
   checkForUpdates: (options) =>
     checkForUpdates({
+      ...options,
+      onStatus: options?.onStatus ?? setUpdateStatus,
+    }),
+  hasPendingUpdate,
+  getPendingUpdateVersion,
+  installPendingUpdate: (options) =>
+    installPendingUpdate({
       ...options,
       onStatus: options?.onStatus ?? setUpdateStatus,
     }),
