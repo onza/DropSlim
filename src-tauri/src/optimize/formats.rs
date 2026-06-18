@@ -1,8 +1,10 @@
 use std::path::Path;
 
-pub const SUPPORTED_EXTENSIONS: &[&str] = &["svg", "jpg", "jpeg", "png", "gif", "webp", "avif"];
+pub const SUPPORTED_EXTENSIONS: &[&str] = &[
+    "svg", "jpg", "jpeg", "png", "gif", "webp", "avif", "heic", "heif",
+];
 
-pub const SUPPORTED_FORMATS_LABEL: &str = "PNG, JPG, GIF, SVG, WebP, and AVIF";
+pub const SUPPORTED_FORMATS_LABEL: &str = "PNG, JPG, HEIC, GIF, SVG, WebP, and AVIF";
 
 pub fn is_supported_extension(ext: &str) -> bool {
     SUPPORTED_EXTENSIONS.contains(&ext.to_ascii_lowercase().as_str())
@@ -22,6 +24,7 @@ pub enum ImageFormat {
     Gif,
     Webp,
     Avif,
+    Heic,
 }
 
 impl ImageFormat {
@@ -33,6 +36,7 @@ impl ImageFormat {
             "gif" => Some(Self::Gif),
             "webp" => Some(Self::Webp),
             "avif" => Some(Self::Avif),
+            "heic" | "heif" => Some(Self::Heic),
             _ => None,
         }
     }
@@ -52,7 +56,8 @@ mod tests {
     #[test]
     fn recognizes_supported_extensions() {
         assert!(is_supported_extension("PNG"));
-        assert!(is_supported_extension("avif"));
+        assert!(is_supported_extension("heic"));
+        assert!(is_supported_extension("HEIF"));
         assert!(!is_supported_extension("txt"));
     }
 

@@ -1,6 +1,7 @@
 mod collect;
 mod events;
 pub mod formats;
+mod heic;
 mod image;
 mod output_path;
 mod processor;

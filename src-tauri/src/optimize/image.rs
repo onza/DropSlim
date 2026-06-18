@@ -12,6 +12,7 @@ use ravif::{Encoder, Img, RGBA8};
 use zenjpeg::encoder::{ChromaSubsampling, EncoderConfig, PixelLayout, Unstoppable};
 
 use super::formats::{ImageFormat, SUPPORTED_FORMATS_LABEL};
+use super::heic::optimize_heic;
 use super::tools::gifsicle_path;
 
 const JPEG_QUALITY: u8 = 85;
@@ -239,6 +240,7 @@ pub fn optimize_image_file(input: &Path, output: &Path, project_root: &Path) -> 
         }
         ImageFormat::Webp => optimize_webp(source, destination),
         ImageFormat::Avif => optimize_avif(source, destination),
+        ImageFormat::Heic => optimize_heic(source, destination),
     })
 }
 
