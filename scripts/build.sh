@@ -6,8 +6,8 @@ set -euo pipefail
 #   APPLE_ID="you@example.com"
 #   APPLE_TEAM_ID="XXXXXXXXXX"
 #   APPLE_PASSWORD="xxxx-xxxx-xxxx-xxxx"  # app-specific password from appleid.apple.com
-#   TAURI_SIGNING_PRIVATE_KEY=".tauri/updater.key"  # updater signing key (keep secret)
-#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD="..."       # only if the key was created with a password
+#   TAURI_SIGNING_PRIVATE_KEY_PATH=".tauri/updater.key"  # updater signing key (keep secret)
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD="..."              # only if the key was created with a password
 # Test credentials first: bash scripts/verify-notarize-credentials.sh
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -34,7 +34,7 @@ if [[ -z "${APPLE_PASSWORD:-}" ]] || [[ "$APPLE_PASSWORD" == *"REPLACE"* ]] || [
   exit 1
 fi
 
-updater_key="${TAURI_SIGNING_PRIVATE_KEY:-${TAURI_SIGNING_PRIVATE_KEY_PATH:-$root/.tauri/updater.key}}"
+updater_key="${TAURI_SIGNING_PRIVATE_KEY_PATH:-${TAURI_SIGNING_PRIVATE_KEY:-$root/.tauri/updater.key}}"
 if [[ -f "$updater_key" ]]; then
   updater_key="$(cd "$(dirname "$updater_key")" && pwd)/$(basename "$updater_key")"
 elif [[ -f "$root/$updater_key" ]]; then
@@ -47,7 +47,8 @@ if [[ ! -f "$updater_key" ]]; then
   exit 1
 fi
 
-export TAURI_SIGNING_PRIVATE_KEY="$updater_key"
+export TAURI_SIGNING_PRIVATE_KEY_PATH="$updater_key"
+unset TAURI_SIGNING_PRIVATE_KEY
 
 npm run tauri -- build --bundles dmg,app
 node "$root/scripts/verify-release.mjs" --bundle
