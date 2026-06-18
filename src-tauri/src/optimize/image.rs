@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -92,7 +93,24 @@ fn png_recompress_options() -> Options {
     opts
 }
 
-fn optimize_png(input: &Path, output: &Path) -> Result<(), String> {
+fn png_uses_palette(input: &Path) -> Result<bool, String> {
+    let decoder = png::Decoder::new(
+        BufReader::new(fs::File::open(input).map_err(|error| error.to_string())?),
+    );
+    let reader = decoder.read_info().map_err(|error| error.to_string())?;
+
+    Ok(reader.info().color_type == png::ColorType::Indexed)
+}
+
+fn optimize_png_oxipng_only(input: &Path, output: &Path) -> Result<(), String> {
+    let data = fs::read(input).map_err(|error| error.to_string())?;
+    let optimized = optimize_from_memory(&data, &png_recompress_options())
+        .map_err(|error| error.to_string())?;
+
+    fs::write(output, optimized).map_err(|error| error.to_string())
+}
+
+fn optimize_png_quantized(input: &Path, output: &Path) -> Result<(), String> {
     let img = image::open(input).map_err(|error| error.to_string())?;
     let rgba = img.to_rgba8();
     let (width, height) = rgba.dimensions();
@@ -143,6 +161,14 @@ fn optimize_png(input: &Path, output: &Path) -> Result<(), String> {
         .map_err(|error| error.to_string())?;
 
     fs::write(output, optimized).map_err(|error| error.to_string())
+}
+
+fn optimize_png(input: &Path, output: &Path) -> Result<(), String> {
+    if png_uses_palette(input)? {
+        optimize_png_quantized(input, output)
+    } else {
+        optimize_png_oxipng_only(input, output)
+    }
 }
 
 fn optimize_gif(input: &Path, output: &Path, gifsicle: &Path) -> Result<(), String> {
@@ -214,4 +240,84 @@ pub fn optimize_image_file(input: &Path, output: &Path, project_root: &Path) -> 
         ImageFormat::Webp => optimize_webp(source, destination),
         ImageFormat::Avif => optimize_avif(source, destination),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::{ImageBuffer, Rgba};
+    use std::io::Cursor;
+    use tempfile::tempdir;
+
+    fn write_indexed_png(path: &Path) {
+        let mut buffer = Vec::new();
+        {
+            let mut encoder = png::Encoder::new(&mut buffer, 2, 2);
+            encoder.set_color(png::ColorType::Indexed);
+            encoder.set_depth(png::BitDepth::Eight);
+            encoder.set_palette(&[255, 0, 0, 0, 255, 0, 0, 0, 255]);
+            let mut writer = encoder.write_header().expect("png header");
+            writer
+                .write_image_data(&[0, 1, 0, 1])
+                .expect("png pixels");
+        }
+
+        fs::write(path, buffer).expect("write indexed png");
+    }
+
+    fn write_rgba_png(path: &Path) {
+        let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
+            ImageBuffer::from_pixel(8, 8, Rgba([12, 34, 56, 255]));
+        img.save(path).expect("write rgba png");
+    }
+
+    #[test]
+    fn detects_indexed_png_palette() {
+        let dir = tempdir().expect("tempdir");
+        let indexed = dir.path().join("indexed.png");
+        let rgba = dir.path().join("rgba.png");
+        write_indexed_png(&indexed);
+        write_rgba_png(&rgba);
+
+        assert!(png_uses_palette(&indexed).expect("indexed png"));
+        assert!(!png_uses_palette(&rgba).expect("rgba png"));
+    }
+
+    #[test]
+    fn optimizes_true_color_png_with_oxipng_only() {
+        let dir = tempdir().expect("tempdir");
+        let input = dir.path().join("photo.png");
+        write_rgba_png(&input);
+        let output = dir.path().join("photo.min.png");
+
+        optimize_png(&input, &output).expect("optimize png");
+
+        let optimized = fs::read(&output).expect("read output");
+        let info = png::Decoder::new(Cursor::new(&optimized))
+            .read_info()
+            .expect("decode optimized png")
+            .info()
+            .color_type;
+
+        assert_ne!(info, png::ColorType::Indexed);
+    }
+
+    #[test]
+    fn keeps_quantize_path_for_indexed_png() {
+        let dir = tempdir().expect("tempdir");
+        let input = dir.path().join("graphic.png");
+        write_indexed_png(&input);
+        let output = dir.path().join("graphic.min.png");
+
+        optimize_png(&input, &output).expect("optimize indexed png");
+
+        let optimized = fs::read(&output).expect("read output");
+        let info = png::Decoder::new(Cursor::new(&optimized))
+            .read_info()
+            .expect("decode optimized png")
+            .info()
+            .color_type;
+
+        assert_eq!(info, png::ColorType::Indexed);
+    }
 }
