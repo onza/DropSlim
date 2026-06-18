@@ -16,7 +16,10 @@ export const initRenderer = (api) => {
     folderswitch = document.getElementById('folderswitch'),
     clearlist = document.getElementById('clearlist'),
     suffix = document.getElementById('suffix'),
-    subfolder = document.getElementById('subfolder')
+    subfolder = document.getElementById('subfolder'),
+    autoCheckUpdates = document.getElementById('autoCheckUpdates'),
+    autoInstallUpdates = document.getElementById('autoInstallUpdates'),
+    btnCheckUpdates = document.getElementById('btnCheckUpdates')
 
   let userSetting = settings.getSync()
   let batchActive = false
@@ -27,6 +30,8 @@ export const initRenderer = (api) => {
   clearlist.checked = userSetting.clearlist
   suffix.checked = userSetting.suffix
   subfolder.checked = userSetting.subfolder
+  autoCheckUpdates.checked = userSetting.autoCheckUpdates
+  autoInstallUpdates.checked = userSetting.autoInstallUpdates
 
   if (userSetting.folderswitch === false) {
     folderswitch.checked = false
@@ -208,6 +213,29 @@ export const initRenderer = (api) => {
       })
   }
 
+  if (btnCheckUpdates) {
+    const defaultCheckLabel = btnCheckUpdates.textContent
+
+    btnCheckUpdates.onclick = (event) => {
+      event.preventDefault()
+      btnCheckUpdates.disabled = true
+      btnCheckUpdates.textContent = 'Checking…'
+      api.setUpdateStatus('Checking for updates…')
+      api
+        .checkForUpdates({
+          autoInstall: false,
+        })
+        .catch((err) => {
+          console.error(err)
+          api.setUpdateStatus('Could not check for updates.')
+        })
+        .finally(() => {
+          btnCheckUpdates.disabled = false
+          btnCheckUpdates.textContent = defaultCheckLabel
+        })
+    }
+  }
+
   Array.from(switches).forEach((switchEl) => {
     switchEl.onchange = (e) => {
       settings.setSync(e.target['name'], e.target['checked'])
@@ -224,6 +252,7 @@ export const initRenderer = (api) => {
   const openSettings = () => {
     menuSettings.classList.add('is--open')
     wrapper.classList.add('is--settings-open')
+    api.reapplyUpdateStatus()
   }
 
   const closeSettings = () => {

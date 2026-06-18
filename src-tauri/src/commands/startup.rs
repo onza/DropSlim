@@ -40,7 +40,10 @@ mod tests {
         };
 
         let first = consume_startup_paths_inner(&state);
-        assert_eq!(first, vec!["/tmp/a.png".to_string(), "/tmp/b.jpg".to_string()]);
+        assert_eq!(
+            first,
+            vec!["/tmp/a.png".to_string(), "/tmp/b.jpg".to_string()]
+        );
 
         let second = consume_startup_paths_inner(&state);
         assert!(second.is_empty());

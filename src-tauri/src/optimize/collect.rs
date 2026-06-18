@@ -62,7 +62,10 @@ pub fn collect_image_paths(input_paths: &[String]) -> std::io::Result<CollectRes
         }
     }
 
-    Ok(CollectResult { paths: results, missing })
+    Ok(CollectResult {
+        paths: results,
+        missing,
+    })
 }
 
 #[cfg(test)]
@@ -85,8 +88,7 @@ mod tests {
 
     #[test]
     fn reports_missing_paths() {
-        let collected =
-            collect_image_paths(&["/no/such/file-or-folder.png".to_string()]).unwrap();
+        let collected = collect_image_paths(&["/no/such/file-or-folder.png".to_string()]).unwrap();
         assert!(collected.paths.is_empty());
         assert_eq!(collected.missing, vec!["file-or-folder.png"]);
     }

@@ -53,7 +53,9 @@ impl EventSink for AppEventSink {
                 }
             }
             ProcessorEvent::BatchProgress(progress) => {
-                if let Err(error) = self.0.emit("batch-progress", (progress.done, progress.total))
+                if let Err(error) = self
+                    .0
+                    .emit("batch-progress", (progress.done, progress.total))
                 {
                     eprintln!("batch-progress emit failed: {error}");
                 }
@@ -63,10 +65,10 @@ impl EventSink for AppEventSink {
                 summary,
                 source_name,
             } => {
-                if let Err(error) = self.0.emit(
-                    "image-optimized",
-                    (output_path, summary, source_name),
-                ) {
+                if let Err(error) = self
+                    .0
+                    .emit("image-optimized", (output_path, summary, source_name))
+                {
                     eprintln!("image-optimized emit failed: {error}");
                 }
             }

@@ -238,11 +238,23 @@ button {
 }
 
 .app-footer {
+  align-items: center;
   display: flex;
+  flex-direction: column;
   flex-shrink: 0;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+}
+
+.app-footer-actions {
+  display: flex;
   gap: 1rem;
   justify-content: center;
-  padding-top: 0.75rem;
+}
+
+.app-footer-meta {
+  text-align: center;
+  width: 100%;
 }
 
 #btnCancelOptimization[hidden] {
@@ -338,6 +350,26 @@ button {
   font-size: 1rem;
   font-weight: 700;
   margin: 0 0 1rem;
+}
+
+.app-version {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  margin: 0;
+  text-align: center;
+}
+
+.update-status {
+  color: var(--color-text);
+  font-size: 0.7rem;
+  line-height: 1.35;
+  margin: 0.2rem 0 0;
+  min-height: 1rem;
+  text-align: center;
+}
+
+.setting-row--updates {
+  align-items: center;
 }
 
 .setting-row {

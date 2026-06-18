@@ -18,6 +18,7 @@ src-tauri/icons/icon.png
 
 .env
 .release.env
+.tauri/updater.key
 .tauri/
 
 .DS_Store

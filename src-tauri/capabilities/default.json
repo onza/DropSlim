@@ -9,6 +9,8 @@
     "core:window:default",
     "core:window:allow-start-dragging",
     "opener:default",
-    "store:default"
+    "store:default",
+    "updater:default",
+    "process:allow-restart"
   ]
 }

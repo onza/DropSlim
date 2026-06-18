@@ -1,6 +1,6 @@
 {
   "name": "dropslim",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Optimize your images and graphics in a single drag and drop.",
   "author": "Martin Farkas",
   "license": "MIT",
@@ -49,11 +49,11 @@
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
     "prettier": "^3.6.2",
     "sharp": "^0.34.5",
-    "vite": "^6.4.3",
-    "husky": "^9.1.7",
-    "lint-staged": "^15.5.2"
+    "vite": "^6.4.3"
   },
   "lint-staged": {
     "*.{js,mjs,cjs,json,yml,yaml,md,css,html}": "prettier --write"
@@ -61,6 +61,8 @@
   "dependencies": {
     "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/plugin-opener": "^2.5.4",
-    "@tauri-apps/plugin-store": "^2.4.3"
+    "@tauri-apps/plugin-process": "^2.3.1",
+    "@tauri-apps/plugin-store": "^2.4.3",
+    "@tauri-apps/plugin-updater": "^2.10.1"
   }
 }

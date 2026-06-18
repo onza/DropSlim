@@ -68,7 +68,13 @@ pub fn build_optimize_summary(
     )
 }
 
-pub fn build_batch_summary(total: usize, succeeded: usize, failed: usize, bytes_before: u64, bytes_after: u64) -> String {
+pub fn build_batch_summary(
+    total: usize,
+    succeeded: usize,
+    failed: usize,
+    bytes_before: u64,
+    bytes_after: u64,
+) -> String {
     let image_label = if total == 1 {
         "1 image".to_string()
     } else {

@@ -67,23 +67,58 @@
               <span class="toggle-track" aria-hidden="true"></span>
             </label>
           </div>
+          <div class="setting-row">
+            <span class="setting-label">Check for updates automatically</span>
+            <label class="toggle">
+              <input
+                id="autoCheckUpdates"
+                name="autoCheckUpdates"
+                type="checkbox"
+                checked
+              />
+              <span class="toggle-track" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">Install updates without asking</span>
+            <label class="toggle">
+              <input
+                id="autoInstallUpdates"
+                name="autoInstallUpdates"
+                type="checkbox"
+              />
+              <span class="toggle-track" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div class="setting-row setting-row--updates">
+            <span class="setting-label">Updates</span>
+            <button type="button" id="btnCheckUpdates" class="btn">
+              Check now
+            </button>
+          </div>
         </div>
       </section>
       <footer class="app-footer">
-        <button
-          type="button"
-          id="btnCancelOptimization"
-          class="text-btn"
-          hidden
-        >
-          Cancel
-        </button>
-        <button type="button" id="btnOpenSettings" class="text-btn">
-          Settings
-        </button>
-        <button type="button" id="btnCloseSettings" class="text-btn">
-          Close
-        </button>
+        <div class="app-footer-meta">
+          <p id="appVersion" class="app-version" aria-live="polite"></p>
+          <p id="updateStatus" class="update-status" aria-live="polite"></p>
+        </div>
+        <div class="app-footer-actions">
+          <button
+            type="button"
+            id="btnCancelOptimization"
+            class="text-btn"
+            hidden
+          >
+            Cancel
+          </button>
+          <button type="button" id="btnOpenSettings" class="text-btn">
+            Settings
+          </button>
+          <button type="button" id="btnCloseSettings" class="text-btn">
+            Close
+          </button>
+        </div>
       </footer>
     </div>
     <script type="module" src="main.js"></script>
