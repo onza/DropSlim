@@ -11,14 +11,14 @@ Drop your images. DropSlim crunches the numbers. Done. Everything stays on your 
 ## Why DropSlim
 
 - **Drag & drop** — drop files or folders on the window; whole folders are processed recursively
-- **Small and fast** — lightweight app, fast compression; built with imagequant, oxipng, zenjpeg, OXVG, gifsicle, WebP, and AVIF encoders (Rust)
+- **Small and fast** — lightweight app, fast compression; built with imagequant, oxipng, zenjpeg, OXVG, gifsicle, WebP, and AVIF encoders
 - **Runs offline** — no internet required; compression runs entirely on your Mac
 - **Privacy** — no upload, no tracking; your images never leave your machine
 - **Batch processing** — hundreds of files in one go; new file alongside the original, or replace in place
 - **All common formats** — PNG, JPEG, GIF, SVG, WebP, and AVIF
 - **Open with DropSlim** — right-click an image in Finder → **Open With** → DropSlim
 - **Review results** in a simple list and reveal outputs in Finder
-- **Open source** — [MIT](LICENSE.md) on [GitHub](https://github.com/onza/DropSlim); inspect, fork, contribute
+- **Open source** — [MIT](LICENSE.md)
 
 ### Where the optimized file is saved depends on your settings:
 
@@ -57,7 +57,7 @@ Window title: **DropSlim (Dev)**.
 
 DropSlim is open source and free. Nevertheless, in the Apple ecosystem, it apparently costs money just to download an app, drag it into the “Applications” folder, and open it without any further hassle.
 
-That’s because Apple requires me to join its paid Developer Program, which costs 99 EUR per year. On top of that: identity verification with a wait time of several days, certificate signing requests, Developer ID certificates, app-specific passwords, authorizations, and a registration process that feels like the administration from “Asterix Conquers Rome” digitized the A38 pass to make breathing fresh air subject to approval.
+That’s because Apple requires me to join its paid Developer Program, which costs 99 EUR per year. On top of that: identity verification with a wait time of 5 days, certificate signing requests, Developer ID certificates, app-specific passwords, authorizations, and a registration process that feels like the administration from “Asterix Conquers Rome” digitized the A38 pass to make breathing fresh air subject to approval.
 
 None of this makes the app any better. It merely serves to satisfy Gatekeeper so that app users aren’t greeted with _“Apple couldn’t verify…”_ and a useless “Done” button, only to then have to click an “Open Anyway” button buried deep in the security settings.
 
@@ -67,7 +67,7 @@ This project covers that fee, so you don’t have to worry about it. If any deve
 
 ## Credits
 
-Based on the concept of [Image Shrinker](https://github.com/stefansl/image-shrinker) (CC0-1.0) by Stefan Schulz-Lauterbach.
+Inspired by [Image Shrinker](https://github.com/stefansl/image-shrinker) (CC0-1.0) by Stefan Schulz-Lauterbach.
 
 <br>
 
