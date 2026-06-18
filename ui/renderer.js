@@ -214,32 +214,24 @@ export const initRenderer = (api) => {
   }
 
   if (btnCheckUpdates) {
-    const updateStatus = document.getElementById('updateStatus')
-
-    const setUpdateStatus = (message) => {
-      if (!updateStatus) {
-        return
-      }
-
-      updateStatus.textContent = message
-      updateStatus.hidden = !message
-    }
+    const defaultCheckLabel = btnCheckUpdates.textContent
 
     btnCheckUpdates.onclick = (event) => {
       event.preventDefault()
       btnCheckUpdates.disabled = true
-      setUpdateStatus('Checking for updates…')
+      btnCheckUpdates.textContent = 'Checking…'
+      api.setUpdateStatus('Checking for updates…')
       api
         .checkForUpdates({
           autoInstall: false,
-          onStatus: setUpdateStatus,
         })
         .catch((err) => {
           console.error(err)
-          setUpdateStatus('Could not check for updates.')
+          api.setUpdateStatus('Could not check for updates.')
         })
         .finally(() => {
           btnCheckUpdates.disabled = false
+          btnCheckUpdates.textContent = defaultCheckLabel
         })
     }
   }
@@ -260,6 +252,7 @@ export const initRenderer = (api) => {
   const openSettings = () => {
     menuSettings.classList.add('is--open')
     wrapper.classList.add('is--settings-open')
+    api.reapplyUpdateStatus()
   }
 
   const closeSettings = () => {

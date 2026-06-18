@@ -7,6 +7,7 @@ export const checkForUpdates = async ({
   onStatus = () => {},
 } = {}) => {
   if (!isTauri()) {
+    onStatus('Update checks require the desktop app.')
     return { available: false, skipped: true }
   }
 

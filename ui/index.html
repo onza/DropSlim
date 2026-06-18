@@ -90,36 +90,35 @@
               <span class="toggle-track" aria-hidden="true"></span>
             </label>
           </div>
-          <div class="setting-row setting-row--action">
+          <div class="setting-row setting-row--updates">
             <span class="setting-label">Updates</span>
             <button type="button" id="btnCheckUpdates" class="btn">
               Check now
             </button>
           </div>
-          <p
-            id="updateStatus"
-            class="update-status"
-            aria-live="polite"
-            hidden
-          ></p>
-          <p id="appVersion" class="app-version" aria-live="polite"></p>
         </div>
       </section>
       <footer class="app-footer">
-        <button
-          type="button"
-          id="btnCancelOptimization"
-          class="text-btn"
-          hidden
-        >
-          Cancel
-        </button>
-        <button type="button" id="btnOpenSettings" class="text-btn">
-          Settings
-        </button>
-        <button type="button" id="btnCloseSettings" class="text-btn">
-          Close
-        </button>
+        <div class="app-footer-meta">
+          <p id="appVersion" class="app-version" aria-live="polite"></p>
+          <p id="updateStatus" class="update-status" aria-live="polite"></p>
+        </div>
+        <div class="app-footer-actions">
+          <button
+            type="button"
+            id="btnCancelOptimization"
+            class="text-btn"
+            hidden
+          >
+            Cancel
+          </button>
+          <button type="button" id="btnOpenSettings" class="text-btn">
+            Settings
+          </button>
+          <button type="button" id="btnCloseSettings" class="text-btn">
+            Close
+          </button>
+        </div>
       </footer>
     </div>
     <script type="module" src="main.js"></script>

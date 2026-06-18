@@ -13,15 +13,15 @@ const boot = async () => {
   const versionEl = document.getElementById('appVersion')
   if (versionEl) {
     try {
-      versionEl.textContent = `Version ${await getVersion()}`
+      api.setAppVersion(`Version ${await getVersion()}`)
     } catch (error) {
       console.error(error)
     }
   }
 
-  maybeCheckForUpdates(api.settings, (message) => {
+  void maybeCheckForUpdates(api.settings, (message) => {
     if (message) {
-      api.setStatus(message)
+      api.setUpdateStatus(message)
     }
   }).catch((error) => {
     console.error(error)

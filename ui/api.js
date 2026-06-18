@@ -37,6 +37,8 @@ const dragzone = () => document.getElementById('dragzone')
 
 const dragzoneStatus = () => document.getElementById('dragzoneStatus')
 
+const updateStatusEl = () => document.getElementById('updateStatus')
+
 const pickOptimizeSettings = (settings) =>
   Object.fromEntries(
     OPTIMIZE_SETTING_KEYS.filter((key) => key in settings).map((key) => [
@@ -54,6 +56,37 @@ const setDragzoneStatus = (message) => {
 
   status.textContent = message
   status.hidden = !message
+}
+
+let lastUpdateStatus = ''
+let appVersionText = ''
+
+const renderAppVersion = () => {
+  const versionEl = document.getElementById('appVersion')
+
+  if (versionEl) {
+    versionEl.textContent = appVersionText
+  }
+}
+
+const setUpdateStatus = (message) => {
+  const status = updateStatusEl()
+  lastUpdateStatus = message || ''
+
+  if (status) {
+    status.textContent = lastUpdateStatus
+  }
+}
+
+const setAppVersion = (text) => {
+  appVersionText = text
+  renderAppVersion()
+}
+
+const reapplyUpdateStatus = () => {
+  if (lastUpdateStatus) {
+    setUpdateStatus(lastUpdateStatus)
+  }
 }
 
 const setProcessing = (active) => {
@@ -187,7 +220,7 @@ export const initApi = async () => {
   setupDropHandling()
 
   const startupPaths = await invoke('consume_startup_paths')
-  await runOptimization(startupPaths)
+  void runOptimization(startupPaths)
 
   listen('startup-paths', (event) => {
     runOptimization(event.payload)
@@ -205,6 +238,9 @@ export const createDropslimApi = () => ({
     },
   },
   setStatus: setDragzoneStatus,
+  setUpdateStatus,
+  setAppVersion,
+  reapplyUpdateStatus,
   setProcessing,
   endProcessing,
   pickAndOptimize: async () => {
@@ -256,6 +292,6 @@ export const createDropslimApi = () => ({
   checkForUpdates: (options) =>
     checkForUpdates({
       ...options,
-      onStatus: options?.onStatus ?? setDragzoneStatus,
+      onStatus: options?.onStatus ?? setUpdateStatus,
     }),
 })
