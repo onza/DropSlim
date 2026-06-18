@@ -11,6 +11,7 @@ export const checkForUpdates = async ({
   }
 
   try {
+    onStatus('Checking for updates…')
     const update = await check()
 
     if (!update) {

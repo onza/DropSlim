@@ -214,13 +214,29 @@ export const initRenderer = (api) => {
   }
 
   if (btnCheckUpdates) {
+    const updateStatus = document.getElementById('updateStatus')
+
+    const setUpdateStatus = (message) => {
+      if (!updateStatus) {
+        return
+      }
+
+      updateStatus.textContent = message
+      updateStatus.hidden = !message
+    }
+
     btnCheckUpdates.onclick = (event) => {
       event.preventDefault()
       btnCheckUpdates.disabled = true
+      setUpdateStatus('Checking for updates…')
       api
-        .checkForUpdates({ autoInstall: false })
+        .checkForUpdates({
+          autoInstall: false,
+          onStatus: setUpdateStatus,
+        })
         .catch((err) => {
           console.error(err)
+          setUpdateStatus('Could not check for updates.')
         })
         .finally(() => {
           btnCheckUpdates.disabled = false
