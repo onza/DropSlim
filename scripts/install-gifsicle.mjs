@@ -16,6 +16,11 @@ const binaryName = process.platform === 'win32' ? 'gifsicle.exe' : 'gifsicle'
 const binaryPath = path.join(vendorDir, binaryName)
 const versionPattern = /1\.96/
 
+if (process.env.CI_SKIP_GIFSICLE === '1') {
+  console.log('gifsicle: skipped (CI_SKIP_GIFSICLE)')
+  process.exit(0)
+}
+
 const runVersionCheck = (targetPath = binaryPath) => {
   const output = execFileSync(targetPath, ['--version'], {
     encoding: 'utf8',

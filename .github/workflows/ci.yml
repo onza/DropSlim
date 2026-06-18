@@ -9,7 +9,50 @@ on:
       - main
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      rust: ${{ steps.filter.outputs.rust }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Detect Rust-related changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            rust:
+              - 'src-tauri/**'
+              - 'scripts/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'test/**'
+
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+        env:
+          HUSKY: 0
+
+      - name: Lint, format, UI build
+        run: npm run ci:check
+
   test:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
     runs-on: macos-latest
 
     steps:
@@ -30,11 +73,28 @@ jobs:
         with:
           workspaces: src-tauri
 
+      - name: Cache Homebrew
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew
+          key: brew-${{ runner.os }}-${{ runner.arch }}
+          restore-keys: |
+            brew-${{ runner.os }}-
+
       - name: Install system dependencies
         run: brew install dav1d
 
+      - name: Cache gifsicle binary
+        uses: actions/cache@v4
+        id: gifsicle-cache
+        with:
+          path: vendor/gifsicle/gifsicle
+          key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96
+
       - name: Install dependencies
         run: npm ci
+        env:
+          HUSKY: 0
 
-      - name: CI
-        run: npm run ci
+      - name: Rust tests
+        run: npm run ci:rust
