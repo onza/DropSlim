@@ -35,6 +35,12 @@ if [[ -z "${APPLE_PASSWORD:-}" ]] || [[ "$APPLE_PASSWORD" == *"REPLACE"* ]] || [
 fi
 
 updater_key="${TAURI_SIGNING_PRIVATE_KEY:-${TAURI_SIGNING_PRIVATE_KEY_PATH:-$root/.tauri/updater.key}}"
+if [[ -f "$updater_key" ]]; then
+  updater_key="$(cd "$(dirname "$updater_key")" && pwd)/$(basename "$updater_key")"
+elif [[ -f "$root/$updater_key" ]]; then
+  updater_key="$(cd "$root" && cd "$(dirname "$updater_key")" && pwd)/$(basename "$updater_key")"
+fi
+
 if [[ ! -f "$updater_key" ]]; then
   echo "build: missing updater signing key at $updater_key" >&2
   echo "build: run: npm run tauri signer generate -w .tauri/updater.key" >&2
