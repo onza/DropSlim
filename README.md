@@ -37,8 +37,6 @@ Requires macOS 11 (Big Sur) or later and an **Apple Silicon** Mac (M1 or newer).
 2. Open the DMG and drag **DropSlim** to **Applications**.
 3. Open DropSlim from **Applications**.
 
-**Updates:** Download the new DMG and drag DropSlim to Applications again.
-
 **Intel Mac?** Use [Image Shrinker](https://image-shrinker.com/) — same idea, native on Intel Macs.
 
 <br>
@@ -48,8 +46,6 @@ Requires macOS 11 (Big Sur) or later and an **Apple Silicon** Mac (M1 or newer).
 ```bash
 npm run dev
 ```
-
-Window title: **DropSlim (Dev)**.
 
 <br>
 

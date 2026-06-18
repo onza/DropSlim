@@ -26,6 +26,15 @@ pub fn format_bytes(bytes: u64) -> String {
     format!("{value:.1} MB")
 }
 
+pub fn should_keep_optimized_output(
+    candidate_size: u64,
+    size_orig: u64,
+    previous_output_size: Option<u64>,
+) -> bool {
+    let threshold = previous_output_size.unwrap_or(size_orig);
+    candidate_size < threshold
+}
+
 pub fn build_optimize_summary(
     size_orig: u64,
     size_optimized: u64,
@@ -122,6 +131,20 @@ mod tests {
     #[test]
     fn uses_binary_kilobytes_off_macos() {
         assert_eq!(format_bytes(1500), "1.5 KB");
+    }
+
+    #[test]
+    fn keeps_output_when_candidate_is_smaller() {
+        assert!(should_keep_optimized_output(40_000, 100_000, None));
+        assert!(should_keep_optimized_output(40_000, 100_000, Some(50_000)));
+    }
+
+    #[test]
+    fn skips_output_when_candidate_is_larger_or_equal() {
+        assert!(!should_keep_optimized_output(100_000, 100_000, None));
+        assert!(!should_keep_optimized_output(120_000, 100_000, None));
+        assert!(!should_keep_optimized_output(50_000, 100_000, Some(50_000)));
+        assert!(!should_keep_optimized_output(55_000, 100_000, Some(50_000)));
     }
 
     #[test]

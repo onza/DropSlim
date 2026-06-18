@@ -9,7 +9,9 @@ use super::collect::{self, SUPPORTED_FORMATS_LABEL};
 use super::events::{app_event_sink, EventSink, ProcessorEvent};
 use super::image::optimize_image_file;
 use super::output_path::{build_output_path, custom_save_folder_missing, UserSettings};
-use super::summary::{build_batch_summary, build_optimize_summary, file_size};
+use super::summary::{
+    build_batch_summary, build_optimize_summary, file_size, should_keep_optimized_output,
+};
 
 const OPTIMIZATION_CONCURRENCY: usize = 3;
 pub const MAX_BATCH_FILES: usize = 10_000;
@@ -82,6 +84,87 @@ fn drop_error(file_name: impl Into<String>, message: impl Into<String>) -> Proce
     }
 }
 
+fn temp_candidate_path(output: &std::path::Path) -> PathBuf {
+    let extension = output
+        .extension()
+        .map(|ext| format!(".{}", ext.to_string_lossy()))
+        .unwrap_or_default();
+    let stem = output
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .unwrap_or("output");
+
+    output.with_file_name(format!("{stem}.dropslim{extension}"))
+}
+
+fn commit_candidate(candidate: &std::path::Path, output: &std::path::Path) -> Result<(), String> {
+    if std::fs::rename(candidate, output).is_err() {
+        std::fs::copy(candidate, output).map_err(|error| error.to_string())?;
+        std::fs::remove_file(candidate).map_err(|error| error.to_string())?;
+    }
+
+    Ok(())
+}
+
+fn report_output_path(
+    file_path: &std::path::Path,
+    output_path: &std::path::Path,
+    previous_output_size: Option<u64>,
+    kept_output: bool,
+) -> PathBuf {
+    if kept_output {
+        return output_path.to_path_buf();
+    }
+
+    if previous_output_size.is_some() {
+        output_path.to_path_buf()
+    } else {
+        file_path.to_path_buf()
+    }
+}
+
+struct ResolvedOptimization {
+    output_path: PathBuf,
+    summary: String,
+    size_after: u64,
+}
+
+fn resolve_optimization(
+    file_path: &std::path::Path,
+    output_path: &std::path::Path,
+    project_root: &std::path::Path,
+) -> Result<ResolvedOptimization, String> {
+    let size_orig = file_size(file_path).map_err(|error| error.to_string())?;
+    let previous_output_size = file_size(output_path).ok();
+    let threshold = previous_output_size.unwrap_or(size_orig);
+    let candidate_path = temp_candidate_path(output_path);
+
+    optimize_image_file(file_path, &candidate_path, project_root)?;
+
+    let candidate_size = file_size(&candidate_path).map_err(|error| error.to_string())?;
+
+    if should_keep_optimized_output(candidate_size, size_orig, previous_output_size) {
+        commit_candidate(&candidate_path, output_path)?;
+        Ok(ResolvedOptimization {
+            output_path: output_path.to_path_buf(),
+            summary: build_optimize_summary(size_orig, candidate_size, previous_output_size),
+            size_after: candidate_size,
+        })
+    } else {
+        let _ = std::fs::remove_file(&candidate_path);
+        Ok(ResolvedOptimization {
+            output_path: report_output_path(
+                file_path,
+                output_path,
+                previous_output_size,
+                false,
+            ),
+            summary: build_optimize_summary(size_orig, threshold, previous_output_size),
+            size_after: threshold,
+        })
+    }
+}
+
 pub(crate) fn unsupported_selection_label(input_paths: &[String]) -> String {
     if input_paths.len() == 1 {
         PathBuf::from(&input_paths[0])
@@ -112,18 +195,18 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
     let error_file_name = file_name.clone();
 
     let result = tokio::task::spawn_blocking(move || {
-        let size_orig = file_size(&file_path).map_err(|error| error.to_string())?;
         let output_path =
             build_output_path(&file_path, &settings).map_err(|error| error.to_string())?;
+        let size_orig = file_size(&file_path).map_err(|error| error.to_string())?;
+        let resolved = resolve_optimization(&file_path, &output_path, &project_root)?;
 
-        let previous_output_size = file_size(&output_path).ok();
-
-        optimize_image_file(&file_path, &output_path, &project_root)?;
-
-        let size_optimized = file_size(&output_path).map_err(|error| error.to_string())?;
-        let summary = build_optimize_summary(size_orig, size_optimized, previous_output_size);
-
-        Ok::<_, String>((output_path, summary, file_name, size_orig, size_optimized))
+        Ok::<_, String>((
+            resolved.output_path,
+            resolved.summary,
+            file_name,
+            size_orig,
+            resolved.size_after,
+        ))
     })
     .await
     .map_err(|error| error.to_string())
@@ -283,6 +366,7 @@ pub async fn process_paths(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::optimize::optimize_image_file;
     use crate::optimize::events::RecordingEventSink;
     use image::{ImageBuffer, Rgba};
     use std::fs;
@@ -537,6 +621,79 @@ mod tests {
                 .count(),
             1
         );
+    }
+
+    #[tokio::test]
+    async fn reoptimization_does_not_grow_existing_output() {
+        let dir = tempdir().expect("tempdir");
+        let file = dir.path().join("photo.png");
+        write_png(&file);
+        let output = dir.path().join("photo.min.png");
+
+        optimize_image_file(&file, &output, &project_root()).expect("seed output");
+        let first_size = fs::metadata(&output).expect("output metadata").len();
+
+        let recording = Arc::new(RecordingEventSink::new());
+        process_paths_with_sink(
+            Arc::clone(&recording),
+            vec![file.to_string_lossy().to_string()],
+            UserSettings::default(),
+            project_root(),
+            no_cancel(),
+        )
+        .await
+        .expect("second pass");
+
+        let second_size = fs::metadata(&output).expect("output metadata").len();
+        assert!(second_size <= first_size);
+
+        let summary = recording
+            .events()
+            .into_iter()
+            .find_map(|event| match event {
+                ProcessorEvent::ImageOptimized { summary, .. } => Some(summary),
+                _ => None,
+            })
+            .expect("optimized event");
+
+        assert!(summary.starts_with("Already optimized"));
+    }
+
+    #[tokio::test]
+    async fn skip_if_larger_does_not_create_side_by_side_output() {
+        let dir = tempdir().expect("tempdir");
+        let file = dir.path().join("tiny.png");
+        let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
+            ImageBuffer::from_pixel(1, 1, Rgba([255, 0, 0, 255]));
+        img.save(&file).expect("write tiny png");
+
+        let output = dir.path().join("tiny.min.png");
+        fs::write(&output, &[0]).expect("write tiny existing output");
+
+        let recording = Arc::new(RecordingEventSink::new());
+        process_paths_with_sink(
+            Arc::clone(&recording),
+            vec![file.to_string_lossy().to_string()],
+            UserSettings::default(),
+            project_root(),
+            no_cancel(),
+        )
+        .await
+        .expect("process paths");
+
+        assert_eq!(fs::metadata(&output).expect("metadata").len(), 1);
+        assert!(!dir.path().join("tiny.dropslim.png").exists());
+
+        let summary = recording
+            .events()
+            .into_iter()
+            .find_map(|event| match event {
+                ProcessorEvent::ImageOptimized { summary, .. } => Some(summary),
+                _ => None,
+            })
+            .expect("optimized event");
+
+        assert!(summary.starts_with("Already optimized"));
     }
 
     #[tokio::test]
