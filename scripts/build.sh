@@ -55,7 +55,6 @@ export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:
 
 npm run tauri -- build --bundles dmg,app
 node "$root/scripts/verify-release.mjs" --bundle
-node "$root/scripts/generate-latest-json.mjs"
 
 dmg=$(find "$target" -name '*.dmg' -path '*/release/bundle/dmg/*' 2>/dev/null | head -1)
 
@@ -64,14 +63,18 @@ if [[ ! -f "$dmg" ]]; then
   exit 1
 fi
 
+updater_bundle=$(find "$target" -name '*.app.tar.gz' -path '*/release/bundle/macos/*' 2>/dev/null | head -1)
+
+rm -rf "$root/dist"
 mkdir -p "$root/dist"
 /bin/cp -f "$dmg" "$root/dist/$(basename "$dmg")"
 
-updater_bundle=$(find "$target" -name '*.app.tar.gz' -path '*/release/bundle/macos/*' 2>/dev/null | head -1)
 if [[ -f "$updater_bundle" ]]; then
   /bin/cp -f "$updater_bundle" "$root/dist/$(basename "$updater_bundle")"
   /bin/cp -f "${updater_bundle}.sig" "$root/dist/$(basename "$updater_bundle").sig"
 fi
+
+node "$root/scripts/generate-latest-json.mjs"
 
 echo "build: ok (dist/$(basename "$dmg"))"
 if [[ -f "$root/dist/latest.json" ]]; then
