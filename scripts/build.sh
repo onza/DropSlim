@@ -7,7 +7,7 @@ set -euo pipefail
 #   APPLE_TEAM_ID="XXXXXXXXXX"
 #   APPLE_PASSWORD="xxxx-xxxx-xxxx-xxxx"  # app-specific password from appleid.apple.com
 #   TAURI_SIGNING_PRIVATE_KEY_PATH=".tauri/updater.key"  # updater signing key (keep secret)
-#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD="..."              # only if the key was created with a password
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""                 # empty for keys generated without a passphrase
 # Test credentials first: bash scripts/verify-notarize-credentials.sh
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -48,7 +48,10 @@ if [[ ! -f "$updater_key" ]]; then
 fi
 
 export TAURI_SIGNING_PRIVATE_KEY_PATH="$updater_key"
-unset TAURI_SIGNING_PRIVATE_KEY
+# tauri build reads TAURI_SIGNING_PRIVATE_KEY (path or content); signer sign uses PATH.
+export TAURI_SIGNING_PRIVATE_KEY="$updater_key"
+# Keys generated without a passphrase still need an empty password env (not unset).
+export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:-}"
 
 npm run tauri -- build --bundles dmg,app
 node "$root/scripts/verify-release.mjs" --bundle

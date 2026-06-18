@@ -57,7 +57,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM0ODREQ0Q3RTczRjg4RTAKUldUZ2lEL24xOXlFeEsvbTBWbnpPMm9wc1g5R3pSeHA1cmNHelI3ZVd4K3psTndsUHFJeDhxeVgK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFCNTg1REM1QTEyOTIwOUYKUldTZklDbWh4VjFZRzJkN2JmZTU1TzhFbkpMbldQSjMrSzJVYVNCU0lEWXNSb0hHa25Sd3VZbHQK",
       "endpoints": [
         "https://github.com/onza/DropSlim/releases/latest/download/latest.json"
       ]
