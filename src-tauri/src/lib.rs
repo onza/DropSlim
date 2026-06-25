@@ -19,19 +19,19 @@ pub fn run() {
             .plugin(tauri_plugin_process::init())
             .plugin(tauri_plugin_updater::Builder::new().build())
             .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
-            let paths: Vec<String> = argv
-                .iter()
-                .skip(1)
-                .filter(|arg| startup_paths::is_startup_path(arg))
-                .cloned()
-                .collect();
+                let paths: Vec<String> = argv
+                    .iter()
+                    .skip(1)
+                    .filter(|arg| startup_paths::is_startup_path(arg))
+                    .cloned()
+                    .collect();
 
-            if paths.is_empty() {
-                focus_main_window(app);
-            } else {
-                emit_startup_paths(app, paths);
-            }
-        }));
+                if paths.is_empty() {
+                    focus_main_window(app);
+                } else {
+                    emit_startup_paths(app, paths);
+                }
+            }));
     }
 
     let app = builder

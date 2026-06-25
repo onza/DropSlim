@@ -142,17 +142,16 @@ fn resolve_optimization(
         commit_candidate(candidate_path, output_path)?;
         Ok(ResolvedOptimization {
             output_path: output_path.to_path_buf(),
-            summary: build_optimize_summary_payload(size_orig, candidate_size, previous_output_size),
+            summary: build_optimize_summary_payload(
+                size_orig,
+                candidate_size,
+                previous_output_size,
+            ),
             size_after: candidate_size,
         })
     } else {
         Ok(ResolvedOptimization {
-            output_path: report_output_path(
-                file_path,
-                output_path,
-                previous_output_size,
-                false,
-            ),
+            output_path: report_output_path(file_path, output_path, previous_output_size, false),
             summary: build_optimize_summary_payload(size_orig, threshold, previous_output_size),
             size_after: threshold,
         })
@@ -189,9 +188,10 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
     let error_file_name = file_name.clone();
 
     let result = tokio::task::spawn_blocking(move || {
-        let output_path =
-            build_output_path(&file_path, &settings).map_err(|error| ErrorPayload::io(error.to_string()))?;
-        let size_orig = file_size(&file_path).map_err(|error| ErrorPayload::io(error.to_string()))?;
+        let output_path = build_output_path(&file_path, &settings)
+            .map_err(|error| ErrorPayload::io(error.to_string()))?;
+        let size_orig =
+            file_size(&file_path).map_err(|error| ErrorPayload::io(error.to_string()))?;
         let resolved = resolve_optimization(&file_path, &output_path, &project_root)?;
 
         Ok::<_, ErrorPayload>((
@@ -242,10 +242,7 @@ pub(crate) async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
         collect::collect_image_paths(&input_paths).map_err(|error| error.to_string())?;
 
     for missing in &collected.missing {
-        sink.send(drop_error(
-            missing.clone(),
-            ErrorPayload::file_not_found(),
-        ));
+        sink.send(drop_error(missing.clone(), ErrorPayload::file_not_found()));
     }
 
     for unreadable in &collected.unreadable {
@@ -278,10 +275,7 @@ pub(crate) async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
     }
 
     if custom_save_folder_missing(&settings) {
-        sink.send(drop_error(
-            "Settings",
-            ErrorPayload::save_folder_required(),
-        ));
+        sink.send(drop_error("Settings", ErrorPayload::save_folder_required()));
         return Ok(());
     }
 
@@ -365,8 +359,8 @@ pub async fn process_paths(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::optimize::optimize_image_file;
     use crate::optimize::events::RecordingEventSink;
+    use crate::optimize::optimize_image_file;
     use crate::optimize::payloads::{BatchSummaryPayload, ErrorPayload, SummaryPayload};
     use image::{ImageBuffer, Rgba};
     use std::fs;
@@ -660,10 +654,7 @@ mod tests {
             })
             .expect("optimized event");
 
-        assert!(matches!(
-            summary,
-            SummaryPayload::AlreadyOptimized { .. }
-        ));
+        assert!(matches!(summary, SummaryPayload::AlreadyOptimized { .. }));
     }
 
     #[tokio::test]
@@ -700,10 +691,7 @@ mod tests {
             })
             .expect("optimized event");
 
-        assert!(matches!(
-            summary,
-            SummaryPayload::AlreadyOptimized { .. }
-        ));
+        assert!(matches!(summary, SummaryPayload::AlreadyOptimized { .. }));
     }
 
     #[tokio::test]

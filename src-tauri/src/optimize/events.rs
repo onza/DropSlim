@@ -97,10 +97,10 @@ impl EventSink for AppEventSink {
                 }
             }
             ProcessorEvent::DropError { file_name, error } => {
-                if let Err(error) = self.0.emit(
-                    "drop-error",
-                    DropErrorEvent { file_name, error },
-                ) {
+                if let Err(error) = self
+                    .0
+                    .emit("drop-error", DropErrorEvent { file_name, error })
+                {
                     eprintln!("drop-error emit failed: {error}");
                 }
             }

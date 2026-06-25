@@ -146,7 +146,9 @@ mod tests {
     fn reports_no_first_pass_savings() {
         assert_eq!(
             build_optimize_summary_payload(1_000, 1_200, None),
-            SummaryPayload::AlreadyOptimized { size: "1 KB".into() }
+            SummaryPayload::AlreadyOptimized {
+                size: "1 KB".into()
+            }
         );
     }
 
@@ -154,7 +156,9 @@ mod tests {
     fn reports_already_optimized() {
         assert_eq!(
             build_optimize_summary_payload(100_000, 50_000, Some(50_000)),
-            SummaryPayload::AlreadyOptimized { size: "50 KB".into() }
+            SummaryPayload::AlreadyOptimized {
+                size: "50 KB".into()
+            }
         );
     }
 

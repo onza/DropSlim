@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub(crate) enum SummaryPayload {
-    AlreadyOptimized { size: String },
+    AlreadyOptimized {
+        size: String,
+    },
     Saved {
         percent: u64,
         from: String,

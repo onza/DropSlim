@@ -30,11 +30,8 @@ mod platform {
     }
 
     pub fn optimize_heic(input: &Path, output: &Path) -> Result<(), ErrorPayload> {
-        let input_path = NSString::from_str(
-            input
-                .to_str()
-                .ok_or_else(ErrorPayload::heic_invalid_path)?,
-        );
+        let input_path =
+            NSString::from_str(input.to_str().ok_or_else(ErrorPayload::heic_invalid_path)?);
         let input_url = NSURL::fileURLWithPath(&input_path);
         let input_cf_url: &CFURL = input_url.as_ref();
 
@@ -55,19 +52,16 @@ mod platform {
         let output_cf_url: &CFURL = output_url.as_ref();
         let output_type = output_type_identifier(output);
 
-        let destination = unsafe {
-            CGImageDestination::with_url(output_cf_url, &output_type, 1, None)
-        }
-        .ok_or_else(ErrorPayload::heic_create_failed)?;
+        let destination =
+            unsafe { CGImageDestination::with_url(output_cf_url, &output_type, 1, None) }
+                .ok_or_else(ErrorPayload::heic_create_failed)?;
 
         let quality = CFNumber::new_f32(HEIC_COMPRESSION_QUALITY);
 
         unsafe {
             let quality_key = kCGImageDestinationLossyCompressionQuality;
-            let properties = CFDictionary::<CFString, CFNumber>::from_slices(
-                &[quality_key],
-                &[&*quality],
-            );
+            let properties =
+                CFDictionary::<CFString, CFNumber>::from_slices(&[quality_key], &[&*quality]);
 
             destination.add_image_from_source(&source, 0, Some(properties.as_ref()));
 

@@ -86,9 +86,9 @@ fn png_recompress_options() -> Options {
 }
 
 fn png_uses_palette(input: &Path) -> Result<bool, String> {
-    let decoder = png::Decoder::new(
-        BufReader::new(fs::File::open(input).map_err(|error| error.to_string())?),
-    );
+    let decoder = png::Decoder::new(BufReader::new(
+        fs::File::open(input).map_err(|error| error.to_string())?,
+    ));
     let reader = decoder.read_info().map_err(|error| error.to_string())?;
 
     Ok(reader.info().color_type == png::ColorType::Indexed)
@@ -254,9 +254,7 @@ mod tests {
             encoder.set_depth(png::BitDepth::Eight);
             encoder.set_palette(&[255, 0, 0, 0, 255, 0, 0, 0, 255]);
             let mut writer = encoder.write_header().expect("png header");
-            writer
-                .write_image_data(&[0, 1, 0, 1])
-                .expect("png pixels");
+            writer.write_image_data(&[0, 1, 0, 1]).expect("png pixels");
         }
 
         fs::write(path, buffer).expect("write indexed png");
