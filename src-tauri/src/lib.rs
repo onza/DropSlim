@@ -1,8 +1,8 @@
 mod app_menu;
 mod commands;
-mod macos_dialog;
 mod native_ui;
 pub mod optimize;
+mod platform;
 mod startup_paths;
 
 use commands::startup::{emit_startup_paths, focus_main_window, StartupState};

@@ -1,0 +1,27 @@
+{
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "transparent": true,
+        "titleBarStyle": "Overlay",
+        "acceptFirstMouse": true
+      }
+    ]
+  },
+  "bundle": {
+    "targets": ["dmg", "app"],
+    "icon": ["icons/icon.png", "icons/icon.icns"],
+    "macOS": {
+      "minimumSystemVersion": "11.0",
+      "signingIdentity": "-",
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.plist",
+      "dmg": {
+        "appPosition": { "x": 168, "y": 240 },
+        "applicationFolderPosition": { "x": 372, "y": 240 },
+        "windowSize": { "width": 660, "height": 400 }
+      }
+    }
+  }
+}
