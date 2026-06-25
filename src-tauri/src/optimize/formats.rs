@@ -4,8 +4,6 @@ pub const SUPPORTED_EXTENSIONS: &[&str] = &[
     "svg", "jpg", "jpeg", "png", "gif", "webp", "avif", "heic", "heif",
 ];
 
-pub const SUPPORTED_FORMATS_LABEL: &str = "PNG, JPG, HEIC, GIF, SVG, WebP, and AVIF";
-
 pub fn is_supported_extension(ext: &str) -> bool {
     SUPPORTED_EXTENSIONS.contains(&ext.to_ascii_lowercase().as_str())
 }

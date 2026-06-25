@@ -1,0 +1,103 @@
+{
+  "app": {
+    "title": "DropSlim"
+  },
+  "dragzone": {
+    "title": "Suelta imágenes o carpetas aquí"
+  },
+  "footer": {
+    "settings": "Ajustes",
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "version": "Versión {{version}}"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "saveInSameFolder": "Guardar archivos optimizados en la misma carpeta",
+    "chooseFolder": "Elegir carpeta",
+    "chooseFolderOpen": "Abrir",
+    "minSuffix": "Añadir sufijo .min a los archivos optimizados",
+    "minifiedSubfolder": "Añadir subcarpeta «minified»",
+    "clearOnNew": "Vaciar la lista al optimizar nuevas imágenes",
+    "autoCheckUpdates": "Buscar actualizaciones automáticamente",
+    "autoInstallUpdates": "Instalar actualizaciones sin preguntar",
+    "updates": "Actualizaciones",
+    "language": "Idioma",
+    "languageSystem": "Idioma del sistema",
+    "languageEn": "English",
+    "languageDe": "Deutsch",
+    "languageFr": "Français",
+    "languageEs": "Español",
+    "languageIt": "Italiano",
+    "languageJa": "日本語",
+    "languagePtBr": "Português (Brasil)"
+  },
+  "status": {
+    "alreadyCompressing": "Ya se están comprimiendo imágenes…",
+    "batchProgress": "{{done}} / {{total}}",
+    "batchProgressFile": "{{done}} / {{total}} — {{fileName}}",
+    "compressing": "Comprimiendo {{fileName}}…"
+  },
+  "results": {
+    "truncated_one": "1 resultado anterior oculto — solo se muestran los últimos {{max}}.",
+    "truncated_other": "{{count}} resultados anteriores ocultos — solo se muestran los últimos {{max}}.",
+    "optimizeError": "No se pudo optimizar {{fileName}}: {{message}}",
+    "cancelled": "Cancelado tras {{done}} / {{total}} ({{succeeded}} optimizadas, {{failed}} fallidas)"
+  },
+  "updates": {
+    "checkNow": "Comprobar ahora",
+    "install": "Instalar",
+    "installing": "Instalando…",
+    "checking": "Comprobando…",
+    "checkingStatus": "Buscando actualizaciones…",
+    "couldNotCheck": "No se pudieron comprobar las actualizaciones.",
+    "couldNotCheckDetail": "No se pudieron comprobar las actualizaciones: {{error}}",
+    "requiresDesktop": "La comprobación de actualizaciones requiere la aplicación de escritorio.",
+    "noUpdateReady": "No hay ninguna actualización lista para instalar.",
+    "downloading": "Descargando DropSlim {{version}}…",
+    "installingUpdate": "Instalando actualización…",
+    "couldNotInstall": "No se pudo instalar la actualización: {{error}}",
+    "upToDate": "DropSlim está actualizado.",
+    "available": "Actualización {{version}} disponible."
+  },
+  "summary": {
+    "alreadyOptimized": "Ya optimizado · {{size}}",
+    "saved": "Ahorraste un {{percent}} % · {{from}} → {{to}}",
+    "savedMore": "{{percent}} % más ahorrados · {{from}} → {{to}}",
+    "batch": {
+      "image_one": "1 imagen",
+      "image_other": "{{count}} imágenes",
+      "failed": "{{count}} fallidas",
+      "saved": "{{size}} ahorrados ({{percent}} %)",
+      "alreadyOptimized": "ya optimizadas",
+      "separator": "·"
+    }
+  },
+  "errors": {
+    "fileNotFound": "Archivo o carpeta no encontrados.",
+    "noSupportedImages": "No se encontraron imágenes compatibles ({{formats}}).",
+    "tooManyImages": "Demasiadas imágenes ({{count}}). Máximo {{max}} por lote.",
+    "saveFolderRequired": "Elige primero una carpeta de guardado en Ajustes.",
+    "optimizationInProgress": "Ya hay una optimización en curso.",
+    "unsupportedFormat": "Solo se admiten {{formats}}.",
+    "gifOptimizerUnavailable": "El optimizador GIF no está disponible.",
+    "gifsicleFailed": "Error al optimizar GIF (código de salida {{code}}).",
+    "heicInvalidPath": "Ruta de archivo no válida.",
+    "heicReadFailed": "No se pudo leer la imagen HEIC.",
+    "heicNoFrames": "La imagen HEIC no contiene fotogramas.",
+    "heicCreateFailed": "No se pudo crear la salida HEIC.",
+    "heicWriteFailed": "No se pudo escribir el HEIC optimizado.",
+    "heicUnsupportedPlatform": "HEIC solo es compatible con macOS."
+  },
+  "formats": {
+    "supported": "PNG, JPG, HEIC, GIF, SVG, WebP y AVIF"
+  },
+  "menu": {
+    "preferences": "Preferencias…",
+    "window": "Ventana"
+  },
+  "dialog": {
+    "pickImages": "Elegir imágenes o carpetas",
+    "pickSaveFolder": "Elegir carpeta de guardado"
+  }
+}

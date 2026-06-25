@@ -1,0 +1,103 @@
+{
+  "app": {
+    "title": "DropSlim"
+  },
+  "dragzone": {
+    "title": "Déposez des images ou des dossiers ici"
+  },
+  "footer": {
+    "settings": "Réglages",
+    "close": "Fermer",
+    "cancel": "Annuler",
+    "version": "Version {{version}}"
+  },
+  "settings": {
+    "title": "Réglages",
+    "saveInSameFolder": "Enregistrer les fichiers optimisés dans le même dossier",
+    "chooseFolder": "Choisir un dossier",
+    "chooseFolderOpen": "Ouvrir",
+    "minSuffix": "Ajouter le suffixe .min aux fichiers optimisés",
+    "minifiedSubfolder": "Ajouter le sous-dossier « minified »",
+    "clearOnNew": "Vider la liste lors d'une nouvelle optimisation",
+    "autoCheckUpdates": "Rechercher les mises à jour automatiquement",
+    "autoInstallUpdates": "Installer les mises à jour sans demander",
+    "updates": "Mises à jour",
+    "language": "Langue",
+    "languageSystem": "Langue du système",
+    "languageEn": "English",
+    "languageDe": "Deutsch",
+    "languageFr": "Français",
+    "languageEs": "Español",
+    "languageIt": "Italiano",
+    "languageJa": "日本語",
+    "languagePtBr": "Português (Brasil)"
+  },
+  "status": {
+    "alreadyCompressing": "Compression déjà en cours…",
+    "batchProgress": "{{done}} / {{total}}",
+    "batchProgressFile": "{{done}} / {{total}} — {{fileName}}",
+    "compressing": "Compression de {{fileName}}…"
+  },
+  "results": {
+    "truncated_one": "1 résultat plus ancien masqué — seuls les {{max}} derniers sont affichés.",
+    "truncated_other": "{{count}} résultats plus anciens masqués — seuls les {{max}} derniers sont affichés.",
+    "optimizeError": "Impossible d'optimiser {{fileName}} : {{message}}",
+    "cancelled": "Annulé après {{done}} / {{total}} ({{succeeded}} optimisées, {{failed}} échouées)"
+  },
+  "updates": {
+    "checkNow": "Vérifier",
+    "install": "Installer",
+    "installing": "Installation…",
+    "checking": "Vérification…",
+    "checkingStatus": "Recherche de mises à jour…",
+    "couldNotCheck": "Impossible de vérifier les mises à jour.",
+    "couldNotCheckDetail": "Impossible de vérifier les mises à jour : {{error}}",
+    "requiresDesktop": "La vérification des mises à jour nécessite l'application de bureau.",
+    "noUpdateReady": "Aucune mise à jour prête à installer.",
+    "downloading": "Téléchargement de DropSlim {{version}}…",
+    "installingUpdate": "Installation de la mise à jour…",
+    "couldNotInstall": "Impossible d'installer la mise à jour : {{error}}",
+    "upToDate": "DropSlim est à jour.",
+    "available": "Mise à jour {{version}} disponible."
+  },
+  "summary": {
+    "alreadyOptimized": "Déjà optimisé · {{size}}",
+    "saved": "{{percent}} % économisés · {{from}} → {{to}}",
+    "savedMore": "{{percent}} % de plus économisés · {{from}} → {{to}}",
+    "batch": {
+      "image_one": "1 image",
+      "image_other": "{{count}} images",
+      "failed": "{{count}} échouées",
+      "saved": "{{size}} économisés ({{percent}} %)",
+      "alreadyOptimized": "déjà optimisées",
+      "separator": "·"
+    }
+  },
+  "errors": {
+    "fileNotFound": "Fichier ou dossier introuvable.",
+    "noSupportedImages": "Aucune image prise en charge trouvée ({{formats}}).",
+    "tooManyImages": "Trop d'images ({{count}}). Maximum {{max}} par lot.",
+    "saveFolderRequired": "Veuillez d'abord choisir un dossier d'enregistrement dans les réglages.",
+    "optimizationInProgress": "Une optimisation est déjà en cours.",
+    "unsupportedFormat": "Seuls {{formats}} sont pris en charge.",
+    "gifOptimizerUnavailable": "L'optimiseur GIF n'est pas disponible.",
+    "gifsicleFailed": "Échec de l'optimisation GIF (code de sortie {{code}}).",
+    "heicInvalidPath": "Chemin de fichier invalide.",
+    "heicReadFailed": "Impossible de lire l'image HEIC.",
+    "heicNoFrames": "L'image HEIC ne contient aucune image.",
+    "heicCreateFailed": "Impossible de créer la sortie HEIC.",
+    "heicWriteFailed": "Impossible d'écrire le HEIC optimisé.",
+    "heicUnsupportedPlatform": "HEIC n'est pris en charge que sur macOS."
+  },
+  "formats": {
+    "supported": "PNG, JPG, HEIC, GIF, SVG, WebP et AVIF"
+  },
+  "menu": {
+    "preferences": "Réglages…",
+    "window": "Fenêtre"
+  },
+  "dialog": {
+    "pickImages": "Choisir des images ou des dossiers",
+    "pickSaveFolder": "Choisir un dossier d'enregistrement"
+  }
+}

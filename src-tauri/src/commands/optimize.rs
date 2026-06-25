@@ -1,5 +1,5 @@
 use super::shared::project_root;
-use crate::optimize::{process_paths, UserSettings};
+use crate::optimize::{process_paths, ErrorPayload, UserSettings};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tauri::{AppHandle, Manager};
@@ -24,15 +24,15 @@ pub async fn optimize_paths(
     app: AppHandle,
     paths: Vec<String>,
     settings: UserSettings,
-) -> Result<(), String> {
+) -> Result<(), ErrorPayload> {
     let state = app.state::<OptimizationState>();
     let _lock = state
         .guard
         .try_lock()
-        .map_err(|_| "An optimization is already in progress.".to_string())?;
+        .map_err(|_| ErrorPayload::optimization_in_progress())?;
 
     state.cancel.store(false, Ordering::SeqCst);
-    let project_root = project_root(&app)?;
+    let project_root = project_root(&app).map_err(ErrorPayload::io)?;
     process_paths(
         app.clone(),
         paths,
@@ -41,6 +41,7 @@ pub async fn optimize_paths(
         Arc::clone(&state.cancel),
     )
     .await
+    .map_err(|error| ErrorPayload::from_message(&error))
 }
 
 #[tauri::command]

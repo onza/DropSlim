@@ -1,22 +1,36 @@
 import { getVersion } from '@tauri-apps/api/app'
 import { createDropslimApi, initApi } from './api.js'
+import { initI18n, onLocaleChange } from './i18n/index.js'
+import { syncNativeUi } from './native.js'
 import { initRenderer } from './renderer.js'
 import { maybeCheckForUpdates } from './updates.js'
 
 const boot = async () => {
   document.body.classList.add('platform-mac')
 
-  await initApi()
-  const api = createDropslimApi()
-  initRenderer(api)
+  const core = await initApi()
+  const api = createDropslimApi(core)
 
-  const versionEl = document.getElementById('appVersion')
-  if (versionEl) {
-    try {
-      api.setAppVersion(`Version ${await getVersion()}`)
-    } catch (error) {
-      console.error(error)
-    }
+  const i18n = await initI18n({
+    getPreference: () => api.settings.getSync().locale,
+    setPreference: (locale) => api.settings.setSync('locale', locale),
+  })
+
+  const { syncUpdateAction } = initRenderer(api, i18n)
+
+  await syncNativeUi()
+
+  onLocaleChange(() => {
+    api.renderAppVersion()
+    api.reapplyUpdateStatus()
+    syncUpdateAction(api.getPendingUpdateVersion())
+    void syncNativeUi()
+  })
+
+  try {
+    api.setAppVersion(await getVersion())
+  } catch (error) {
+    console.error(error)
   }
 
   void maybeCheckForUpdates(
@@ -26,9 +40,7 @@ const boot = async () => {
         api.setUpdateStatus(message)
       }
     },
-    (version) => {
-      api.syncUpdateAction?.(version)
-    }
+    syncUpdateAction
   ).catch((error) => {
     console.error(error)
   })

@@ -1,0 +1,103 @@
+{
+  "app": {
+    "title": "DropSlim"
+  },
+  "dragzone": {
+    "title": "Drop images or folders here"
+  },
+  "footer": {
+    "settings": "Settings",
+    "close": "Close",
+    "cancel": "Cancel",
+    "version": "Version {{version}}"
+  },
+  "settings": {
+    "title": "Settings",
+    "saveInSameFolder": "Save optimized files in same folder",
+    "chooseFolder": "Choose folder",
+    "chooseFolderOpen": "Open",
+    "minSuffix": "Add .min suffix to optimized files",
+    "minifiedSubfolder": "Add \"minified\" subfolder",
+    "clearOnNew": "Clear result list when optimizing new images",
+    "autoCheckUpdates": "Check for updates automatically",
+    "autoInstallUpdates": "Install updates without asking",
+    "updates": "Updates",
+    "language": "Language",
+    "languageSystem": "System default",
+    "languageEn": "English",
+    "languageDe": "Deutsch",
+    "languageFr": "Français",
+    "languageEs": "Español",
+    "languageIt": "Italiano",
+    "languageJa": "日本語",
+    "languagePtBr": "Português (Brasil)"
+  },
+  "status": {
+    "alreadyCompressing": "Already compressing images…",
+    "batchProgress": "{{done}} / {{total}}",
+    "batchProgressFile": "{{done}} / {{total}} — {{fileName}}",
+    "compressing": "Compressing {{fileName}}…"
+  },
+  "results": {
+    "truncated_one": "1 older result not shown — only the latest {{max}} are listed.",
+    "truncated_other": "{{count}} older results not shown — only the latest {{max}} are listed.",
+    "optimizeError": "Could not optimize {{fileName}}: {{message}}",
+    "cancelled": "Cancelled after {{done}} / {{total}} ({{succeeded}} optimized, {{failed}} failed)"
+  },
+  "updates": {
+    "checkNow": "Check now",
+    "install": "Install",
+    "installing": "Installing…",
+    "checking": "Checking…",
+    "checkingStatus": "Checking for updates…",
+    "couldNotCheck": "Could not check for updates.",
+    "couldNotCheckDetail": "Could not check for updates: {{error}}",
+    "requiresDesktop": "Update checks require the desktop app.",
+    "noUpdateReady": "No update ready to install.",
+    "downloading": "Downloading DropSlim {{version}}…",
+    "installingUpdate": "Installing update…",
+    "couldNotInstall": "Could not install update: {{error}}",
+    "upToDate": "DropSlim is up to date.",
+    "available": "Update {{version}} available."
+  },
+  "summary": {
+    "alreadyOptimized": "Already optimized · {{size}}",
+    "saved": "You saved {{percent}}% · {{from}} → {{to}}",
+    "savedMore": "Saved {{percent}}% more · {{from}} → {{to}}",
+    "batch": {
+      "image_one": "1 image",
+      "image_other": "{{count}} images",
+      "failed": "{{count}} failed",
+      "saved": "saved {{size}} ({{percent}}%)",
+      "alreadyOptimized": "already optimized",
+      "separator": "·"
+    }
+  },
+  "errors": {
+    "fileNotFound": "File or folder not found.",
+    "noSupportedImages": "No supported images found ({{formats}}).",
+    "tooManyImages": "Too many images ({{count}}). Maximum is {{max}} per batch.",
+    "saveFolderRequired": "Please choose a save folder in Settings first.",
+    "optimizationInProgress": "An optimization is already in progress.",
+    "unsupportedFormat": "Only {{formats}} are supported.",
+    "gifOptimizerUnavailable": "GIF optimizer is not available.",
+    "gifsicleFailed": "GIF optimization failed (exit code {{code}}).",
+    "heicInvalidPath": "Invalid file path.",
+    "heicReadFailed": "Could not read HEIC image.",
+    "heicNoFrames": "HEIC image contains no frames.",
+    "heicCreateFailed": "Could not create HEIC output.",
+    "heicWriteFailed": "Could not write optimized HEIC.",
+    "heicUnsupportedPlatform": "HEIC is only supported on macOS."
+  },
+  "formats": {
+    "supported": "PNG, JPG, HEIC, GIF, SVG, WebP, and AVIF"
+  },
+  "menu": {
+    "preferences": "Preferences…",
+    "window": "Window"
+  },
+  "dialog": {
+    "pickImages": "Choose images or folders",
+    "pickSaveFolder": "Choose a save folder"
+  }
+}

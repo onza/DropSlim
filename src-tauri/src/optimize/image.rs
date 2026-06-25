@@ -1,6 +1,6 @@
 use std::fs;
 use std::io::BufReader;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 
 use oxipng::{optimize_from_memory, Options, StripChunks};
@@ -11,8 +11,10 @@ use oxvg_optimiser::Jobs;
 use ravif::{Encoder, Img, RGBA8};
 use zenjpeg::encoder::{ChromaSubsampling, EncoderConfig, PixelLayout, Unstoppable};
 
-use super::formats::{ImageFormat, SUPPORTED_FORMATS_LABEL};
+use super::formats::ImageFormat;
 use super::heic::optimize_heic;
+use super::payloads::ErrorPayload;
+use super::temp_paths::TempFile;
 use super::tools::gifsicle_path;
 
 const JPEG_QUALITY: u8 = 85;
@@ -23,33 +25,21 @@ const WEBP_QUALITY: f32 = 80.0;
 const AVIF_QUALITY: f32 = 50.0;
 const AVIF_SPEED: u8 = 4;
 
-fn temp_source_path(output: &Path) -> PathBuf {
-    let extension = output
-        .extension()
-        .map(|ext| format!(".{}", ext.to_string_lossy()))
-        .unwrap_or_default();
-    let stem = output
-        .file_stem()
-        .and_then(|value| value.to_str())
-        .unwrap_or("tmp");
-
-    output.with_file_name(format!("{stem}.dropslim{extension}"))
-}
-
-fn with_safe_source<F>(input: &Path, output: &Path, optimize: F) -> Result<(), String>
+fn with_safe_source<F>(input: &Path, output: &Path, optimize: F) -> Result<(), ErrorPayload>
 where
-    F: FnOnce(&Path, &Path) -> Result<(), String>,
+    F: FnOnce(&Path, &Path) -> Result<(), ErrorPayload>,
 {
     if input == output {
-        let tmp = temp_source_path(output);
-        fs::copy(input, &tmp).map_err(|error| error.to_string())?;
-
-        let result = optimize(&tmp, output);
-        let _ = fs::remove_file(&tmp);
-        result
+        let tmp = TempFile::at(output);
+        fs::copy(input, tmp.path()).map_err(|error| ErrorPayload::io(error.to_string()))?;
+        optimize(tmp.path(), output)
     } else {
         optimize(input, output)
     }
+}
+
+fn io_error(error: impl ToString) -> ErrorPayload {
+    ErrorPayload::io(error.to_string())
 }
 
 fn optimize_svg(input: &Path, output: &Path) -> Result<(), String> {
@@ -83,15 +73,16 @@ fn optimize_jpeg(input: &Path, output: &Path) -> Result<(), String> {
 }
 
 fn png_recompress_options() -> Options {
-    let mut opts = Options::default();
-    opts.bit_depth_reduction = false;
-    opts.color_type_reduction = false;
-    opts.palette_reduction = false;
-    opts.grayscale_reduction = false;
-    opts.scale_16 = false;
-    opts.strip = StripChunks::Safe;
-    opts.fast_evaluation = true;
-    opts
+    Options {
+        bit_depth_reduction: false,
+        color_type_reduction: false,
+        palette_reduction: false,
+        grayscale_reduction: false,
+        scale_16: false,
+        strip: StripChunks::Safe,
+        fast_evaluation: true,
+        ..Default::default()
+    }
 }
 
 fn png_uses_palette(input: &Path) -> Result<bool, String> {
@@ -222,24 +213,28 @@ fn optimize_avif(input: &Path, output: &Path) -> Result<(), String> {
     fs::write(output, encoded.avif_file).map_err(|error| error.to_string())
 }
 
-pub fn optimize_image_file(input: &Path, output: &Path, project_root: &Path) -> Result<(), String> {
-    let format = ImageFormat::from_path(input)
-        .ok_or_else(|| format!("Only {SUPPORTED_FORMATS_LABEL} are supported."))?;
+pub fn optimize_image_file(
+    input: &Path,
+    output: &Path,
+    project_root: &Path,
+) -> Result<(), ErrorPayload> {
+    let format = ImageFormat::from_path(input).ok_or_else(ErrorPayload::unsupported_format)?;
 
     let gifsicle = gifsicle_path(project_root);
 
     with_safe_source(input, output, |source, destination| match format {
-        ImageFormat::Svg => optimize_svg(source, destination),
-        ImageFormat::Jpeg => optimize_jpeg(source, destination),
-        ImageFormat::Png => optimize_png(source, destination),
+        ImageFormat::Svg => optimize_svg(source, destination).map_err(io_error),
+        ImageFormat::Jpeg => optimize_jpeg(source, destination).map_err(io_error),
+        ImageFormat::Png => optimize_png(source, destination).map_err(io_error),
         ImageFormat::Gif => {
             let gifsicle = gifsicle
                 .as_deref()
-                .ok_or_else(|| "GIF optimizer is not available.".to_string())?;
+                .ok_or_else(ErrorPayload::gif_optimizer_unavailable)?;
             optimize_gif(source, destination, gifsicle)
+                .map_err(|message| ErrorPayload::from_message(&message))
         }
-        ImageFormat::Webp => optimize_webp(source, destination),
-        ImageFormat::Avif => optimize_avif(source, destination),
+        ImageFormat::Webp => optimize_webp(source, destination).map_err(io_error),
+        ImageFormat::Avif => optimize_avif(source, destination).map_err(io_error),
         ImageFormat::Heic => optimize_heic(source, destination),
     })
 }

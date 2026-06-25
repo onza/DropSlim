@@ -19,8 +19,9 @@ Drop your images. DropSlim crunches the numbers. Done. Everything stays on your 
 - **Open with DropSlim** — right-click an image in Finder → **Open With** → DropSlim
 - **Review results** in a simple list and reveal outputs in Finder
 - **Open source** — [MIT](LICENSE.md)
+- **Languages** — English, German, French, Spanish, Italian, Japanese, Brazilian Portuguese
 
-### Where the optimized file is saved depends on your settings:
+### Where the optimized file is saved depends on your settings
 
 - **`.min` suffix on** (default): writes a new file next to the original, e.g. `photo.png` → `photo.min.png`. The source file stays untouched.
 - **`.min` suffix off**: replaces the original file in place with the optimized version.
@@ -38,6 +39,12 @@ Requires macOS 11 (Big Sur) or later and an **Apple Silicon** Mac (M1 or newer).
 3. Open DropSlim from **Applications**.
 
 **Intel Mac?** Use [Image Shrinker](https://image-shrinker.com/) — same idea, native on Intel Macs.
+
+<br>
+
+## Translations
+
+UI translations were **generated with AI** and may contain errors or awkward wording. **Corrections are welcome** — if you spot a mistake, please [open an issue](https://github.com/onza/DropSlim/issues) or submit a pull request with an updated string in `ui/i18n/locales/`.
 
 <br>
 

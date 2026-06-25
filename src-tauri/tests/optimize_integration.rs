@@ -107,7 +107,13 @@ fn optimizes_gif_fixture() {
         );
     }
 
-    let input = fixtures_dir().join("bloat.gif");
+    let dir = tempfile::tempdir().expect("tempdir");
+    let input = create_raster_fixture(&dir, "sample.gif", |path| {
+        let img = image::RgbaImage::from_fn(320, 240, |x, y| {
+            image::Rgba([(x % 255) as u8, (y % 255) as u8, ((x + y) % 255) as u8, 255])
+        });
+        img.save(path).expect("save gif");
+    });
     optimize_to_temp(&input, ".gif");
 }
 

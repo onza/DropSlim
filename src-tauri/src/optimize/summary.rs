@@ -1,5 +1,7 @@
 use std::path::Path;
 
+use super::payloads::{BatchSummaryPayload, SummaryPayload};
+
 pub fn file_size(path: &Path) -> std::io::Result<u64> {
     Ok(std::fs::metadata(path)?.len())
 }
@@ -35,79 +37,60 @@ pub fn should_keep_optimized_output(
     candidate_size < threshold
 }
 
-pub fn build_optimize_summary(
+pub fn build_optimize_summary_payload(
     size_orig: u64,
     size_optimized: u64,
     previous_output_size: Option<u64>,
-) -> String {
+) -> SummaryPayload {
     let new_label = format_bytes(size_optimized);
 
     let Some(previous) = previous_output_size else {
         if size_optimized >= size_orig {
-            return format!("Already optimized · {new_label}");
+            return SummaryPayload::AlreadyOptimized { size: new_label };
         }
 
         let saved = size_orig - size_optimized;
         let percent = ((100.0 / size_orig as f64) * saved as f64).round() as u64;
 
-        return format!(
-            "You saved {}% · {} → {}",
+        return SummaryPayload::Saved {
             percent,
-            format_bytes(size_orig),
-            new_label
-        );
+            from: format_bytes(size_orig),
+            to: new_label,
+        };
     };
 
     if size_optimized >= previous {
-        return format!("Already optimized · {new_label}");
+        return SummaryPayload::AlreadyOptimized { size: new_label };
     }
 
     let extra_saved = previous - size_optimized;
     let extra_percent = ((100.0 / previous as f64) * extra_saved as f64).round() as u64;
 
     if extra_percent < 1 {
-        return format!("Already optimized · {new_label}");
+        return SummaryPayload::AlreadyOptimized { size: new_label };
     }
 
-    format!(
-        "Saved {}% more · {} → {}",
-        extra_percent,
-        format_bytes(previous),
-        new_label
-    )
+    SummaryPayload::SavedMore {
+        percent: extra_percent,
+        from: format_bytes(previous),
+        to: new_label,
+    }
 }
 
-pub fn build_batch_summary(
+pub fn build_batch_summary_payload(
     total: usize,
     succeeded: usize,
     failed: usize,
     bytes_before: u64,
     bytes_after: u64,
-) -> String {
-    let image_label = if total == 1 {
-        "1 image".to_string()
-    } else {
-        format!("{total} images")
-    };
-
-    let mut parts = vec![image_label];
-
-    if failed > 0 {
-        parts.push(format!("{failed} failed"));
+) -> BatchSummaryPayload {
+    BatchSummaryPayload {
+        total: total as u32,
+        succeeded: succeeded as u32,
+        failed: failed as u32,
+        bytes_before,
+        bytes_after,
     }
-
-    if succeeded > 0 {
-        let saved = bytes_before.saturating_sub(bytes_after);
-
-        if saved > 0 {
-            let percent = ((100.0 / bytes_before as f64) * saved as f64).round() as u64;
-            parts.push(format!("saved {} ({percent}%)", format_bytes(saved)));
-        } else if failed == 0 {
-            parts.push("already optimized".to_string());
-        }
-    }
-
-    parts.join(" · ")
 }
 
 #[cfg(test)]
@@ -150,48 +133,68 @@ mod tests {
     #[test]
     fn summarizes_first_optimization() {
         assert_eq!(
-            build_optimize_summary(100_000, 40_000, None),
-            "You saved 60% · 100 KB → 40 KB"
+            build_optimize_summary_payload(100_000, 40_000, None),
+            SummaryPayload::Saved {
+                percent: 60,
+                from: "100 KB".into(),
+                to: "40 KB".into(),
+            }
         );
     }
 
     #[test]
     fn reports_no_first_pass_savings() {
         assert_eq!(
-            build_optimize_summary(1_000, 1_200, None),
-            "Already optimized · 1 KB"
+            build_optimize_summary_payload(1_000, 1_200, None),
+            SummaryPayload::AlreadyOptimized { size: "1 KB".into() }
         );
     }
 
     #[test]
     fn reports_already_optimized() {
         assert_eq!(
-            build_optimize_summary(100_000, 50_000, Some(50_000)),
-            "Already optimized · 50 KB"
+            build_optimize_summary_payload(100_000, 50_000, Some(50_000)),
+            SummaryPayload::AlreadyOptimized { size: "50 KB".into() }
         );
     }
 
     #[test]
     fn reports_additional_savings() {
         assert_eq!(
-            build_optimize_summary(100_000, 40_000, Some(50_000)),
-            "Saved 20% more · 50 KB → 40 KB"
+            build_optimize_summary_payload(100_000, 40_000, Some(50_000)),
+            SummaryPayload::SavedMore {
+                percent: 20,
+                from: "50 KB".into(),
+                to: "40 KB".into(),
+            }
         );
     }
 
     #[test]
     fn summarizes_single_image_batch() {
         assert_eq!(
-            build_batch_summary(1, 1, 0, 100_000, 40_000),
-            "1 image · saved 60 KB (60%)"
+            build_batch_summary_payload(1, 1, 0, 100_000, 40_000),
+            BatchSummaryPayload {
+                total: 1,
+                succeeded: 1,
+                failed: 0,
+                bytes_before: 100_000,
+                bytes_after: 40_000,
+            }
         );
     }
 
     #[test]
     fn summarizes_batch() {
         assert_eq!(
-            build_batch_summary(3, 3, 0, 300_000, 120_000),
-            "3 images · saved 180 KB (60%)"
+            build_batch_summary_payload(3, 3, 0, 300_000, 120_000),
+            BatchSummaryPayload {
+                total: 3,
+                succeeded: 3,
+                failed: 0,
+                bytes_before: 300_000,
+                bytes_after: 120_000,
+            }
         );
     }
 }

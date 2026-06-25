@@ -1,0 +1,103 @@
+{
+  "app": {
+    "title": "DropSlim"
+  },
+  "dragzone": {
+    "title": "画像やフォルダをここにドロップ"
+  },
+  "footer": {
+    "settings": "設定",
+    "close": "閉じる",
+    "cancel": "キャンセル",
+    "version": "バージョン {{version}}"
+  },
+  "settings": {
+    "title": "設定",
+    "saveInSameFolder": "最適化したファイルを同じフォルダに保存",
+    "chooseFolder": "フォルダを選択",
+    "chooseFolderOpen": "開く",
+    "minSuffix": "最適化ファイルに .min サフィックスを付ける",
+    "minifiedSubfolder": "「minified」サブフォルダを作成",
+    "clearOnNew": "新しい画像を最適化するときに結果リストをクリア",
+    "autoCheckUpdates": "自動的にアップデートを確認",
+    "autoInstallUpdates": "確認なしでアップデートをインストール",
+    "updates": "アップデート",
+    "language": "言語",
+    "languageSystem": "システムの設定",
+    "languageEn": "English",
+    "languageDe": "Deutsch",
+    "languageFr": "Français",
+    "languageEs": "Español",
+    "languageIt": "Italiano",
+    "languageJa": "日本語",
+    "languagePtBr": "Português (Brasil)"
+  },
+  "status": {
+    "alreadyCompressing": "すでに画像を圧縮中…",
+    "batchProgress": "{{done}} / {{total}}",
+    "batchProgressFile": "{{done}} / {{total}} — {{fileName}}",
+    "compressing": "{{fileName}} を圧縮中…"
+  },
+  "results": {
+    "truncated_one": "古い結果 1 件は非表示 — 最新 {{max}} 件のみ表示しています。",
+    "truncated_other": "古い結果 {{count}} 件は非表示 — 最新 {{max}} 件のみ表示しています。",
+    "optimizeError": "{{fileName}} を最適化できませんでした: {{message}}",
+    "cancelled": "{{done}} / {{total}} でキャンセル（{{succeeded}} 件成功、{{failed}} 件失敗）"
+  },
+  "updates": {
+    "checkNow": "今すぐ確認",
+    "install": "インストール",
+    "installing": "インストール中…",
+    "checking": "確認中…",
+    "checkingStatus": "アップデートを確認中…",
+    "couldNotCheck": "アップデートを確認できませんでした。",
+    "couldNotCheckDetail": "アップデートを確認できませんでした: {{error}}",
+    "requiresDesktop": "アップデートの確認にはデスクトップアプリが必要です。",
+    "noUpdateReady": "インストール可能なアップデートがありません。",
+    "downloading": "DropSlim {{version}} をダウンロード中…",
+    "installingUpdate": "アップデートをインストール中…",
+    "couldNotInstall": "アップデートをインストールできませんでした: {{error}}",
+    "upToDate": "DropSlim は最新です。",
+    "available": "アップデート {{version}} が利用可能です。"
+  },
+  "summary": {
+    "alreadyOptimized": "すでに最適化済み · {{size}}",
+    "saved": "{{percent}}% 削減 · {{from}} → {{to}}",
+    "savedMore": "さらに {{percent}}% 削減 · {{from}} → {{to}}",
+    "batch": {
+      "image_one": "1 枚",
+      "image_other": "{{count}} 枚",
+      "failed": "{{count}} 件失敗",
+      "saved": "{{size}} 削減 ({{percent}}%)",
+      "alreadyOptimized": "すでに最適化済み",
+      "separator": "·"
+    }
+  },
+  "errors": {
+    "fileNotFound": "ファイルまたはフォルダが見つかりません。",
+    "noSupportedImages": "対応画像が見つかりません ({{formats}})。",
+    "tooManyImages": "画像が多すぎます ({{count}})。1 回あたり最大 {{max}} 枚です。",
+    "saveFolderRequired": "設定で保存フォルダを先に選択してください。",
+    "optimizationInProgress": "すでに最適化が実行中です。",
+    "unsupportedFormat": "{{formats}} のみ対応しています。",
+    "gifOptimizerUnavailable": "GIF オプティマイザーを利用できません。",
+    "gifsicleFailed": "GIF の最適化に失敗しました（終了コード {{code}}）。",
+    "heicInvalidPath": "ファイルパスが無効です。",
+    "heicReadFailed": "HEIC 画像を読み込めませんでした。",
+    "heicNoFrames": "HEIC 画像にフレームがありません。",
+    "heicCreateFailed": "HEIC 出力を作成できませんでした。",
+    "heicWriteFailed": "最適化した HEIC を書き込めませんでした。",
+    "heicUnsupportedPlatform": "HEIC は macOS でのみ対応しています。"
+  },
+  "formats": {
+    "supported": "PNG、JPG、HEIC、GIF、SVG、WebP、AVIF"
+  },
+  "menu": {
+    "preferences": "設定…",
+    "window": "ウィンドウ"
+  },
+  "dialog": {
+    "pickImages": "画像またはフォルダを選択",
+    "pickSaveFolder": "保存フォルダを選択"
+  }
+}

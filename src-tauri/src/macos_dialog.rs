@@ -1,5 +1,16 @@
+use crate::native_ui::NativeUiStrings;
+
 #[cfg(target_os = "macos")]
-pub fn pick_paths() -> Result<Vec<String>, String> {
+struct OpenPanelOptions {
+    title: String,
+    choose_files: bool,
+    choose_directories: bool,
+    multiple: bool,
+    create_directories: bool,
+}
+
+#[cfg(target_os = "macos")]
+fn run_open_panel(options: OpenPanelOptions) -> Result<Vec<String>, String> {
     use objc2::MainThreadMarker;
     use objc2_app_kit::{NSModalResponseOK, NSOpenPanel};
     use objc2_foundation::NSString;
@@ -7,15 +18,13 @@ pub fn pick_paths() -> Result<Vec<String>, String> {
     let mtm = MainThreadMarker::new().ok_or_else(|| "must run on main thread".to_string())?;
     let panel = NSOpenPanel::openPanel(mtm);
 
-    panel.setCanChooseFiles(true);
-    panel.setCanChooseDirectories(true);
-    panel.setAllowsMultipleSelection(true);
-    panel.setCanCreateDirectories(false);
-    panel.setTitle(Some(&NSString::from_str("Choose images or folders")));
+    panel.setCanChooseFiles(options.choose_files);
+    panel.setCanChooseDirectories(options.choose_directories);
+    panel.setAllowsMultipleSelection(options.multiple);
+    panel.setCanCreateDirectories(options.create_directories);
+    panel.setTitle(Some(&NSString::from_str(&options.title)));
 
-    let response = panel.runModal();
-
-    if response != NSModalResponseOK {
+    if panel.runModal() != NSModalResponseOK {
         return Ok(vec![]);
     }
 
@@ -34,47 +43,36 @@ pub fn pick_paths() -> Result<Vec<String>, String> {
 }
 
 #[cfg(target_os = "macos")]
-pub fn pick_save_folder() -> Result<Vec<String>, String> {
-    use objc2::MainThreadMarker;
-    use objc2_app_kit::{NSModalResponseOK, NSOpenPanel};
-    use objc2_foundation::NSString;
+pub fn pick_paths(strings: &NativeUiStrings) -> Result<Vec<String>, String> {
+    run_open_panel(OpenPanelOptions {
+        title: strings.pick_images.clone(),
+        choose_files: true,
+        choose_directories: true,
+        multiple: true,
+        create_directories: false,
+    })
+}
 
-    let mtm = MainThreadMarker::new().ok_or_else(|| "must run on main thread".to_string())?;
-    let panel = NSOpenPanel::openPanel(mtm);
+#[cfg(target_os = "macos")]
+pub fn pick_save_folder(strings: &NativeUiStrings) -> Result<Vec<String>, String> {
+    let mut paths = run_open_panel(OpenPanelOptions {
+        title: strings.pick_save_folder.clone(),
+        choose_files: false,
+        choose_directories: true,
+        multiple: false,
+        create_directories: true,
+    })?;
 
-    panel.setCanChooseFiles(false);
-    panel.setCanChooseDirectories(true);
-    panel.setAllowsMultipleSelection(false);
-    panel.setCanCreateDirectories(true);
-    panel.setTitle(Some(&NSString::from_str("Choose a save folder")));
-
-    let response = panel.runModal();
-
-    if response != NSModalResponseOK {
-        return Ok(vec![]);
-    }
-
-    let urls = panel.URLs();
-
-    if urls.len() == 0 {
-        return Ok(vec![]);
-    }
-
-    let url = urls.objectAtIndex(0);
-
-    if let Some(path) = url.path() {
-        Ok(vec![path.to_string()])
-    } else {
-        Ok(vec![])
-    }
+    paths.truncate(1);
+    Ok(paths)
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn pick_save_folder() -> Result<Vec<String>, String> {
+pub fn pick_save_folder(_strings: &NativeUiStrings) -> Result<Vec<String>, String> {
     Err("pick_save_folder is only supported on macOS".to_string())
 }
 
 #[cfg(not(target_os = "macos"))]
-pub fn pick_paths() -> Result<Vec<String>, String> {
+pub fn pick_paths(_strings: &NativeUiStrings) -> Result<Vec<String>, String> {
     Err("pick_paths is only supported on macOS".to_string())
 }

@@ -1,15 +1,20 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+#[cfg(test)]
+use std::sync::Mutex;
 
+use serde::Serialize;
 use tauri::{AppHandle, Emitter};
 
+use super::payloads::{BatchSummaryPayload, ErrorPayload, SummaryPayload};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BatchProgress {
+pub(crate) struct BatchProgress {
     pub done: u32,
     pub total: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ProcessorEvent {
+pub(crate) enum ProcessorEvent {
     BatchStarted {
         total: u32,
     },
@@ -17,14 +22,14 @@ pub enum ProcessorEvent {
     BatchProgress(BatchProgress),
     ImageOptimized {
         output_path: String,
-        summary: String,
+        summary: SummaryPayload,
         source_name: String,
     },
     DropError {
         file_name: String,
-        message: String,
+        error: ErrorPayload,
     },
-    BatchComplete(String),
+    BatchComplete(BatchSummaryPayload),
     BatchCancelled {
         done: u32,
         total: u32,
@@ -33,7 +38,22 @@ pub enum ProcessorEvent {
     },
 }
 
-pub trait EventSink: Send + Sync {
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct ImageOptimizedEvent {
+    output_path: String,
+    summary: SummaryPayload,
+    source_name: String,
+}
+
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct DropErrorEvent {
+    file_name: String,
+    error: ErrorPayload,
+}
+
+pub(crate) trait EventSink: Send + Sync {
     fn send(&self, event: ProcessorEvent);
 }
 
@@ -65,15 +85,22 @@ impl EventSink for AppEventSink {
                 summary,
                 source_name,
             } => {
-                if let Err(error) = self
-                    .0
-                    .emit("image-optimized", (output_path, summary, source_name))
-                {
+                if let Err(error) = self.0.emit(
+                    "image-optimized",
+                    ImageOptimizedEvent {
+                        output_path,
+                        summary,
+                        source_name,
+                    },
+                ) {
                     eprintln!("image-optimized emit failed: {error}");
                 }
             }
-            ProcessorEvent::DropError { file_name, message } => {
-                if let Err(error) = self.0.emit("drop-error", (file_name, message)) {
+            ProcessorEvent::DropError { file_name, error } => {
+                if let Err(error) = self.0.emit(
+                    "drop-error",
+                    DropErrorEvent { file_name, error },
+                ) {
                     eprintln!("drop-error emit failed: {error}");
                 }
             }
@@ -99,11 +126,13 @@ impl EventSink for AppEventSink {
     }
 }
 
+#[cfg(test)]
 #[derive(Clone, Default)]
-pub struct RecordingEventSink {
+pub(crate) struct RecordingEventSink {
     events: Arc<Mutex<Vec<ProcessorEvent>>>,
 }
 
+#[cfg(test)]
 impl RecordingEventSink {
     pub fn new() -> Self {
         Self::default()
@@ -114,6 +143,7 @@ impl RecordingEventSink {
     }
 }
 
+#[cfg(test)]
 impl EventSink for RecordingEventSink {
     fn send(&self, event: ProcessorEvent) {
         self.events
@@ -123,6 +153,66 @@ impl EventSink for RecordingEventSink {
     }
 }
 
-pub fn app_event_sink(app: AppHandle) -> Arc<dyn EventSink> {
+pub(crate) fn app_event_sink(app: AppHandle) -> Arc<dyn EventSink> {
     Arc::new(AppEventSink(app))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::optimize::payloads::{BatchSummaryPayload, ErrorPayload, SummaryPayload};
+
+    #[test]
+    fn records_batch_and_error_events() {
+        let sink = RecordingEventSink::new();
+
+        sink.send(ProcessorEvent::BatchStarted { total: 2 });
+        sink.send(ProcessorEvent::DropError {
+            file_name: "photo.png".to_string(),
+            error: ErrorPayload::file_not_found(),
+        });
+        sink.send(ProcessorEvent::BatchComplete(BatchSummaryPayload {
+            total: 1,
+            succeeded: 1,
+            failed: 0,
+            bytes_before: 100,
+            bytes_after: 40,
+        }));
+
+        assert_eq!(
+            sink.events(),
+            vec![
+                ProcessorEvent::BatchStarted { total: 2 },
+                ProcessorEvent::DropError {
+                    file_name: "photo.png".to_string(),
+                    error: ErrorPayload::file_not_found(),
+                },
+                ProcessorEvent::BatchComplete(BatchSummaryPayload {
+                    total: 1,
+                    succeeded: 1,
+                    failed: 0,
+                    bytes_before: 100,
+                    bytes_after: 40,
+                }),
+            ]
+        );
+    }
+
+    #[test]
+    fn records_image_optimized_payload() {
+        let sink = RecordingEventSink::new();
+
+        sink.send(ProcessorEvent::ImageOptimized {
+            output_path: "/tmp/photo.min.png".to_string(),
+            summary: SummaryPayload::AlreadyOptimized {
+                size: "40 KB".to_string(),
+            },
+            source_name: "photo.png".to_string(),
+        });
+
+        assert!(matches!(
+            sink.events().as_slice(),
+            [ProcessorEvent::ImageOptimized { .. }]
+        ));
+    }
 }

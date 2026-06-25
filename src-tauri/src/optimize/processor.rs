@@ -5,13 +5,16 @@ use std::sync::Arc;
 use tauri::AppHandle;
 use tokio::task::JoinSet;
 
-use super::collect::{self, SUPPORTED_FORMATS_LABEL};
+use super::collect;
 use super::events::{app_event_sink, EventSink, ProcessorEvent};
 use super::image::optimize_image_file;
 use super::output_path::{build_output_path, custom_save_folder_missing, UserSettings};
+use super::payloads::ErrorPayload;
 use super::summary::{
-    build_batch_summary, build_optimize_summary, file_size, should_keep_optimized_output,
+    build_batch_summary_payload, build_optimize_summary_payload, file_size,
+    should_keep_optimized_output,
 };
+use super::temp_paths::TempFile;
 
 const OPTIMIZATION_CONCURRENCY: usize = 3;
 pub const MAX_BATCH_FILES: usize = 10_000;
@@ -67,7 +70,7 @@ impl BatchState {
             return;
         }
 
-        sink.send(ProcessorEvent::BatchComplete(build_batch_summary(
+        sink.send(ProcessorEvent::BatchComplete(build_batch_summary_payload(
             self.total,
             self.succeeded,
             self.failed,
@@ -77,30 +80,20 @@ impl BatchState {
     }
 }
 
-fn drop_error(file_name: impl Into<String>, message: impl Into<String>) -> ProcessorEvent {
+fn drop_error(file_name: impl Into<String>, error: ErrorPayload) -> ProcessorEvent {
     ProcessorEvent::DropError {
         file_name: file_name.into(),
-        message: message.into(),
+        error,
     }
 }
 
-fn temp_candidate_path(output: &std::path::Path) -> PathBuf {
-    let extension = output
-        .extension()
-        .map(|ext| format!(".{}", ext.to_string_lossy()))
-        .unwrap_or_default();
-    let stem = output
-        .file_stem()
-        .and_then(|value| value.to_str())
-        .unwrap_or("output");
-
-    output.with_file_name(format!("{stem}.dropslim{extension}"))
-}
-
-fn commit_candidate(candidate: &std::path::Path, output: &std::path::Path) -> Result<(), String> {
+fn commit_candidate(
+    candidate: &std::path::Path,
+    output: &std::path::Path,
+) -> Result<(), ErrorPayload> {
     if std::fs::rename(candidate, output).is_err() {
-        std::fs::copy(candidate, output).map_err(|error| error.to_string())?;
-        std::fs::remove_file(candidate).map_err(|error| error.to_string())?;
+        std::fs::copy(candidate, output).map_err(|error| ErrorPayload::io(error.to_string()))?;
+        std::fs::remove_file(candidate).map_err(|error| ErrorPayload::io(error.to_string()))?;
     }
 
     Ok(())
@@ -125,7 +118,7 @@ fn report_output_path(
 
 struct ResolvedOptimization {
     output_path: PathBuf,
-    summary: String,
+    summary: super::payloads::SummaryPayload,
     size_after: u64,
 }
 
@@ -133,25 +126,26 @@ fn resolve_optimization(
     file_path: &std::path::Path,
     output_path: &std::path::Path,
     project_root: &std::path::Path,
-) -> Result<ResolvedOptimization, String> {
-    let size_orig = file_size(file_path).map_err(|error| error.to_string())?;
+) -> Result<ResolvedOptimization, ErrorPayload> {
+    let size_orig = file_size(file_path).map_err(|error| ErrorPayload::io(error.to_string()))?;
     let previous_output_size = file_size(output_path).ok();
     let threshold = previous_output_size.unwrap_or(size_orig);
-    let candidate_path = temp_candidate_path(output_path);
+    let candidate = TempFile::at(output_path);
+    let candidate_path = candidate.path();
 
-    optimize_image_file(file_path, &candidate_path, project_root)?;
+    optimize_image_file(file_path, candidate_path, project_root)?;
 
-    let candidate_size = file_size(&candidate_path).map_err(|error| error.to_string())?;
+    let candidate_size =
+        file_size(candidate_path).map_err(|error| ErrorPayload::io(error.to_string()))?;
 
     if should_keep_optimized_output(candidate_size, size_orig, previous_output_size) {
-        commit_candidate(&candidate_path, output_path)?;
+        commit_candidate(candidate_path, output_path)?;
         Ok(ResolvedOptimization {
             output_path: output_path.to_path_buf(),
-            summary: build_optimize_summary(size_orig, candidate_size, previous_output_size),
+            summary: build_optimize_summary_payload(size_orig, candidate_size, previous_output_size),
             size_after: candidate_size,
         })
     } else {
-        let _ = std::fs::remove_file(&candidate_path);
         Ok(ResolvedOptimization {
             output_path: report_output_path(
                 file_path,
@@ -159,7 +153,7 @@ fn resolve_optimization(
                 previous_output_size,
                 false,
             ),
-            summary: build_optimize_summary(size_orig, threshold, previous_output_size),
+            summary: build_optimize_summary_payload(size_orig, threshold, previous_output_size),
             size_after: threshold,
         })
     }
@@ -196,11 +190,11 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
 
     let result = tokio::task::spawn_blocking(move || {
         let output_path =
-            build_output_path(&file_path, &settings).map_err(|error| error.to_string())?;
-        let size_orig = file_size(&file_path).map_err(|error| error.to_string())?;
+            build_output_path(&file_path, &settings).map_err(|error| ErrorPayload::io(error.to_string()))?;
+        let size_orig = file_size(&file_path).map_err(|error| ErrorPayload::io(error.to_string()))?;
         let resolved = resolve_optimization(&file_path, &output_path, &project_root)?;
 
-        Ok::<_, String>((
+        Ok::<_, ErrorPayload>((
             resolved.output_path,
             resolved.summary,
             file_name,
@@ -209,7 +203,7 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
         ))
     })
     .await
-    .map_err(|error| error.to_string())
+    .map_err(|error| ErrorPayload::io(error.to_string()))
     .and_then(|inner| inner);
 
     let mut batch = batch.lock().await;
@@ -223,8 +217,8 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
             });
             batch.complete_success(size_orig, size_optimized);
         }
-        Err(message) => {
-            sink.send(drop_error(error_file_name, message));
+        Err(error) => {
+            sink.send(drop_error(error_file_name, error));
             batch.complete_failure();
         }
     }
@@ -233,7 +227,7 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
     batch.finish_if_done(sink.as_ref());
 }
 
-pub async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
+pub(crate) async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
     sink: Arc<E>,
     input_paths: Vec<String>,
     settings: UserSettings,
@@ -250,18 +244,26 @@ pub async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
     for missing in &collected.missing {
         sink.send(drop_error(
             missing.clone(),
-            "File or folder not found.".to_string(),
+            ErrorPayload::file_not_found(),
+        ));
+    }
+
+    for unreadable in &collected.unreadable {
+        sink.send(drop_error(
+            unreadable.clone(),
+            ErrorPayload::io("Could not read file path."),
         ));
     }
 
     let image_paths = collected.paths;
     let had_missing = !collected.missing.is_empty();
+    let had_unreadable = !collected.unreadable.is_empty();
 
     if image_paths.is_empty() {
-        if !had_missing {
+        if !had_missing && !had_unreadable {
             sink.send(drop_error(
                 unsupported_selection_label(&input_paths),
-                format!("No supported images found ({SUPPORTED_FORMATS_LABEL})."),
+                ErrorPayload::no_supported_images(),
             ));
         }
         return Ok(());
@@ -270,10 +272,7 @@ pub async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
     if image_paths.len() > MAX_BATCH_FILES {
         sink.send(drop_error(
             "Batch",
-            format!(
-                "Too many images ({}). Maximum is {MAX_BATCH_FILES} per batch.",
-                image_paths.len()
-            ),
+            ErrorPayload::too_many_images(image_paths.len() as u32, MAX_BATCH_FILES as u32),
         ));
         return Ok(());
     }
@@ -281,7 +280,7 @@ pub async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
     if custom_save_folder_missing(&settings) {
         sink.send(drop_error(
             "Settings",
-            "Please choose a save folder in Settings first.",
+            ErrorPayload::save_folder_required(),
         ));
         return Ok(());
     }
@@ -368,6 +367,7 @@ mod tests {
     use super::*;
     use crate::optimize::optimize_image_file;
     use crate::optimize::events::RecordingEventSink;
+    use crate::optimize::payloads::{BatchSummaryPayload, ErrorPayload, SummaryPayload};
     use image::{ImageBuffer, Rgba};
     use std::fs;
     use std::sync::Arc;
@@ -408,9 +408,13 @@ mod tests {
 
         assert_eq!(
             recording.events(),
-            vec![ProcessorEvent::BatchComplete(
-                "1 image · saved 60 KB (60%)".to_string()
-            )]
+            vec![ProcessorEvent::BatchComplete(BatchSummaryPayload {
+                total: 1,
+                succeeded: 1,
+                failed: 0,
+                bytes_before: 100_000,
+                bytes_after: 40_000,
+            })]
         );
     }
 
@@ -453,7 +457,7 @@ mod tests {
             recording.events(),
             vec![ProcessorEvent::DropError {
                 file_name: "photo.png".to_string(),
-                message: "File or folder not found.".to_string(),
+                error: ErrorPayload::file_not_found(),
             }]
         );
     }
@@ -479,7 +483,7 @@ mod tests {
             recording.events(),
             vec![ProcessorEvent::DropError {
                 file_name: "notes.txt".to_string(),
-                message: format!("No supported images found ({SUPPORTED_FORMATS_LABEL})."),
+                error: ErrorPayload::no_supported_images(),
             }]
         );
     }
@@ -509,7 +513,7 @@ mod tests {
             recording.events(),
             vec![ProcessorEvent::DropError {
                 file_name: "Settings".to_string(),
-                message: "Please choose a save folder in Settings first.".to_string(),
+                error: ErrorPayload::save_folder_required(),
             }]
         );
     }
@@ -539,7 +543,7 @@ mod tests {
             recording.events(),
             vec![ProcessorEvent::DropError {
                 file_name: "Settings".to_string(),
-                message: "Please choose a save folder in Settings first.".to_string(),
+                error: ErrorPayload::save_folder_required(),
             }]
         );
     }
@@ -656,7 +660,10 @@ mod tests {
             })
             .expect("optimized event");
 
-        assert!(summary.starts_with("Already optimized"));
+        assert!(matches!(
+            summary,
+            SummaryPayload::AlreadyOptimized { .. }
+        ));
     }
 
     #[tokio::test]
@@ -693,7 +700,10 @@ mod tests {
             })
             .expect("optimized event");
 
-        assert!(summary.starts_with("Already optimized"));
+        assert!(matches!(
+            summary,
+            SummaryPayload::AlreadyOptimized { .. }
+        ));
     }
 
     #[tokio::test]

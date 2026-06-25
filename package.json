@@ -14,11 +14,14 @@
     "prepare": "husky",
     "dev": "bash scripts/dev.sh",
     "build": "bash scripts/build.sh",
-    "pretest": "npm run prepare:tauri",
-    "test": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "test": "npm run ci:check",
+    "test:all": "npm run ci:check && npm run test:rust",
+    "test:rust": "npm run prepare:tauri && cargo test --manifest-path src-tauri/Cargo.toml",
+    "test:ui": "vitest run",
+    "check:locales": "node scripts/check-locale-keys.mjs",
     "ci": "npm run ci:check && npm run ci:rust",
-    "ci:check": "npm run lint && npm run format:check && npm run ui:build",
-    "ci:rust": "npm test",
+    "ci:check": "npm run lint && npm run format:check && npm run check:locales && npm run test:ui && npm run ui:build",
+    "ci:rust": "npm run test:rust && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -53,7 +56,8 @@
     "lint-staged": "^15.5.2",
     "prettier": "^3.6.2",
     "sharp": "^0.34.5",
-    "vite": "^6.4.3"
+    "vite": "^6.4.3",
+    "vitest": "^3.2.4"
   },
   "lint-staged": {
     "*.{js,mjs,cjs,json,yml,yaml,md,css,html}": "prettier --write"
@@ -61,6 +65,7 @@
   "dependencies": {
     "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/plugin-opener": "^2.5.4",
+    "@tauri-apps/plugin-os": "^2.3.2",
     "@tauri-apps/plugin-process": "^2.3.1",
     "@tauri-apps/plugin-store": "^2.4.3",
     "@tauri-apps/plugin-updater": "^2.10.1"

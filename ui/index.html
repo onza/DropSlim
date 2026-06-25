@@ -11,8 +11,8 @@
       <div class="app-main">
         <section id="dragzone">
           <p id="dragzoneStatus" class="dragzone-status" hidden></p>
-          <h1>Drop images or folders here</h1>
-          <strong>PNG, JPG, HEIC, GIF, SVG, WebP, and AVIF</strong>
+          <h1 data-i18n="dragzone.title"></h1>
+          <strong data-i18n="formats.supported"></strong>
         </section>
         <div class="results-panel">
           <p id="batchSummary" class="batch-summary" hidden></p>
@@ -21,11 +21,12 @@
       </div>
       <section id="menuSettings">
         <div class="settings-content">
-          <h3>Settings</h3>
+          <h3 data-i18n="settings.title"></h3>
           <div class="setting-row">
-            <span class="setting-label"
-              >Save optimized files in same folder</span
-            >
+            <span
+              class="setting-label"
+              data-i18n="settings.saveInSameFolder"
+            ></span>
             <label class="toggle">
               <input
                 id="folderswitch"
@@ -37,38 +38,46 @@
             </label>
           </div>
           <div id="wrapperSavePath" class="save-path is-hidden">
-            <span class="save-path-label">Choose folder</span>
-            <button type="button" id="btnSavepath" class="btn">Open</button>
+            <span
+              class="save-path-label"
+              data-i18n="settings.chooseFolder"
+            ></span>
+            <button
+              type="button"
+              id="btnSavepath"
+              class="btn"
+              data-i18n="settings.chooseFolderOpen"
+            ></button>
           </div>
           <div class="setting-row">
-            <span class="setting-label"
-              >Add .min suffix to optimized files</span
-            >
+            <span class="setting-label" data-i18n="settings.minSuffix"></span>
             <label class="toggle">
               <input id="suffix" name="suffix" type="checkbox" checked />
               <span class="toggle-track" aria-hidden="true"></span>
             </label>
           </div>
           <div class="setting-row">
-            <span class="setting-label"
-              >Add &quot;minified&quot; subfolder</span
-            >
+            <span
+              class="setting-label"
+              data-i18n="settings.minifiedSubfolder"
+            ></span>
             <label class="toggle">
               <input id="subfolder" name="subfolder" type="checkbox" />
               <span class="toggle-track" aria-hidden="true"></span>
             </label>
           </div>
           <div class="setting-row">
-            <span class="setting-label"
-              >Clear result list when optimizing new images</span
-            >
+            <span class="setting-label" data-i18n="settings.clearOnNew"></span>
             <label class="toggle">
               <input id="clearlist" name="clearlist" type="checkbox" />
               <span class="toggle-track" aria-hidden="true"></span>
             </label>
           </div>
           <div class="setting-row">
-            <span class="setting-label">Check for updates automatically</span>
+            <span
+              class="setting-label"
+              data-i18n="settings.autoCheckUpdates"
+            ></span>
             <label class="toggle">
               <input
                 id="autoCheckUpdates"
@@ -80,7 +89,10 @@
             </label>
           </div>
           <div class="setting-row">
-            <span class="setting-label">Install updates without asking</span>
+            <span
+              class="setting-label"
+              data-i18n="settings.autoInstallUpdates"
+            ></span>
             <label class="toggle">
               <input
                 id="autoInstallUpdates"
@@ -90,11 +102,45 @@
               <span class="toggle-track" aria-hidden="true"></span>
             </label>
           </div>
+          <div class="setting-row setting-row--locale">
+            <span
+              id="settingsLanguageLabel"
+              class="setting-label"
+              data-i18n="settings.language"
+            ></span>
+            <label class="locale-picker" for="localeSelect">
+              <span class="locale-picker-display">
+                <span id="localeValue" class="locale-picker-value"></span>
+                <span class="locale-picker-icon" aria-hidden="true">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </span>
+              </span>
+              <select
+                id="localeSelect"
+                class="locale-picker-select"
+                name="locale"
+                aria-labelledby="settingsLanguageLabel"
+              ></select>
+            </label>
+          </div>
           <div class="setting-row setting-row--updates">
-            <span class="setting-label">Updates</span>
-            <button type="button" id="btnCheckUpdates" class="btn">
-              Check now
-            </button>
+            <span class="setting-label" data-i18n="settings.updates"></span>
+            <button
+              type="button"
+              id="btnCheckUpdates"
+              class="btn"
+              data-i18n="updates.checkNow"
+            ></button>
           </div>
         </div>
       </section>
@@ -109,15 +155,20 @@
             id="btnCancelOptimization"
             class="text-btn"
             hidden
-          >
-            Cancel
-          </button>
-          <button type="button" id="btnOpenSettings" class="text-btn">
-            Settings
-          </button>
-          <button type="button" id="btnCloseSettings" class="text-btn">
-            Close
-          </button>
+            data-i18n="footer.cancel"
+          ></button>
+          <button
+            type="button"
+            id="btnOpenSettings"
+            class="text-btn"
+            data-i18n="footer.settings"
+          ></button>
+          <button
+            type="button"
+            id="btnCloseSettings"
+            class="text-btn"
+            data-i18n="footer.close"
+          ></button>
         </div>
       </footer>
     </div>

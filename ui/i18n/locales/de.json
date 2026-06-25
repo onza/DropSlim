@@ -1,0 +1,103 @@
+{
+  "app": {
+    "title": "DropSlim"
+  },
+  "dragzone": {
+    "title": "Bilder oder Ordner hier ablegen"
+  },
+  "footer": {
+    "settings": "Einstellungen",
+    "close": "Schließen",
+    "cancel": "Abbrechen",
+    "version": "Version {{version}}"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "saveInSameFolder": "Optimierte Dateien im selben Ordner speichern",
+    "chooseFolder": "Ordner wählen",
+    "chooseFolderOpen": "Öffnen",
+    "minSuffix": ".min-Suffix für optimierte Dateien",
+    "minifiedSubfolder": "Unterordner „minified“ anlegen",
+    "clearOnNew": "Ergebnisliste bei neuen Bildern leeren",
+    "autoCheckUpdates": "Automatisch nach Updates suchen",
+    "autoInstallUpdates": "Updates ohne Nachfrage installieren",
+    "updates": "Updates",
+    "language": "Sprache",
+    "languageSystem": "Systemstandard",
+    "languageEn": "English",
+    "languageDe": "Deutsch",
+    "languageFr": "Français",
+    "languageEs": "Español",
+    "languageIt": "Italiano",
+    "languageJa": "日本語",
+    "languagePtBr": "Português (Brasil)"
+  },
+  "status": {
+    "alreadyCompressing": "Bilder werden bereits komprimiert…",
+    "batchProgress": "{{done}} / {{total}}",
+    "batchProgressFile": "{{done}} / {{total}} — {{fileName}}",
+    "compressing": "Komprimiere {{fileName}}…"
+  },
+  "results": {
+    "truncated_one": "1 älteres Ergebnis ausgeblendet — nur die letzten {{max}} werden angezeigt.",
+    "truncated_other": "{{count}} ältere Ergebnisse ausgeblendet — nur die letzten {{max}} werden angezeigt.",
+    "optimizeError": "{{fileName}} konnte nicht optimiert werden: {{message}}",
+    "cancelled": "Abgebrochen nach {{done}} / {{total}} ({{succeeded}} optimiert, {{failed}} fehlgeschlagen)"
+  },
+  "updates": {
+    "checkNow": "Jetzt prüfen",
+    "install": "Installieren",
+    "installing": "Installiere…",
+    "checking": "Prüfe…",
+    "checkingStatus": "Suche nach Updates…",
+    "couldNotCheck": "Update-Prüfung fehlgeschlagen.",
+    "couldNotCheckDetail": "Update-Prüfung fehlgeschlagen: {{error}}",
+    "requiresDesktop": "Update-Prüfung nur in der Desktop-App möglich.",
+    "noUpdateReady": "Kein Update zur Installation bereit.",
+    "downloading": "Lade DropSlim {{version}}…",
+    "installingUpdate": "Installiere Update…",
+    "couldNotInstall": "Update konnte nicht installiert werden: {{error}}",
+    "upToDate": "DropSlim ist auf dem neuesten Stand.",
+    "available": "Update {{version}} verfügbar."
+  },
+  "summary": {
+    "alreadyOptimized": "Bereits optimiert · {{size}}",
+    "saved": "{{percent}} % gespart · {{from}} → {{to}}",
+    "savedMore": "Weitere {{percent}} % gespart · {{from}} → {{to}}",
+    "batch": {
+      "image_one": "1 Bild",
+      "image_other": "{{count}} Bilder",
+      "failed": "{{count}} fehlgeschlagen",
+      "saved": "{{size}} gespart ({{percent}} %)",
+      "alreadyOptimized": "bereits optimiert",
+      "separator": "·"
+    }
+  },
+  "errors": {
+    "fileNotFound": "Datei oder Ordner nicht gefunden.",
+    "noSupportedImages": "Keine unterstützten Bilder gefunden ({{formats}}).",
+    "tooManyImages": "Zu viele Bilder ({{count}}). Maximal {{max}} pro Durchlauf.",
+    "saveFolderRequired": "Bitte zuerst einen Speicherordner in den Einstellungen wählen.",
+    "optimizationInProgress": "Eine Optimierung läuft bereits.",
+    "unsupportedFormat": "Nur {{formats}} werden unterstützt.",
+    "gifOptimizerUnavailable": "GIF-Optimierer ist nicht verfügbar.",
+    "gifsicleFailed": "GIF-Optimierung fehlgeschlagen (Exit-Code {{code}}).",
+    "heicInvalidPath": "Ungültiger Dateipfad.",
+    "heicReadFailed": "HEIC-Bild konnte nicht gelesen werden.",
+    "heicNoFrames": "HEIC-Bild enthält keine Frames.",
+    "heicCreateFailed": "HEIC-Ausgabe konnte nicht erstellt werden.",
+    "heicWriteFailed": "Optimiertes HEIC konnte nicht geschrieben werden.",
+    "heicUnsupportedPlatform": "HEIC wird nur unter macOS unterstützt."
+  },
+  "formats": {
+    "supported": "PNG, JPG, HEIC, GIF, SVG, WebP und AVIF"
+  },
+  "menu": {
+    "preferences": "Einstellungen…",
+    "window": "Fenster"
+  },
+  "dialog": {
+    "pickImages": "Bilder oder Ordner auswählen",
+    "pickSaveFolder": "Speicherordner auswählen"
+  }
+}

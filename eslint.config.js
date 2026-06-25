@@ -29,7 +29,17 @@ module.exports = [
     },
   },
   {
-    files: ['vite.config.js', '**/*.mjs'],
+    files: ['vite.config.js', 'vitest.config.js', '**/*.mjs'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
+  {
+    files: ['ui/**/*.test.js'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',

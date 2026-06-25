@@ -3,26 +3,22 @@
   --color-accent: #007aff;
   --color-accent-rgb: 0 122 255;
 }
-
 @media (prefers-color-scheme: light) {
   :root {
     --color-text: #1d1d1f;
     --color-text-rgb: 29 29 31;
     --color-surface-rgb: 255 255 255;
-    --color-glass: rgb(255 255 255 / 0.55);
     --color-border: rgb(0 0 0 / 0.12);
     --color-muted: rgb(0 0 0 / 0.5);
     --color-fill: rgb(0 0 0 / 0.05);
     --color-processing: rgb(0 122 255 / 0.1);
   }
 }
-
 @media (prefers-color-scheme: dark) {
   :root {
     --color-text: #f5f5f7;
     --color-text-rgb: 245 245 247;
     --color-surface-rgb: 28 28 30;
-    --color-glass: rgb(30 30 32 / 0.45);
     --color-border: rgb(255 255 255 / 0.14);
     --color-muted: rgb(255 255 255 / 0.5);
     --color-fill: rgb(255 255 255 / 0.16);
@@ -366,6 +362,79 @@ button {
   margin: 0.2rem 0 0;
   min-height: 1rem;
   text-align: center;
+}
+
+.setting-row--locale {
+  align-items: center;
+}
+
+.locale-picker {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  justify-self: end;
+  max-width: 100%;
+  position: relative;
+}
+
+.locale-picker-display {
+  align-items: center;
+  display: inline-flex;
+  font-size: inherit;
+  gap: 0.5rem;
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.locale-picker-icon {
+  align-items: center;
+  color: var(--color-muted);
+  display: flex;
+  flex-shrink: 0;
+  height: 0.875rem;
+  justify-content: center;
+  width: 0.875rem;
+}
+
+.locale-picker-icon svg {
+  display: block;
+  height: 0.875rem;
+  transform: translateY(1px);
+  width: 0.875rem;
+}
+
+.locale-picker-value {
+  font-size: inherit;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.locale-picker-select {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  height: 100%;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  outline: none;
+  padding: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.locale-picker-select:focus,
+.locale-picker-select:focus-visible,
+.locale-picker-select:active {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  outline: none;
+}
+
+.locale-picker-select::-ms-expand {
+  display: none;
 }
 
 .setting-row--updates {

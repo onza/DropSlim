@@ -5,15 +5,27 @@ use walkdir::WalkDir;
 
 use super::formats::is_supported_path;
 
-pub use super::formats::SUPPORTED_FORMATS_LABEL;
-
 pub struct CollectResult {
     pub paths: Vec<PathBuf>,
     pub missing: Vec<String>,
+    pub unreadable: Vec<String>,
 }
 
-fn add_file(path: &Path, seen: &mut BTreeSet<PathBuf>, results: &mut Vec<PathBuf>) {
+fn label_for_path(path: &Path) -> String {
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .map(str::to_string)
+        .unwrap_or_else(|| path.to_string_lossy().to_string())
+}
+
+fn add_file(
+    path: &Path,
+    seen: &mut BTreeSet<PathBuf>,
+    results: &mut Vec<PathBuf>,
+    unreadable: &mut Vec<String>,
+) {
     let Ok(resolved) = path.canonicalize() else {
+        unreadable.push(label_for_path(path));
         return;
     };
 
@@ -24,24 +36,17 @@ fn add_file(path: &Path, seen: &mut BTreeSet<PathBuf>, results: &mut Vec<PathBuf
     results.push(resolved);
 }
 
-fn missing_label(path: &str) -> String {
-    PathBuf::from(path)
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or(path)
-        .to_string()
-}
-
 pub fn collect_image_paths(input_paths: &[String]) -> std::io::Result<CollectResult> {
     let mut seen = BTreeSet::new();
     let mut results = Vec::new();
     let mut missing = Vec::new();
+    let mut unreadable = Vec::new();
 
     for input in input_paths {
         let path = PathBuf::from(input);
 
         if !path.exists() {
-            missing.push(missing_label(input));
+            missing.push(label_for_path(Path::new(input)));
             continue;
         }
 
@@ -51,20 +56,21 @@ pub fn collect_image_paths(input_paths: &[String]) -> std::io::Result<CollectRes
             for entry in WalkDir::new(&path).follow_links(false) {
                 let entry = entry?;
                 if entry.file_type().is_file() {
-                    add_file(entry.path(), &mut seen, &mut results);
+                    add_file(entry.path(), &mut seen, &mut results, &mut unreadable);
                 }
             }
             continue;
         }
 
         if metadata.is_file() {
-            add_file(&path, &mut seen, &mut results);
+            add_file(&path, &mut seen, &mut results, &mut unreadable);
         }
     }
 
     Ok(CollectResult {
         paths: results,
         missing,
+        unreadable,
     })
 }
 
@@ -84,6 +90,7 @@ mod tests {
         assert_eq!(collected.paths.len(), 1);
         assert!(collected.paths[0].ends_with("photo.png"));
         assert!(collected.missing.is_empty());
+        assert!(collected.unreadable.is_empty());
     }
 
     #[test]
@@ -91,6 +98,7 @@ mod tests {
         let collected = collect_image_paths(&["/no/such/file-or-folder.png".to_string()]).unwrap();
         assert!(collected.paths.is_empty());
         assert_eq!(collected.missing, vec!["file-or-folder.png"]);
+        assert!(collected.unreadable.is_empty());
     }
 
     #[test]
@@ -102,6 +110,7 @@ mod tests {
         let collected = collect_image_paths(&[file.to_string_lossy().to_string()]).unwrap();
         assert!(collected.paths.is_empty());
         assert!(collected.missing.is_empty());
+        assert!(collected.unreadable.is_empty());
     }
 
     #[test]
@@ -117,5 +126,6 @@ mod tests {
         let collected = collect_image_paths(&[dir.path().to_string_lossy().to_string()]).unwrap();
         assert_eq!(collected.paths.len(), 3);
         assert!(collected.missing.is_empty());
+        assert!(collected.unreadable.is_empty());
     }
 }

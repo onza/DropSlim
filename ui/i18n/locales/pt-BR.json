@@ -1,0 +1,103 @@
+{
+  "app": {
+    "title": "DropSlim"
+  },
+  "dragzone": {
+    "title": "Solte imagens ou pastas aqui"
+  },
+  "footer": {
+    "settings": "Configurações",
+    "close": "Fechar",
+    "cancel": "Cancelar",
+    "version": "Versão {{version}}"
+  },
+  "settings": {
+    "title": "Configurações",
+    "saveInSameFolder": "Salvar arquivos otimizados na mesma pasta",
+    "chooseFolder": "Escolher pasta",
+    "chooseFolderOpen": "Abrir",
+    "minSuffix": "Adicionar sufixo .min aos arquivos otimizados",
+    "minifiedSubfolder": "Adicionar subpasta «minified»",
+    "clearOnNew": "Limpar a lista ao otimizar novas imagens",
+    "autoCheckUpdates": "Verificar atualizações automaticamente",
+    "autoInstallUpdates": "Instalar atualizações sem perguntar",
+    "updates": "Atualizações",
+    "language": "Idioma",
+    "languageSystem": "Padrão do sistema",
+    "languageEn": "English",
+    "languageDe": "Deutsch",
+    "languageFr": "Français",
+    "languageEs": "Español",
+    "languageIt": "Italiano",
+    "languageJa": "日本語",
+    "languagePtBr": "Português (Brasil)"
+  },
+  "status": {
+    "alreadyCompressing": "Já comprimindo imagens…",
+    "batchProgress": "{{done}} / {{total}}",
+    "batchProgressFile": "{{done}} / {{total}} — {{fileName}}",
+    "compressing": "Comprimindo {{fileName}}…"
+  },
+  "results": {
+    "truncated_one": "1 resultado antigo oculto — apenas os últimos {{max}} são exibidos.",
+    "truncated_other": "{{count}} resultados antigos ocultos — apenas os últimos {{max}} são exibidos.",
+    "optimizeError": "Não foi possível otimizar {{fileName}}: {{message}}",
+    "cancelled": "Cancelado após {{done}} / {{total}} ({{succeeded}} otimizadas, {{failed}} falharam)"
+  },
+  "updates": {
+    "checkNow": "Verificar agora",
+    "install": "Instalar",
+    "installing": "Instalando…",
+    "checking": "Verificando…",
+    "checkingStatus": "Verificando atualizações…",
+    "couldNotCheck": "Não foi possível verificar atualizações.",
+    "couldNotCheckDetail": "Não foi possível verificar atualizações: {{error}}",
+    "requiresDesktop": "A verificação de atualizações requer o app desktop.",
+    "noUpdateReady": "Nenhuma atualização pronta para instalar.",
+    "downloading": "Baixando DropSlim {{version}}…",
+    "installingUpdate": "Instalando atualização…",
+    "couldNotInstall": "Não foi possível instalar a atualização: {{error}}",
+    "upToDate": "O DropSlim está atualizado.",
+    "available": "Atualização {{version}} disponível."
+  },
+  "summary": {
+    "alreadyOptimized": "Já otimizado · {{size}}",
+    "saved": "Você economizou {{percent}}% · {{from}} → {{to}}",
+    "savedMore": "Mais {{percent}}% economizados · {{from}} → {{to}}",
+    "batch": {
+      "image_one": "1 imagem",
+      "image_other": "{{count}} imagens",
+      "failed": "{{count}} falharam",
+      "saved": "economizou {{size}} ({{percent}}%)",
+      "alreadyOptimized": "já otimizadas",
+      "separator": "·"
+    }
+  },
+  "errors": {
+    "fileNotFound": "Arquivo ou pasta não encontrado.",
+    "noSupportedImages": "Nenhuma imagem compatível encontrada ({{formats}}).",
+    "tooManyImages": "Imagens demais ({{count}}). Máximo de {{max}} por lote.",
+    "saveFolderRequired": "Escolha uma pasta de destino nas Configurações primeiro.",
+    "optimizationInProgress": "Já há uma otimização em andamento.",
+    "unsupportedFormat": "Apenas {{formats}} são compatíveis.",
+    "gifOptimizerUnavailable": "O otimizador GIF não está disponível.",
+    "gifsicleFailed": "Falha ao otimizar GIF (código de saída {{code}}).",
+    "heicInvalidPath": "Caminho de arquivo inválido.",
+    "heicReadFailed": "Não foi possível ler a imagem HEIC.",
+    "heicNoFrames": "A imagem HEIC não contém quadros.",
+    "heicCreateFailed": "Não foi possível criar a saída HEIC.",
+    "heicWriteFailed": "Não foi possível gravar o HEIC otimizado.",
+    "heicUnsupportedPlatform": "HEIC só é compatível com macOS."
+  },
+  "formats": {
+    "supported": "PNG, JPG, HEIC, GIF, SVG, WebP e AVIF"
+  },
+  "menu": {
+    "preferences": "Preferências…",
+    "window": "Janela"
+  },
+  "dialog": {
+    "pickImages": "Escolher imagens ou pastas",
+    "pickSaveFolder": "Escolher pasta de destino"
+  }
+}

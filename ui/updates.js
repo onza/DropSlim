@@ -1,8 +1,10 @@
 import { check } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { isTauri } from '@tauri-apps/api/core'
+import { t } from './i18n/index.js'
 
 let pendingUpdate = null
+let lastStatus = null
 
 export const hasPendingUpdate = () => pendingUpdate !== null
 
@@ -20,26 +22,55 @@ const formatError = (error) => {
   return String(error)
 }
 
+const setStatusState = (key, params, onStatus) => {
+  lastStatus = { key, params }
+  onStatus(t(key, params))
+}
+
+export const reportUpdateStatus = (key, params, onStatus) => {
+  setStatusState(key, params ?? {}, onStatus)
+}
+
+export const reapplyUpdateStatus = (onStatus) => {
+  if (lastStatus && onStatus) {
+    onStatus(t(lastStatus.key, lastStatus.params))
+  }
+}
+
+export const createStatusSink = (element) => {
+  const apply = (message) => {
+    if (element) {
+      element.textContent = message || ''
+    }
+  }
+
+  return {
+    setMessage: apply,
+    setKey: (key, params) => reportUpdateStatus(key, params ?? {}, apply),
+    reapply: () => reapplyUpdateStatus(apply),
+  }
+}
+
 export const installPendingUpdate = async ({ onStatus = () => {} } = {}) => {
   if (!isTauri()) {
-    onStatus('Update checks require the desktop app.')
+    setStatusState('updates.requiresDesktop', {}, onStatus)
     return { installed: false, skipped: true }
   }
 
   const update = pendingUpdate
 
   if (!update) {
-    onStatus('No update ready to install.')
+    setStatusState('updates.noUpdateReady', {}, onStatus)
     return { installed: false }
   }
 
   const { version } = update
 
   try {
-    onStatus(`Downloading DropSlim ${version}…`)
+    setStatusState('updates.downloading', { version }, onStatus)
     await update.downloadAndInstall((event) => {
       if (event.event === 'Finished') {
-        onStatus('Installing update…')
+        setStatusState('updates.installingUpdate', {}, onStatus)
       }
     })
 
@@ -48,7 +79,11 @@ export const installPendingUpdate = async ({ onStatus = () => {} } = {}) => {
     return { installed: true }
   } catch (error) {
     console.error('update install failed', error)
-    onStatus(`Could not install update: ${formatError(error)}`)
+    setStatusState(
+      'updates.couldNotInstall',
+      { error: formatError(error) },
+      onStatus
+    )
     return { installed: false, error }
   }
 }
@@ -59,25 +94,25 @@ export const checkForUpdates = async ({
   onUpdateAvailable = () => {},
 } = {}) => {
   if (!isTauri()) {
-    onStatus('Update checks require the desktop app.')
+    setStatusState('updates.requiresDesktop', {}, onStatus)
     return { available: false, skipped: true }
   }
 
   try {
-    onStatus('Checking for updates…')
+    setStatusState('updates.checkingStatus', {}, onStatus)
     const update = await check()
 
     if (!update) {
       clearPendingUpdate()
       onUpdateAvailable(null)
-      onStatus('DropSlim is up to date.')
+      setStatusState('updates.upToDate', {}, onStatus)
       return { available: false }
     }
 
     const { version } = update
     pendingUpdate = update
     onUpdateAvailable(version)
-    onStatus(`Update ${version} available.`)
+    setStatusState('updates.available', { version }, onStatus)
 
     if (autoInstall) {
       return installPendingUpdate({ onStatus })
@@ -86,7 +121,11 @@ export const checkForUpdates = async ({
     return { available: true, installed: false, version }
   } catch (error) {
     console.error('update check failed', error)
-    onStatus(`Could not check for updates: ${formatError(error)}`)
+    setStatusState(
+      'updates.couldNotCheckDetail',
+      { error: formatError(error) },
+      onStatus
+    )
     return { available: false, error }
   }
 }

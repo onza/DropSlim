@@ -1,6 +1,7 @@
 mod app_menu;
 mod commands;
 mod macos_dialog;
+mod native_ui;
 pub mod optimize;
 mod startup_paths;
 
@@ -35,6 +36,7 @@ pub fn run() {
 
     let app = builder
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
             commands::optimize::optimize_paths,
@@ -42,6 +44,7 @@ pub fn run() {
             commands::pick_paths::pick_paths,
             commands::pick_paths::pick_save_folder,
             commands::startup::consume_startup_paths,
+            commands::native_ui::update_native_ui,
         ])
         .setup(|app| {
             let initial_paths = startup_paths::parse_startup_args(std::env::args().skip(1));
@@ -50,6 +53,7 @@ pub fn run() {
                 paths: Mutex::new(initial_paths),
             });
             app.manage(commands::optimize::OptimizationState::default());
+            app.manage(native_ui::NativeUiState::default());
 
             app_menu::setup_app_menu(app.handle())?;
 
