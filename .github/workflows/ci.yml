@@ -59,11 +59,9 @@ jobs:
         include:
           - os: macos-latest
             gifsicle-path: vendor/gifsicle/gifsicle
-            install-dav1d: brew install dav1d
             skip_gifsicle: ''
           - os: windows-latest
             gifsicle-path: vendor/gifsicle/gifsicle.exe
-            install-dav1d: echo "dav1d builds from source on Windows"
             skip_gifsicle: '1'
 
     runs-on: ${{ matrix.os }}
@@ -97,8 +95,28 @@ jobs:
           restore-keys: |
             brew-${{ runner.os }}-
 
-      - name: Install system dependencies
-        run: ${{ matrix.install-dav1d }}
+      - name: Install dav1d (macOS)
+        if: runner.os == 'macOS'
+        run: brew install dav1d
+
+      - name: Cache vcpkg (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.VCPKG_INSTALLATION_ROOT }}/installed
+            ${{ env.VCPKG_INSTALLATION_ROOT }}/packages
+          key: vcpkg-dav1d-x64-windows-1
+          restore-keys: |
+            vcpkg-dav1d-x64-windows-
+
+      - name: Install dav1d (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install pkgconfiglite -y
+          vcpkg install dav1d:x64-windows
+          Add-Content -Path $env:GITHUB_ENV -Value "PKG_CONFIG_PATH=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\lib\pkgconfig"
 
       - name: Cache gifsicle binary
         if: runner.os == 'macOS'
