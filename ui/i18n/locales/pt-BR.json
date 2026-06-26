@@ -87,7 +87,8 @@
     "heicNoFrames": "A imagem HEIC não contém quadros.",
     "heicCreateFailed": "Não foi possível criar a saída HEIC.",
     "heicWriteFailed": "Não foi possível gravar o HEIC otimizado.",
-    "heicUnsupportedPlatform": "HEIC só é compatível com macOS."
+    "heicUnsupportedPlatform": "HEIC só é compatível com macOS.",
+    "animatedNotSupported": "Imagens animadas ainda não são compatíveis."
   },
   "formats": {
     "supported": "PNG, JPG, HEIC, GIF, SVG, WebP e AVIF"

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <metadata>
+    <title>DTD fixture</title>
+    <desc>SVG with DOCTYPE for optimizer integration tests</desc>
+  </metadata>
+  <rect x="0" y="0" width="120" height="80" fill="#2563eb" />
+  <circle cx="60" cy="40" r="24" fill="#ffffff" />
+</svg>

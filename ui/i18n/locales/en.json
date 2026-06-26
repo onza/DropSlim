@@ -87,7 +87,8 @@
     "heicNoFrames": "HEIC image contains no frames.",
     "heicCreateFailed": "Could not create HEIC output.",
     "heicWriteFailed": "Could not write optimized HEIC.",
-    "heicUnsupportedPlatform": "HEIC is only supported on macOS."
+    "heicUnsupportedPlatform": "HEIC is only supported on macOS.",
+    "animatedNotSupported": "Animated images are not supported yet."
   },
   "formats": {
     "supported": "PNG, JPG, HEIC, GIF, SVG, WebP, and AVIF"

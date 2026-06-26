@@ -107,6 +107,10 @@ impl ErrorPayload {
         Self::code("heicUnsupportedPlatform")
     }
 
+    pub fn animated_not_supported() -> Self {
+        Self::code("animatedNotSupported")
+    }
+
     pub fn io(detail: impl Into<String>) -> Self {
         Self {
             code: "io".into(),

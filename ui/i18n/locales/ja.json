@@ -87,7 +87,8 @@
     "heicNoFrames": "HEIC 画像にフレームがありません。",
     "heicCreateFailed": "HEIC 出力を作成できませんでした。",
     "heicWriteFailed": "最適化した HEIC を書き込めませんでした。",
-    "heicUnsupportedPlatform": "HEIC は macOS でのみ対応しています。"
+    "heicUnsupportedPlatform": "HEIC は macOS でのみ対応しています。",
+    "animatedNotSupported": "アニメーション画像はまだサポートされていません。"
   },
   "formats": {
     "supported": "PNG、JPG、HEIC、GIF、SVG、WebP、AVIF"

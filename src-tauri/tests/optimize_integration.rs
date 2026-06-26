@@ -1,7 +1,10 @@
 use std::fs;
+use std::io::Cursor;
 use std::path::{Path, PathBuf};
 
-use dropslim_lib::optimize::optimize_image_file;
+use dropslim_lib::optimize::{optimize_image_file, ErrorPayload};
+use image::codecs::gif::{GifDecoder, GifEncoder};
+use image::{AnimationDecoder, Delay, Frame, ImageBuffer, Rgba};
 use tempfile::TempDir;
 
 fn project_root() -> PathBuf {
@@ -32,12 +35,95 @@ fn create_raster_fixture(dir: &TempDir, name: &str, create: impl FnOnce(&Path)) 
     path
 }
 
+fn require_gifsicle() -> PathBuf {
+    let gifsicle = project_root()
+        .join("vendor")
+        .join("gifsicle")
+        .join(if cfg!(windows) {
+            "gifsicle.exe"
+        } else {
+            "gifsicle"
+        });
+
+    if !gifsicle.exists() {
+        panic!(
+            "gifsicle not found at {} — run npm ci to install vendor binaries",
+            gifsicle.display()
+        );
+    }
+
+    gifsicle
+}
+
+fn write_animated_gif(path: &Path) {
+    let frame_a: ImageBuffer<Rgba<u8>, Vec<u8>> =
+        ImageBuffer::from_fn(48, 48, |x, y| Rgba([x as u8, y as u8, 40, 255]));
+    let frame_b: ImageBuffer<Rgba<u8>, Vec<u8>> =
+        ImageBuffer::from_fn(48, 48, |x, y| Rgba([y as u8, x as u8, 200, 255]));
+
+    let frames = vec![
+        Frame::from_parts(frame_a, 0, 0, Delay::from_numer_denom_ms(100, 1)),
+        Frame::from_parts(frame_b, 0, 0, Delay::from_numer_denom_ms(100, 1)),
+    ];
+
+    let file = fs::File::create(path).expect("create gif");
+    let mut encoder = GifEncoder::new(file);
+    encoder.encode_frames(frames).expect("encode animated gif");
+}
+
+fn gif_frame_count(path: &Path) -> usize {
+    let data = fs::read(path).expect("read gif");
+    let decoder = GifDecoder::new(Cursor::new(data)).expect("decode gif");
+    decoder
+        .into_frames()
+        .collect_frames()
+        .expect("collect gif frames")
+        .len()
+}
+
 #[test]
 fn optimizes_svg_fixture() {
     let input = fixtures_dir().join("bloat.svg");
     let (_dir, output) = optimize_to_temp(&input, ".svg");
     let contents = fs::read_to_string(output).expect("read svg");
     assert!(contents.contains("<svg"));
+}
+
+#[test]
+fn optimizes_svg_with_doctype() {
+    let input = fixtures_dir().join("dtd.svg");
+    let (_dir, output) = optimize_to_temp(&input, ".svg");
+    let contents = fs::read_to_string(output).expect("read svg");
+    assert!(contents.contains("<svg"));
+    assert!(!contents.contains("<!DOCTYPE"));
+}
+
+#[test]
+fn rejects_animated_png() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let input = dir.path().join("animated.png");
+    let output = dir.path().join("output.min.png");
+    fs::write(&input, apng_fixture_bytes()).expect("write apng");
+
+    let error = optimize_image_file(&input, &output, &project_root()).expect_err("animated png");
+    assert_eq!(error, ErrorPayload::animated_not_supported());
+}
+
+fn apng_fixture_bytes() -> Vec<u8> {
+    let mut data = Vec::new();
+    data.extend_from_slice(b"\x89PNG\r\n\x1a\n");
+    data.extend_from_slice(&[
+        0x00, 0x00, 0x00, 0x0d, b'I', b'H', b'D', b'R', 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+        0x01, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4, 0x89,
+    ]);
+    data.extend_from_slice(&[
+        0x00, 0x00, 0x00, 0x08, b'a', b'c', b'T', b'L', 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00,
+    ]);
+    data.extend_from_slice(&[
+        0x00, 0x00, 0x00, 0x00, b'I', b'E', b'N', b'D', 0xae, 0x42, 0x60, 0x82,
+    ]);
+    data
 }
 
 #[test]
@@ -91,6 +177,7 @@ fn optimizes_heic_fixture() {
 
 #[test]
 fn optimizes_gif_fixture() {
+<<<<<<< HEAD
     let gifsicle = project_root()
         .join("vendor")
         .join("gifsicle")
@@ -107,6 +194,9 @@ fn optimizes_gif_fixture() {
         );
         return;
     }
+=======
+    require_gifsicle();
+>>>>>>> origin/main
 
     let dir = tempfile::tempdir().expect("tempdir");
     let input = create_raster_fixture(&dir, "sample.gif", |path| {
@@ -116,6 +206,28 @@ fn optimizes_gif_fixture() {
         img.save(path).expect("save gif");
     });
     optimize_to_temp(&input, ".gif");
+}
+
+#[test]
+fn optimizes_animated_gif_preserving_frames() {
+    require_gifsicle();
+
+    let dir = tempfile::tempdir().expect("tempdir");
+    let input = dir.path().join("animated.gif");
+    let output = dir.path().join("animated.min.gif");
+    write_animated_gif(&input);
+
+    assert!(
+        gif_frame_count(&input) >= 2,
+        "fixture should be an animated gif"
+    );
+
+    optimize_image_file(&input, &output, &project_root()).expect("optimize animated gif");
+
+    assert!(
+        gif_frame_count(&output) >= 2,
+        "optimized gif should still contain multiple frames"
+    );
 }
 
 #[test]

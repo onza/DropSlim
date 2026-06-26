@@ -4,13 +4,14 @@ use std::path::Path;
 use std::process::Command;
 
 use oxipng::{optimize_from_memory, Options, StripChunks};
-use oxvg_ast::parse::roxmltree::parse;
+use oxvg_ast::parse::roxmltree::{parse_with_options, ParsingOptions};
 use oxvg_ast::serialize::Node;
 use oxvg_ast::visitor::Info;
 use oxvg_optimiser::Jobs;
 use ravif::{Encoder, Img, RGBA8};
 use zenjpeg::encoder::{ChromaSubsampling, EncoderConfig, PixelLayout, Unstoppable};
 
+use super::animation::ensure_not_animated;
 use super::formats::ImageFormat;
 use super::heic::optimize_heic;
 use super::payloads::ErrorPayload;
@@ -44,7 +45,11 @@ fn io_error(error: impl ToString) -> ErrorPayload {
 
 fn optimize_svg(input: &Path, output: &Path) -> Result<(), String> {
     let data = fs::read_to_string(input).map_err(|error| error.to_string())?;
-    let optimized = parse(&data, |dom, allocator| {
+    let options = ParsingOptions {
+        allow_dtd: true,
+        ..ParsingOptions::default()
+    };
+    let optimized = parse_with_options(&data, options, |dom, allocator| {
         let jobs = Jobs::default();
         jobs.run(dom, &Info::new(allocator))
             .map_err(|error| error.to_string())?;
@@ -219,6 +224,13 @@ pub fn optimize_image_file(
     project_root: &Path,
 ) -> Result<(), ErrorPayload> {
     let format = ImageFormat::from_path(input).ok_or_else(ErrorPayload::unsupported_format)?;
+
+    if matches!(
+        format,
+        ImageFormat::Png | ImageFormat::Webp | ImageFormat::Avif | ImageFormat::Heic
+    ) {
+        ensure_not_animated(input, format)?;
+    }
 
     let gifsicle = gifsicle_path(project_root);
 

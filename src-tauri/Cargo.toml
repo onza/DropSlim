@@ -1,6 +1,6 @@
 [package]
 name = "dropslim"
-version = "1.3.0"
+version = "1.3.1"
 description = "Optimize your images and graphics in a single drag and drop."
 authors = ["Martin Farkas"]
 edition = "2021"
@@ -31,6 +31,7 @@ walkdir = "2.5.0"
 oxvg_ast = { version = "0.0.5", features = ["parse", "roxmltree", "visitor", "serialize"] }
 oxvg_optimiser = "0.0.5"
 oxipng = "10.1.1"
+mp4parse = "0.17"
 
 [dev-dependencies]
 tempfile = "3.27.0"
