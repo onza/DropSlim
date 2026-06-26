@@ -1,4 +1,5 @@
 import { getVersion } from '@tauri-apps/api/app'
+import { type } from '@tauri-apps/plugin-os'
 import { createDropslimApi, initApi } from './api.js'
 import { initI18n, onLocaleChange } from './i18n/index.js'
 import { syncNativeUi } from './native.js'
@@ -6,7 +7,16 @@ import { initRenderer } from './renderer.js'
 import { maybeCheckForUpdates } from './updates.js'
 
 const boot = async () => {
-  document.body.classList.add('platform-mac')
+  const osType = type()
+
+  if (osType === 'macos') {
+    document.body.classList.add('platform-mac')
+  } else {
+    document.body.classList.add('platform-desktop')
+    if (osType === 'windows') {
+      document.body.classList.add('platform-win')
+    }
+  }
 
   const core = await initApi()
   const api = createDropslimApi(core)

@@ -53,7 +53,18 @@ jobs:
   test:
     needs: changes
     if: needs.changes.outputs.rust == 'true'
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            gifsicle-path: vendor/gifsicle/gifsicle
+            install-dav1d: brew install dav1d
+          - os: windows-latest
+            gifsicle-path: vendor/gifsicle/gifsicle.exe
+            install-dav1d: echo "dav1d builds from source on Windows"
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -74,6 +85,7 @@ jobs:
           workspaces: src-tauri
 
       - name: Cache Homebrew
+        if: runner.os == 'macOS'
         uses: actions/cache@v4
         with:
           path: ~/Library/Caches/Homebrew
@@ -82,19 +94,21 @@ jobs:
             brew-${{ runner.os }}-
 
       - name: Install system dependencies
-        run: brew install dav1d
+        run: ${{ matrix.install-dav1d }}
 
       - name: Cache gifsicle binary
+        if: runner.os == 'macOS'
         uses: actions/cache@v4
         id: gifsicle-cache
         with:
-          path: vendor/gifsicle/gifsicle
+          path: ${{ matrix.gifsicle-path }}
           key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96
 
       - name: Install dependencies
         run: npm ci
         env:
           HUSKY: 0
+          CI_SKIP_GIFSICLE: ${{ runner.os == 'Windows' && '1' || '' }}
 
       - name: Rust tests
         run: npm run ci:rust

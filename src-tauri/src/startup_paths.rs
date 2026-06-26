@@ -1,5 +1,6 @@
 use std::path::Path;
 
+#[cfg(target_os = "macos")]
 const APP_EXECUTABLE_PATTERN: &str = ".app/Contents/MacOS/";
 
 pub fn is_startup_path(arg: &str) -> bool {
@@ -26,10 +27,11 @@ pub fn is_startup_path(arg: &str) -> bool {
 }
 
 fn is_app_executable_path(resolved: &Path) -> bool {
-    let resolved_str = resolved.to_string_lossy();
-
-    if resolved_str.contains(APP_EXECUTABLE_PATTERN) {
-        return true;
+    #[cfg(target_os = "macos")]
+    {
+        if resolved.to_string_lossy().contains(APP_EXECUTABLE_PATTERN) {
+            return true;
+        }
     }
 
     if let Ok(exec_path) = std::env::current_exe() {
@@ -89,11 +91,20 @@ mod tests {
         assert!(!is_startup_path("photo.png"));
     }
 
+    #[cfg(target_os = "macos")]
     #[test]
     fn rejects_app_executable_paths() {
         assert!(!is_startup_path(
             "/Applications/DropSlim.app/Contents/MacOS/dropslim"
         ));
+    }
+
+    #[test]
+    fn rejects_current_executable_path() {
+        let exec = std::env::current_exe().expect("current exe");
+        let exec = exec.to_string_lossy().to_string();
+
+        assert!(!is_startup_path(&exec));
     }
 
     #[test]
@@ -106,10 +117,11 @@ mod tests {
         fs::write(&tmp, b"x").expect("write temp file");
         let tmp = tmp.to_string_lossy().to_string();
 
-        let parsed = parse_startup_args([
-            "/Applications/DropSlim.app/Contents/MacOS/dropslim",
-            tmp.as_str(),
-        ]);
+        let exec = std::env::current_exe()
+            .expect("current exe")
+            .to_string_lossy()
+            .to_string();
+        let parsed = parse_startup_args([exec.as_str(), tmp.as_str()]);
 
         assert_eq!(parsed, vec![tmp]);
 

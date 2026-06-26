@@ -43,12 +43,19 @@ body,
   background: transparent !important;
 }
 
+/* macos */
 body.platform-mac::before {
   content: '';
   inset: 0;
   pointer-events: none;
   position: fixed;
   z-index: 0;
+}
+
+/* windows & linux */
+body.platform-desktop,
+body.platform-desktop .wrapper {
+  background: rgb(var(--color-surface-rgb)) !important;
 }
 
 @media (prefers-color-scheme: light) {
