@@ -60,11 +60,15 @@ jobs:
           - os: macos-latest
             gifsicle-path: vendor/gifsicle/gifsicle
             install-dav1d: brew install dav1d
+            skip_gifsicle: ''
           - os: windows-latest
             gifsicle-path: vendor/gifsicle/gifsicle.exe
             install-dav1d: echo "dav1d builds from source on Windows"
+            skip_gifsicle: '1'
 
     runs-on: ${{ matrix.os }}
+    env:
+      CI_SKIP_GIFSICLE: ${{ matrix.skip_gifsicle }}
 
     steps:
       - name: Checkout
@@ -108,7 +112,6 @@ jobs:
         run: npm ci
         env:
           HUSKY: 0
-          CI_SKIP_GIFSICLE: ${{ runner.os == 'Windows' && '1' || '' }}
 
       - name: Rust tests
         run: npm run ci:rust

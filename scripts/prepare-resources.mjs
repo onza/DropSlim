@@ -17,6 +17,11 @@ const signingIdentity = releaseBuild
 
 const isReleaseSign = Boolean(signingIdentity && signingIdentity !== '-')
 
+if (process.env.CI_SKIP_GIFSICLE === '1') {
+  console.log('prepare-resources: skipped (CI_SKIP_GIFSICLE)')
+  process.exit(0)
+}
+
 const signBinary = (filePath) => {
   const args = ['--force', '--sign', signingIdentity]
 
