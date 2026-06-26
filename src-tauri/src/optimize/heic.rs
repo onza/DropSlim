@@ -102,6 +102,7 @@ pub fn optimize_heic(_input: &Path, _output: &Path) -> Result<(), ErrorPayload> 
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
+    use std::fs;
     use std::path::PathBuf;
 
     fn heic_fixture() -> PathBuf {
