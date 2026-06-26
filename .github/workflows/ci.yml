@@ -60,6 +60,7 @@ jobs:
           - os: macos-latest
             gifsicle-path: vendor/gifsicle/gifsicle
             skip_gifsicle: ''
+          # todo: prebuilt gifsicle.exe for ci and windows release
           - os: windows-latest
             gifsicle-path: vendor/gifsicle/gifsicle.exe
             skip_gifsicle: '1'

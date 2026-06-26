@@ -35,6 +35,8 @@ fn create_raster_fixture(dir: &TempDir, name: &str, create: impl FnOnce(&Path)) 
     path
 }
 
+// skips when gifsicle is missing (e.g. windows ci with ci_skip_gifsicle=1)
+// todo: bundle gifsicle.exe and run gif integration tests on windows
 fn require_gifsicle() -> Option<PathBuf> {
     let gifsicle = project_root()
         .join("vendor")

@@ -17,8 +17,14 @@ const signingIdentity = releaseBuild
 
 const isReleaseSign = Boolean(signingIdentity && signingIdentity !== '-')
 
+// .gitkeep satisfies tauri resources/**/* when gifsicle is skipped
+// todo: copy real gifsicle.exe for windows ci and release
 if (process.env.CI_SKIP_GIFSICLE === '1') {
-  console.log('prepare-resources: skipped (CI_SKIP_GIFSICLE)')
+  fs.rmSync(target, { recursive: true, force: true })
+  const keep = path.join(target, 'vendor', 'gifsicle', '.gitkeep')
+  fs.mkdirSync(path.dirname(keep), { recursive: true })
+  fs.writeFileSync(keep, '')
+  console.log('prepare-resources: skipped gifsicle (CI_SKIP_GIFSICLE)')
   process.exit(0)
 }
 
