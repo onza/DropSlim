@@ -1,8 +1,16 @@
 import { execSync } from 'node:child_process'
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs'
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
+import toIco from 'to-ico'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const source = path.join(root, 'assets/icon/icon-1024.png')
@@ -22,6 +30,7 @@ const iconSizes = [
   [512, 'icon_512x512.png'],
   [1024, 'icon_512x512@2x.png'],
 ]
+const icoSizes = [16, 24, 32, 48, 64, 128, 256]
 
 async function maskIcon(inputPath, outputPath, canvas = 1024) {
   const art = Math.round(canvas * 0.82)
@@ -58,39 +67,56 @@ async function maskIcon(inputPath, outputPath, canvas = 1024) {
     .toFile(outputPath)
 }
 
-if (!existsSync(source)) {
-  console.error(`build-icons: missing ${source}`)
-  process.exit(1)
+async function writeIco(inputPath, outputPath) {
+  const buffers = await Promise.all(
+    icoSizes.map((size) =>
+      sharp(readFileSync(inputPath))
+        .resize(size, size, { fit: 'cover' })
+        .png()
+        .toBuffer()
+    )
+  )
+
+  writeFileSync(outputPath, await toIco(buffers))
 }
 
-try {
-  execSync('command -v iconutil >/dev/null')
-} catch {
-  console.error(
-    'build-icons: iconutil not found (macOS required to build .icns)'
-  )
+if (!existsSync(source)) {
+  console.error(`build-icons: missing ${source}`)
   process.exit(1)
 }
 
 mkdirSync(buildDir, { recursive: true })
 await maskIcon(source, macosIcon, 1024)
 
-rmSync(iconset, { recursive: true, force: true })
-mkdirSync(iconset, { recursive: true })
-
-for (const [size, fileName] of iconSizes) {
-  const output = path.join(iconset, fileName)
-  execSync(`sips -z ${size} ${size} "${macosIcon}" --out "${output}"`, {
-    stdio: 'ignore',
-  })
-}
-
-execSync(`iconutil -c icns "${iconset}" -o "${icns}"`, { stdio: 'inherit' })
-
 const iconsDir = path.join(root, 'src-tauri/icons')
 mkdirSync(iconsDir, { recursive: true })
-cpSync(icns, path.join(iconsDir, 'icon.icns'))
 cpSync(macosIcon, path.join(iconsDir, 'icon.png'))
-rmSync(iconset, { recursive: true, force: true })
+await writeIco(macosIcon, path.join(iconsDir, 'icon.ico'))
+
+if (process.platform === 'darwin') {
+  try {
+    execSync('command -v iconutil >/dev/null')
+  } catch {
+    console.warn('build-icons: iconutil not found, skipping .icns generation')
+  }
+
+  if (existsSync('/usr/bin/iconutil')) {
+    rmSync(iconset, { recursive: true, force: true })
+    mkdirSync(iconset, { recursive: true })
+
+    for (const [size, fileName] of iconSizes) {
+      const output = path.join(iconset, fileName)
+      execSync(`sips -z ${size} ${size} "${macosIcon}" --out "${output}"`, {
+        stdio: 'ignore',
+      })
+    }
+
+    execSync(`iconutil -c icns "${iconset}" -o "${icns}"`, { stdio: 'inherit' })
+    cpSync(icns, path.join(iconsDir, 'icon.icns'))
+    rmSync(iconset, { recursive: true, force: true })
+  }
+} else {
+  console.log('build-icons: skipping .icns generation (not macOS)')
+}
 
 console.log('build-icons: ok (icon-1024.png → src-tauri/icons/)')

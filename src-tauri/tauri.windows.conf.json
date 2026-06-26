@@ -1,0 +1,15 @@
+{
+  "app": {
+    "windows": [
+      {
+        "transparent": false,
+        "titleBarStyle": "Visible",
+        "acceptFirstMouse": false
+      }
+    ]
+  },
+  "bundle": {
+    "targets": ["nsis"],
+    "icon": ["icons/icon.ico", "icons/icon.png"]
+  }
+}

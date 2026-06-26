@@ -15,6 +15,7 @@ build/icon.iconset/
 build/icon.icns
 src-tauri/icons/icon.icns
 src-tauri/icons/icon.png
+src-tauri/icons/icon.ico
 
 .env
 .release.env
