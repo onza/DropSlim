@@ -4,7 +4,7 @@ use std::path::Path;
 use std::process::Command;
 
 use oxipng::{optimize_from_memory, Options, StripChunks};
-use oxvg_ast::parse::roxmltree::parse;
+use oxvg_ast::parse::roxmltree::{parse_with_options, ParsingOptions};
 use oxvg_ast::serialize::Node;
 use oxvg_ast::visitor::Info;
 use oxvg_optimiser::Jobs;
@@ -44,7 +44,11 @@ fn io_error(error: impl ToString) -> ErrorPayload {
 
 fn optimize_svg(input: &Path, output: &Path) -> Result<(), String> {
     let data = fs::read_to_string(input).map_err(|error| error.to_string())?;
-    let optimized = parse(&data, |dom, allocator| {
+    let options = ParsingOptions {
+        allow_dtd: true,
+        ..ParsingOptions::default()
+    };
+    let optimized = parse_with_options(&data, options, |dom, allocator| {
         let jobs = Jobs::default();
         jobs.run(dom, &Info::new(allocator))
             .map_err(|error| error.to_string())?;

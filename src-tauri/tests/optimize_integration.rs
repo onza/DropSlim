@@ -41,6 +41,15 @@ fn optimizes_svg_fixture() {
 }
 
 #[test]
+fn optimizes_svg_with_doctype() {
+    let input = fixtures_dir().join("dtd.svg");
+    let (_dir, output) = optimize_to_temp(&input, ".svg");
+    let contents = fs::read_to_string(output).expect("read svg");
+    assert!(contents.contains("<svg"));
+    assert!(!contents.contains("<!DOCTYPE"));
+}
+
+#[test]
 fn optimizes_png_fixture() {
     let dir = tempfile::tempdir().expect("tempdir");
     let input = create_raster_fixture(&dir, "sample.png", |path| {
