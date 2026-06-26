@@ -17,6 +17,18 @@ mod platform {
 
     const HEIC_COMPRESSION_QUALITY: f32 = 0.85;
 
+    pub fn heic_is_animated(input: &Path) -> Result<bool, ErrorPayload> {
+        let input_path =
+            NSString::from_str(input.to_str().ok_or_else(ErrorPayload::heic_invalid_path)?);
+        let input_url = NSURL::fileURLWithPath(&input_path);
+        let input_cf_url: &CFURL = input_url.as_ref();
+
+        let source = unsafe { CGImageSource::with_url(input_cf_url, None) }
+            .ok_or_else(ErrorPayload::heic_read_failed)?;
+
+        Ok(unsafe { source.count() } > 1)
+    }
+
     fn output_type_identifier(output: &Path) -> objc2_core_foundation::CFRetained<CFString> {
         match output
             .extension()
@@ -75,7 +87,12 @@ mod platform {
 }
 
 #[cfg(target_os = "macos")]
-pub use platform::optimize_heic;
+pub use platform::{heic_is_animated, optimize_heic};
+
+#[cfg(not(target_os = "macos"))]
+pub fn heic_is_animated(_input: &Path) -> Result<bool, ErrorPayload> {
+    Ok(false)
+}
 
 #[cfg(not(target_os = "macos"))]
 pub fn optimize_heic(_input: &Path, _output: &Path) -> Result<(), ErrorPayload> {

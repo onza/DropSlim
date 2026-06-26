@@ -1,3 +1,4 @@
+mod animation;
 mod collect;
 mod events;
 pub mod formats;

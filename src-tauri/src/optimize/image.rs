@@ -11,6 +11,7 @@ use oxvg_optimiser::Jobs;
 use ravif::{Encoder, Img, RGBA8};
 use zenjpeg::encoder::{ChromaSubsampling, EncoderConfig, PixelLayout, Unstoppable};
 
+use super::animation::ensure_not_animated;
 use super::formats::ImageFormat;
 use super::heic::optimize_heic;
 use super::payloads::ErrorPayload;
@@ -223,6 +224,13 @@ pub fn optimize_image_file(
     project_root: &Path,
 ) -> Result<(), ErrorPayload> {
     let format = ImageFormat::from_path(input).ok_or_else(ErrorPayload::unsupported_format)?;
+
+    if matches!(
+        format,
+        ImageFormat::Png | ImageFormat::Webp | ImageFormat::Avif | ImageFormat::Heic
+    ) {
+        ensure_not_animated(input, format)?;
+    }
 
     let gifsicle = gifsicle_path(project_root);
 

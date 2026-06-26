@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use dropslim_lib::optimize::optimize_image_file;
+use dropslim_lib::optimize::{optimize_image_file, ErrorPayload};
 use tempfile::TempDir;
 
 fn project_root() -> PathBuf {
@@ -47,6 +47,34 @@ fn optimizes_svg_with_doctype() {
     let contents = fs::read_to_string(output).expect("read svg");
     assert!(contents.contains("<svg"));
     assert!(!contents.contains("<!DOCTYPE"));
+}
+
+#[test]
+fn rejects_animated_png() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let input = dir.path().join("animated.png");
+    let output = dir.path().join("output.min.png");
+    fs::write(&input, apng_fixture_bytes()).expect("write apng");
+
+    let error = optimize_image_file(&input, &output, &project_root()).expect_err("animated png");
+    assert_eq!(error, ErrorPayload::animated_not_supported());
+}
+
+fn apng_fixture_bytes() -> Vec<u8> {
+    let mut data = Vec::new();
+    data.extend_from_slice(b"\x89PNG\r\n\x1a\n");
+    data.extend_from_slice(&[
+        0x00, 0x00, 0x00, 0x0d, b'I', b'H', b'D', b'R', 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
+        0x01, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4, 0x89,
+    ]);
+    data.extend_from_slice(&[
+        0x00, 0x00, 0x00, 0x08, b'a', b'c', b'T', b'L', 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00,
+    ]);
+    data.extend_from_slice(&[
+        0x00, 0x00, 0x00, 0x00, b'I', b'E', b'N', b'D', 0xae, 0x42, 0x60, 0x82,
+    ]);
+    data
 }
 
 #[test]
