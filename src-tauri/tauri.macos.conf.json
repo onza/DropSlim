@@ -1,6 +1,5 @@
 {
   "app": {
-    "macOSPrivateApi": true,
     "windows": [
       {
         "transparent": true,

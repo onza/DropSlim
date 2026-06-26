@@ -88,7 +88,7 @@ jobs:
 
       - name: Cache Homebrew
         if: runner.os == 'macOS'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/Library/Caches/Homebrew
           key: brew-${{ runner.os }}-${{ runner.arch }}
@@ -101,7 +101,7 @@ jobs:
 
       - name: Cache vcpkg (Windows)
         if: runner.os == 'Windows'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ${{ env.VCPKG_INSTALLATION_ROOT }}/installed
@@ -120,7 +120,7 @@ jobs:
 
       - name: Cache gifsicle binary
         if: runner.os == 'macOS'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: gifsicle-cache
         with:
           path: ${{ matrix.gifsicle-path }}
