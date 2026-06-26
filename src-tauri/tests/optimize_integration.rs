@@ -35,7 +35,7 @@ fn create_raster_fixture(dir: &TempDir, name: &str, create: impl FnOnce(&Path)) 
     path
 }
 
-fn require_gifsicle() -> PathBuf {
+fn require_gifsicle() -> Option<PathBuf> {
     let gifsicle = project_root()
         .join("vendor")
         .join("gifsicle")
@@ -46,13 +46,14 @@ fn require_gifsicle() -> PathBuf {
         });
 
     if !gifsicle.exists() {
-        panic!(
-            "gifsicle not found at {} — run npm ci to install vendor binaries",
+        eprintln!(
+            "skip: gifsicle not found at {} — run npm ci to install vendor binaries",
             gifsicle.display()
         );
+        return None;
     }
 
-    gifsicle
+    Some(gifsicle)
 }
 
 fn write_animated_gif(path: &Path) {
@@ -177,26 +178,9 @@ fn optimizes_heic_fixture() {
 
 #[test]
 fn optimizes_gif_fixture() {
-<<<<<<< HEAD
-    let gifsicle = project_root()
-        .join("vendor")
-        .join("gifsicle")
-        .join(if cfg!(windows) {
-            "gifsicle.exe"
-        } else {
-            "gifsicle"
-        });
-
-    if !gifsicle.exists() {
-        eprintln!(
-            "skip: gifsicle not found at {} — run npm ci to install vendor binaries",
-            gifsicle.display()
-        );
+    if require_gifsicle().is_none() {
         return;
     }
-=======
-    require_gifsicle();
->>>>>>> origin/main
 
     let dir = tempfile::tempdir().expect("tempdir");
     let input = create_raster_fixture(&dir, "sample.gif", |path| {
@@ -210,7 +194,9 @@ fn optimizes_gif_fixture() {
 
 #[test]
 fn optimizes_animated_gif_preserving_frames() {
-    require_gifsicle();
+    if require_gifsicle().is_none() {
+        return;
+    }
 
     let dir = tempfile::tempdir().expect("tempdir");
     let input = dir.path().join("animated.gif");
