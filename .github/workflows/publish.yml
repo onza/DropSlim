@@ -1,0 +1,89 @@
+name: publish
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish-windows:
+    permissions:
+      contents: write
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Cache vcpkg
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.VCPKG_INSTALLATION_ROOT }}/installed/x64-windows
+          key: vcpkg-dav1d-x64-windows-1
+          restore-keys: |
+            vcpkg-dav1d-x64-windows-
+
+      - name: Install dav1d
+        shell: pwsh
+        run: |
+          choco install pkgconfiglite -y
+          vcpkg install dav1d:x64-windows
+          Add-Content -Path $env:GITHUB_ENV -Value "PKG_CONFIG_PATH=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\lib\pkgconfig"
+          Add-Content -Path $env:GITHUB_ENV -Value "PATH=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin;$env:PATH"
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-make
+            autoconf
+            automake
+            libtool
+            pkg-config
+
+      - name: Cache gifsicle binary
+        uses: actions/cache@v5
+        with:
+          path: vendor/gifsicle/gifsicle.exe
+          key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+        env:
+          HUSKY: 0
+
+      - name: Build gifsicle
+        shell: msys2 {0}
+        run: node scripts/install-gifsicle.mjs
+
+      - name: Build and release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'DropSlim v__VERSION__'
+          releaseBody: 'See the assets to download and install this version.'
+          releaseDraft: true
+          prerelease: false
+          args: '--bundles nsis'
