@@ -80,6 +80,7 @@ jobs:
             exit 0
           fi
           set -euo pipefail
+          export PATH="/mingw64/bin:$PATH"
           VERSION=1.96
           ROOT="$GITHUB_WORKSPACE"
           mkdir -p "$ROOT/vendor/source" "$ROOT/vendor/gifsicle"
@@ -90,7 +91,7 @@ jobs:
           rm -rf "gifsicle-$VERSION"
           tar xzf "gifsicle-$VERSION.tar.gz"
           cd "gifsicle-$VERSION"
-          ./configure --disable-gifview --disable-gifdiff \
+          ./configure --disable-gifview --disable-gifdiff --disable-dependency-tracking \
             --prefix="$ROOT/vendor/gifsicle" --bindir="$ROOT/vendor/gifsicle"
           make install
           "$ROOT/vendor/gifsicle/gifsicle.exe" --version
