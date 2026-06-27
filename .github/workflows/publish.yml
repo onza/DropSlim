@@ -53,7 +53,13 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: mingw-w64-x86_64-gifsicle
+          install: >-
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-make
+            autoconf
+            automake
+            libtool
+            pkg-config
 
       - name: Cache gifsicle binary
         uses: actions/cache@v5
@@ -69,9 +75,25 @@ jobs:
       - name: Install gifsicle
         shell: msys2 {0}
         run: |
-          mkdir -p vendor/gifsicle
-          cp /mingw64/bin/gifsicle.exe vendor/gifsicle/
-          vendor/gifsicle/gifsicle.exe --version
+          if [ -f vendor/gifsicle/gifsicle.exe ] && vendor/gifsicle/gifsicle.exe --version | grep -F 1.96; then
+            echo "gifsicle: cache hit"
+            exit 0
+          fi
+          set -euo pipefail
+          VERSION=1.96
+          ROOT="$GITHUB_WORKSPACE"
+          mkdir -p "$ROOT/vendor/source" "$ROOT/vendor/gifsicle"
+          cd "$ROOT/vendor/source"
+          if [ ! -f "gifsicle-$VERSION.tar.gz" ]; then
+            curl -fsSL -o "gifsicle-$VERSION.tar.gz" "https://www.lcdf.org/gifsicle/gifsicle-$VERSION.tar.gz"
+          fi
+          rm -rf "gifsicle-$VERSION"
+          tar xzf "gifsicle-$VERSION.tar.gz"
+          cd "gifsicle-$VERSION"
+          ./configure --disable-gifview --disable-gifdiff \
+            --prefix="$ROOT/vendor/gifsicle" --bindir="$ROOT/vendor/gifsicle"
+          make install
+          "$ROOT/vendor/gifsicle/gifsicle.exe" --version
 
       - name: Build and release
         uses: tauri-apps/tauri-action@v0
