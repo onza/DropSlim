@@ -18,14 +18,39 @@ const signingIdentity = releaseBuild
 
 const isReleaseSign = Boolean(signingIdentity && signingIdentity !== '-')
 
+const copyDav1dForWindows = () => {
+  if (process.platform !== 'win32') {
+    return
+  }
+
+  const vcpkgRoot =
+    process.env.VCPKG_INSTALLATION_ROOT || process.env.VCPKG_ROOT || ''
+  const dav1dSource = vcpkgRoot
+    ? path.join(vcpkgRoot, 'installed', 'x64-windows', 'bin', 'dav1d.dll')
+    : ''
+  const dav1dTarget = path.join(tauriDir, 'dav1d.dll')
+
+  if (!dav1dSource || !fs.existsSync(dav1dSource)) {
+    console.error('prepare-resources: dav1d.dll missing for Windows bundle')
+    console.error(
+      'prepare-resources: install with vcpkg install dav1d:x64-windows and set VCPKG_INSTALLATION_ROOT'
+    )
+    process.exit(1)
+  }
+
+  fs.copyFileSync(dav1dSource, dav1dTarget)
+  console.log(`prepare-resources: bundled dav1d.dll from ${dav1dSource}`)
+}
+
 // .gitkeep satisfies tauri resources/**/* when gifsicle is skipped
-// todo: copy real gifsicle.exe for windows ci and release
+// windows still needs dav1d.dll — tauri.windows.conf.json lists it as a bundle resource
 if (process.env.CI_SKIP_GIFSICLE === '1') {
   fs.rmSync(target, { recursive: true, force: true })
   const keep = path.join(target, 'vendor', 'gifsicle', '.gitkeep')
   fs.mkdirSync(path.dirname(keep), { recursive: true })
   fs.writeFileSync(keep, '')
   console.log('prepare-resources: skipped gifsicle (CI_SKIP_GIFSICLE)')
+  copyDav1dForWindows()
   process.exit(0)
 }
 
@@ -89,24 +114,6 @@ if (process.platform === 'darwin') {
   console.log('prepare-resources: signing skipped (not macOS)')
 }
 
-if (process.platform === 'win32') {
-  const vcpkgRoot =
-    process.env.VCPKG_INSTALLATION_ROOT || process.env.VCPKG_ROOT || ''
-  const dav1dSource = vcpkgRoot
-    ? path.join(vcpkgRoot, 'installed', 'x64-windows', 'bin', 'dav1d.dll')
-    : ''
-  const dav1dTarget = path.join(tauriDir, 'dav1d.dll')
-
-  if (!dav1dSource || !fs.existsSync(dav1dSource)) {
-    console.error('prepare-resources: dav1d.dll missing for Windows bundle')
-    console.error(
-      'prepare-resources: install with vcpkg install dav1d:x64-windows and set VCPKG_INSTALLATION_ROOT'
-    )
-    process.exit(1)
-  }
-
-  fs.copyFileSync(dav1dSource, dav1dTarget)
-  console.log(`prepare-resources: bundled dav1d.dll from ${dav1dSource}`)
-}
+copyDav1dForWindows()
 
 console.log(`prepare-resources: ok (${target})`)
