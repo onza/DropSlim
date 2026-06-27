@@ -19,23 +19,10 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Node.js
-        id: setup-node
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: npm
-
-      - name: Node path for MSYS2
-        id: node-msys
-        shell: pwsh
-        run: |
-          $dir = (Get-Command node).Path | Split-Path -Parent
-          if ($dir -match '^([A-Z]):\\(.*)$') {
-            $msys = "/$($Matches[1].ToLower())/$($Matches[2] -replace '\\','/')"
-          } else {
-            $msys = $dir
-          }
-          "path=$msys" >> $env:GITHUB_OUTPUT
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -66,13 +53,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: >-
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-make
-            autoconf
-            automake
-            libtool
-            pkg-config
+          install: mingw-w64-x86_64-gifsicle
 
       - name: Cache gifsicle binary
         uses: actions/cache@v5
@@ -85,11 +66,12 @@ jobs:
         env:
           HUSKY: 0
 
-      - name: Build gifsicle
+      - name: Install gifsicle
         shell: msys2 {0}
         run: |
-          export PATH="${{ steps.node-msys.outputs.path }}:/mingw64/bin:$PATH"
-          node scripts/install-gifsicle.mjs
+          mkdir -p vendor/gifsicle
+          cp /mingw64/bin/gifsicle.exe vendor/gifsicle/
+          vendor/gifsicle/gifsicle.exe --version
 
       - name: Build and release
         uses: tauri-apps/tauri-action@v0
