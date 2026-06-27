@@ -3,6 +3,7 @@ dist/
 dist-ui/
 src-tauri/target/
 src-tauri/resources/
+src-tauri/dav1d.dll
 src-tauri/gen/
 
 vendor/gifsicle/gifsicle

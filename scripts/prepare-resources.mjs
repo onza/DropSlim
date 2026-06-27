@@ -4,7 +4,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const target = path.join(root, 'src-tauri', 'resources')
+const tauriDir = path.join(root, 'src-tauri')
+const target = path.join(tauriDir, 'resources')
 const gifsicleBinary =
   process.platform === 'win32' ? 'gifsicle.exe' : 'gifsicle'
 const gifsicleSource = path.join(root, 'vendor', 'gifsicle', gifsicleBinary)
@@ -86,6 +87,26 @@ if (process.platform === 'darwin') {
   signBinary(gifsicleTarget)
 } else {
   console.log('prepare-resources: signing skipped (not macOS)')
+}
+
+if (process.platform === 'win32') {
+  const vcpkgRoot =
+    process.env.VCPKG_INSTALLATION_ROOT || process.env.VCPKG_ROOT || ''
+  const dav1dSource = vcpkgRoot
+    ? path.join(vcpkgRoot, 'installed', 'x64-windows', 'bin', 'dav1d.dll')
+    : ''
+  const dav1dTarget = path.join(tauriDir, 'dav1d.dll')
+
+  if (!dav1dSource || !fs.existsSync(dav1dSource)) {
+    console.error('prepare-resources: dav1d.dll missing for Windows bundle')
+    console.error(
+      'prepare-resources: install with vcpkg install dav1d:x64-windows and set VCPKG_INSTALLATION_ROOT'
+    )
+    process.exit(1)
+  }
+
+  fs.copyFileSync(dav1dSource, dav1dTarget)
+  console.log(`prepare-resources: bundled dav1d.dll from ${dav1dSource}`)
 }
 
 console.log(`prepare-resources: ok (${target})`)

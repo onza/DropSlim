@@ -10,6 +10,10 @@
   },
   "bundle": {
     "targets": ["nsis"],
-    "icon": ["icons/icon.ico", "icons/icon.png"]
+    "icon": ["icons/icon.ico", "icons/icon.png"],
+    "resources": {
+      "resources/**/*": "resources/",
+      "dav1d.dll": "dav1d.dll"
+    }
   }
 }
