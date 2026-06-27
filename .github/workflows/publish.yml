@@ -54,6 +54,7 @@ jobs:
           msystem: MINGW64
           update: true
           install: >-
+            msys/make
             mingw-w64-x86_64-gcc
             mingw-w64-x86_64-make
             autoconf
@@ -81,6 +82,7 @@ jobs:
           fi
           set -euo pipefail
           export PATH="/mingw64/bin:$PATH"
+          MAKE="$(command -v mingw32-make || command -v make)"
           VERSION=1.96
           ROOT="$GITHUB_WORKSPACE"
           mkdir -p "$ROOT/vendor/source" "$ROOT/vendor/gifsicle"
@@ -92,8 +94,8 @@ jobs:
           tar xzf "gifsicle-$VERSION.tar.gz"
           cd "gifsicle-$VERSION"
           ./configure --disable-gifview --disable-gifdiff --disable-dependency-tracking \
-            --prefix="$ROOT/vendor/gifsicle" --bindir="$ROOT/vendor/gifsicle"
-          make install
+            --prefix="$ROOT/vendor/gifsicle" --bindir="$ROOT/vendor/gifsicle" "MAKE=$MAKE"
+          "$MAKE" install
           "$ROOT/vendor/gifsicle/gifsicle.exe" --version
 
       - name: Build and release
