@@ -48,6 +48,10 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "PKG_CONFIG_PATH=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\lib\pkgconfig"
           Add-Content -Path $env:GITHUB_ENV -Value "PATH=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin;$env:PATH"
 
+      - name: Set VC runtime path
+        shell: pwsh
+        run: ./scripts/set-vc-runtime-env.ps1
+
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:

@@ -20,66 +20,6 @@ const isReleaseSign = Boolean(signingIdentity && signingIdentity !== '-')
 
 const vcRuntimeDlls = ['vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll']
 
-const findVcRuntimeDir = () => {
-  const directCandidates = [
-    process.env.VCToolsRedistDir &&
-      path.join(process.env.VCToolsRedistDir, 'x64', 'Microsoft.VC143.CRT'),
-    process.env.VCToolsRedistDir &&
-      path.join(process.env.VCToolsRedistDir, 'x64', 'Microsoft.VC142.CRT'),
-  ].filter(Boolean)
-
-  for (const candidate of directCandidates) {
-    if (fs.existsSync(path.join(candidate, 'vcruntime140.dll'))) {
-      return candidate
-    }
-  }
-
-  const redistRoots = [
-    'C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Redist\\MSVC',
-    'C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\VC\\Redist\\MSVC',
-    'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Redist\\MSVC',
-    'C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Redist\\MSVC',
-  ]
-
-  for (const root of redistRoots) {
-    if (!fs.existsSync(root)) {
-      continue
-    }
-
-    const versions = fs
-      .readdirSync(root, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
-      .map((entry) => entry.name)
-      .sort()
-      .reverse()
-
-    for (const version of versions) {
-      const archRoot = path.join(root, version, 'x64')
-      if (!fs.existsSync(archRoot)) {
-        continue
-      }
-
-      const crtDir = fs
-        .readdirSync(archRoot, { withFileTypes: true })
-        .find(
-          (entry) =>
-            entry.isDirectory() && entry.name.startsWith('Microsoft.VC')
-        )?.name
-
-      if (!crtDir) {
-        continue
-      }
-
-      const candidate = path.join(archRoot, crtDir)
-      if (fs.existsSync(path.join(candidate, 'vcruntime140.dll'))) {
-        return candidate
-      }
-    }
-  }
-
-  return null
-}
-
 const copyWindowsNativeDeps = () => {
   if (process.platform !== 'win32') {
     return
@@ -102,11 +42,16 @@ const copyWindowsNativeDeps = () => {
   fs.copyFileSync(dav1dSource, path.join(tauriDir, 'dav1d.dll'))
   console.log(`prepare-resources: bundled dav1d.dll from ${dav1dSource}`)
 
-  const vcRuntimeDir = findVcRuntimeDir()
-  if (!vcRuntimeDir) {
-    console.error('prepare-resources: Visual C++ runtime DLLs not found')
+  const vcRuntimeDir = process.env.DROPSLIM_VC_RUNTIME_DIR
+  if (
+    !vcRuntimeDir ||
+    !fs.existsSync(path.join(vcRuntimeDir, 'vcruntime140.dll'))
+  ) {
     console.error(
-      'prepare-resources: install Visual Studio Build Tools or set VCToolsRedistDir'
+      'prepare-resources: DROPSLIM_VC_RUNTIME_DIR not set or invalid'
+    )
+    console.error(
+      'prepare-resources: run scripts/set-vc-runtime-env.ps1 on Windows CI'
     )
     process.exit(1)
   }
@@ -119,7 +64,7 @@ const copyWindowsNativeDeps = () => {
     }
 
     fs.copyFileSync(source, path.join(tauriDir, dll))
-    console.log(`prepare-resources: bundled ${dll} from ${source}`)
+    console.log(`prepare-resources: bundled ${dll}`)
   }
 }
 
