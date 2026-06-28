@@ -18,7 +18,69 @@ const signingIdentity = releaseBuild
 
 const isReleaseSign = Boolean(signingIdentity && signingIdentity !== '-')
 
-const copyDav1dForWindows = () => {
+const vcRuntimeDlls = ['vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll']
+
+const findVcRuntimeDir = () => {
+  const directCandidates = [
+    process.env.VCToolsRedistDir &&
+      path.join(process.env.VCToolsRedistDir, 'x64', 'Microsoft.VC143.CRT'),
+    process.env.VCToolsRedistDir &&
+      path.join(process.env.VCToolsRedistDir, 'x64', 'Microsoft.VC142.CRT'),
+  ].filter(Boolean)
+
+  for (const candidate of directCandidates) {
+    if (fs.existsSync(path.join(candidate, 'vcruntime140.dll'))) {
+      return candidate
+    }
+  }
+
+  const redistRoots = [
+    'C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Redist\\MSVC',
+    'C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\VC\\Redist\\MSVC',
+    'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Redist\\MSVC',
+    'C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Redist\\MSVC',
+  ]
+
+  for (const root of redistRoots) {
+    if (!fs.existsSync(root)) {
+      continue
+    }
+
+    const versions = fs
+      .readdirSync(root, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort()
+      .reverse()
+
+    for (const version of versions) {
+      const archRoot = path.join(root, version, 'x64')
+      if (!fs.existsSync(archRoot)) {
+        continue
+      }
+
+      const crtDir = fs
+        .readdirSync(archRoot, { withFileTypes: true })
+        .find(
+          (entry) =>
+            entry.isDirectory() && entry.name.startsWith('Microsoft.VC')
+        )?.name
+
+      if (!crtDir) {
+        continue
+      }
+
+      const candidate = path.join(archRoot, crtDir)
+      if (fs.existsSync(path.join(candidate, 'vcruntime140.dll'))) {
+        return candidate
+      }
+    }
+  }
+
+  return null
+}
+
+const copyWindowsNativeDeps = () => {
   if (process.platform !== 'win32') {
     return
   }
@@ -28,7 +90,6 @@ const copyDav1dForWindows = () => {
   const dav1dSource = vcpkgRoot
     ? path.join(vcpkgRoot, 'installed', 'x64-windows', 'bin', 'dav1d.dll')
     : ''
-  const dav1dTarget = path.join(tauriDir, 'dav1d.dll')
 
   if (!dav1dSource || !fs.existsSync(dav1dSource)) {
     console.error('prepare-resources: dav1d.dll missing for Windows bundle')
@@ -38,8 +99,28 @@ const copyDav1dForWindows = () => {
     process.exit(1)
   }
 
-  fs.copyFileSync(dav1dSource, dav1dTarget)
+  fs.copyFileSync(dav1dSource, path.join(tauriDir, 'dav1d.dll'))
   console.log(`prepare-resources: bundled dav1d.dll from ${dav1dSource}`)
+
+  const vcRuntimeDir = findVcRuntimeDir()
+  if (!vcRuntimeDir) {
+    console.error('prepare-resources: Visual C++ runtime DLLs not found')
+    console.error(
+      'prepare-resources: install Visual Studio Build Tools or set VCToolsRedistDir'
+    )
+    process.exit(1)
+  }
+
+  for (const dll of vcRuntimeDlls) {
+    const source = path.join(vcRuntimeDir, dll)
+    if (!fs.existsSync(source)) {
+      console.error(`prepare-resources: ${dll} missing in ${vcRuntimeDir}`)
+      process.exit(1)
+    }
+
+    fs.copyFileSync(source, path.join(tauriDir, dll))
+    console.log(`prepare-resources: bundled ${dll} from ${source}`)
+  }
 }
 
 // .gitkeep satisfies tauri resources/**/* when gifsicle is skipped
@@ -50,7 +131,7 @@ if (process.env.CI_SKIP_GIFSICLE === '1') {
   fs.mkdirSync(path.dirname(keep), { recursive: true })
   fs.writeFileSync(keep, '')
   console.log('prepare-resources: skipped gifsicle (CI_SKIP_GIFSICLE)')
-  copyDav1dForWindows()
+  copyWindowsNativeDeps()
   process.exit(0)
 }
 
@@ -114,6 +195,6 @@ if (process.platform === 'darwin') {
   console.log('prepare-resources: signing skipped (not macOS)')
 }
 
-copyDav1dForWindows()
+copyWindowsNativeDeps()
 
 console.log(`prepare-resources: ok (${target})`)
