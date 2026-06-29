@@ -183,6 +183,9 @@ fn optimize_gif(input: &Path, output: &Path, gifsicle: &Path) -> Result<(), Stri
         use std::os::windows::process::CommandExt;
 
         command.creation_flags(0x08000000);
+        if let Some(dir) = gifsicle.parent() {
+            command.current_dir(dir);
+        }
     }
 
     let status = command.status().map_err(|error| error.to_string())?;

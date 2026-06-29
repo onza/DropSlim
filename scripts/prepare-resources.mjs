@@ -8,8 +8,45 @@ const tauriDir = path.join(root, 'src-tauri')
 const target = path.join(tauriDir, 'resources')
 const gifsicleBinary =
   process.platform === 'win32' ? 'gifsicle.exe' : 'gifsicle'
-const gifsicleSource = path.join(root, 'vendor', 'gifsicle', gifsicleBinary)
-const gifsicleTarget = path.join(target, 'vendor', 'gifsicle', gifsicleBinary)
+const gifsicleSourceDir = path.join(root, 'vendor', 'gifsicle')
+const gifsicleTargetDir = path.join(target, 'vendor', 'gifsicle')
+const gifsicleTarget = path.join(gifsicleTargetDir, gifsicleBinary)
+
+const gifsicleSource = path.join(gifsicleSourceDir, gifsicleBinary)
+
+const copyGifsicleBundle = () => {
+  fs.rmSync(gifsicleTargetDir, { recursive: true, force: true })
+  fs.mkdirSync(gifsicleTargetDir, { recursive: true })
+
+  if (!fs.existsSync(gifsicleSource)) {
+    console.error(`prepare-resources: gifsicle missing at ${gifsicleSource}`)
+    console.error('prepare-resources: run npm ci first')
+    process.exit(1)
+  }
+
+  for (const entry of fs.readdirSync(gifsicleSourceDir)) {
+    const source = path.join(gifsicleSourceDir, entry)
+    if (!fs.statSync(source).isFile()) {
+      continue
+    }
+
+    const dest = path.join(gifsicleTargetDir, entry)
+    fs.copyFileSync(source, dest)
+    if (process.platform !== 'win32' && entry === gifsicleBinary) {
+      fs.chmodSync(dest, 0o755)
+    }
+  }
+
+  if (process.platform === 'win32') {
+    const requiredDlls = ['libwinpthread-1.dll', 'libgcc_s_seh-1.dll']
+    for (const dll of requiredDlls) {
+      if (!fs.existsSync(path.join(gifsicleTargetDir, dll))) {
+        console.error(`prepare-resources: ${dll} missing next to gifsicle`)
+        process.exit(1)
+      }
+    }
+  }
+}
 
 const releaseBuild = process.env.DROPSLIM_RELEASE === '1'
 const signingIdentity = releaseBuild
@@ -17,80 +54,6 @@ const signingIdentity = releaseBuild
   : '-'
 
 const isReleaseSign = Boolean(signingIdentity && signingIdentity !== '-')
-
-const gifsicleMingwDlls = ['libwinpthread-1.dll', 'libgcc_s_seh-1.dll']
-
-const findMingwBin = () => {
-  const candidates = [
-    process.env.MSYSTEM_PREFIX
-      ? path.join(process.env.MSYSTEM_PREFIX, 'bin')
-      : '',
-    'C:\\msys64\\mingw64\\bin',
-  ].filter(Boolean)
-
-  return candidates.find((dir) => fs.existsSync(dir)) ?? ''
-}
-
-const gifsicleMingwDllDeps = () => {
-  const bash =
-    process.env.MSYSTEM === 'MINGW64'
-      ? 'bash'
-      : 'C:\\msys64\\usr\\bin\\bash.exe'
-  const binary = gifsicleTarget.replaceAll('\\', '/')
-  const result = spawnSync(
-    bash,
-    ['-lc', `export PATH="/mingw64/bin:$PATH"; ldd "${binary}" 2>/dev/null`],
-    { encoding: 'utf8' }
-  )
-
-  if (result.status !== 0 || !result.stdout) {
-    return gifsicleMingwDlls
-  }
-
-  const deps = gifsicleMingwDlls.filter((dll) =>
-    result.stdout.toLowerCase().includes(dll.toLowerCase())
-  )
-
-  if (deps.length === 0) {
-    console.log('prepare-resources: gifsicle is static — no mingw DLLs needed')
-  }
-
-  return deps
-}
-
-const copyGifsicleMingwDlls = () => {
-  if (process.platform !== 'win32') {
-    return
-  }
-
-  const needed = gifsicleMingwDllDeps()
-  if (needed.length === 0) {
-    return
-  }
-
-  const mingwBin = findMingwBin()
-  if (!mingwBin) {
-    console.error(
-      'prepare-resources: mingw bin directory not found for gifsicle'
-    )
-    process.exit(1)
-  }
-
-  const gifsicleDir = path.dirname(gifsicleTarget)
-  for (const dll of needed) {
-    const source = path.join(mingwBin, dll)
-    if (!fs.existsSync(source)) {
-      console.error(`prepare-resources: ${dll} missing in ${mingwBin}`)
-      console.error(
-        'prepare-resources: install mingw-w64-x86_64-winpthreads and mingw-w64-x86_64-gcc-libs in MSYS2'
-      )
-      process.exit(1)
-    }
-
-    fs.copyFileSync(source, path.join(gifsicleDir, dll))
-    console.log(`prepare-resources: bundled ${dll} for gifsicle`)
-  }
-}
 
 const vcRuntimeDlls = ['vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll']
 
@@ -191,19 +154,7 @@ const signBinary = (filePath) => {
 }
 
 fs.rmSync(target, { recursive: true, force: true })
-fs.mkdirSync(path.dirname(gifsicleTarget), { recursive: true })
-
-if (!fs.existsSync(gifsicleSource)) {
-  console.error(`prepare-resources: gifsicle missing at ${gifsicleSource}`)
-  console.error('prepare-resources: run npm ci first')
-  process.exit(1)
-}
-
-fs.copyFileSync(gifsicleSource, gifsicleTarget)
-
-if (process.platform !== 'win32') {
-  fs.chmodSync(gifsicleTarget, 0o755)
-}
+copyGifsicleBundle()
 
 if (process.platform === 'darwin') {
   console.log(
@@ -212,7 +163,6 @@ if (process.platform === 'darwin') {
   signBinary(gifsicleTarget)
 } else {
   console.log('prepare-resources: signing skipped (not macOS)')
-  copyGifsicleMingwDlls()
 }
 
 copyWindowsNativeDeps()

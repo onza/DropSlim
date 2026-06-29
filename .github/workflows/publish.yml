@@ -71,8 +71,8 @@ jobs:
       - name: Cache gifsicle binary
         uses: actions/cache@v5
         with:
-          path: vendor/gifsicle/gifsicle.exe
-          key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96-mingw-2
+          path: vendor/gifsicle
+          key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96-mingw-3
 
       - name: Install dependencies
         run: npm ci --ignore-scripts
@@ -85,13 +85,28 @@ jobs:
           set -euo pipefail
           export PATH="/mingw64/bin:$PATH"
           ROOT="$GITHUB_WORKSPACE"
-          GIFSICLE="$ROOT/vendor/gifsicle/gifsicle.exe"
+          GIFSICLE_DIR="$ROOT/vendor/gifsicle"
+          GIFSICLE="$GIFSICLE_DIR/gifsicle.exe"
+          MINGW_DLLS=(libwinpthread-1.dll libgcc_s_seh-1.dll)
 
           verify_gifsicle() {
             if [ ! -f "$GIFSICLE" ]; then
               return 1
             fi
             "$GIFSICLE" --version | grep -F 1.96
+            for dll in "${MINGW_DLLS[@]}"; do
+              if [ ! -f "$GIFSICLE_DIR/$dll" ]; then
+                echo "gifsicle: missing bundled $dll"
+                return 1
+              fi
+            done
+          }
+
+          bundle_mingw_dlls() {
+            for dll in "${MINGW_DLLS[@]}"; do
+              cp "/mingw64/bin/$dll" "$GIFSICLE_DIR/"
+              echo "gifsicle: bundled $dll"
+            done
           }
 
           if verify_gifsicle; then
@@ -102,7 +117,7 @@ jobs:
           export LDFLAGS="-static -static-libgcc"
           MAKE="$(command -v mingw32-make || command -v make)"
           VERSION=1.96
-          mkdir -p "$ROOT/vendor/source" "$ROOT/vendor/gifsicle"
+          mkdir -p "$ROOT/vendor/source" "$GIFSICLE_DIR"
           cd "$ROOT/vendor/source"
           if [ ! -f "gifsicle-$VERSION.tar.gz" ]; then
             curl -fsSL -o "gifsicle-$VERSION.tar.gz" "https://www.lcdf.org/gifsicle/gifsicle-$VERSION.tar.gz"
@@ -111,13 +126,12 @@ jobs:
           tar xzf "gifsicle-$VERSION.tar.gz"
           cd "gifsicle-$VERSION"
           ./configure --disable-gifview --disable-gifdiff --disable-dependency-tracking \
-            --prefix="$ROOT/vendor/gifsicle" --bindir="$ROOT/vendor/gifsicle" "MAKE=$MAKE" \
+            --prefix="$GIFSICLE_DIR" --bindir="$GIFSICLE_DIR" "MAKE=$MAKE" \
             "LDFLAGS=$LDFLAGS"
           "$MAKE" install
+          bundle_mingw_dlls
           "$GIFSICLE" --version
-          if ldd "$GIFSICLE" | grep -Eiq 'mingw|msys|pthread'; then
-            echo "gifsicle: dynamic binary — bundling mingw DLLs in prepare-resources"
-          fi
+          verify_gifsicle
 
       - name: Build and release
         uses: tauri-apps/tauri-action@v0
