@@ -70,7 +70,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: vendor/gifsicle/gifsicle.exe
-          key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96-static
+          key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96-mingw-2
 
       - name: Install dependencies
         run: npm ci --ignore-scripts
@@ -80,16 +80,26 @@ jobs:
       - name: Install gifsicle
         shell: msys2 {0}
         run: |
-          if [ -f vendor/gifsicle/gifsicle.exe ] && vendor/gifsicle/gifsicle.exe --version | grep -F 1.96; then
+          set -euo pipefail
+          export PATH="/mingw64/bin:$PATH"
+          ROOT="$GITHUB_WORKSPACE"
+          GIFSICLE="$ROOT/vendor/gifsicle/gifsicle.exe"
+
+          verify_gifsicle() {
+            if [ ! -f "$GIFSICLE" ]; then
+              return 1
+            fi
+            "$GIFSICLE" --version | grep -F 1.96
+          }
+
+          if verify_gifsicle; then
             echo "gifsicle: cache hit"
             exit 0
           fi
-          set -euo pipefail
-          export PATH="/mingw64/bin:$PATH"
+
           export LDFLAGS="-static -static-libgcc"
           MAKE="$(command -v mingw32-make || command -v make)"
           VERSION=1.96
-          ROOT="$GITHUB_WORKSPACE"
           mkdir -p "$ROOT/vendor/source" "$ROOT/vendor/gifsicle"
           cd "$ROOT/vendor/source"
           if [ ! -f "gifsicle-$VERSION.tar.gz" ]; then
@@ -102,11 +112,9 @@ jobs:
             --prefix="$ROOT/vendor/gifsicle" --bindir="$ROOT/vendor/gifsicle" "MAKE=$MAKE" \
             "LDFLAGS=$LDFLAGS"
           "$MAKE" install
-          "$ROOT/vendor/gifsicle/gifsicle.exe" --version
-          if ldd "$ROOT/vendor/gifsicle/gifsicle.exe" | grep -Eiq 'mingw|msys|pthread'; then
-            echo "gifsicle: expected a static binary but found mingw runtime dependencies"
-            ldd "$ROOT/vendor/gifsicle/gifsicle.exe"
-            exit 1
+          "$GIFSICLE" --version
+          if ldd "$GIFSICLE" | grep -Eiq 'mingw|msys|pthread'; then
+            echo "gifsicle: dynamic binary — bundling mingw DLLs in prepare-resources"
           fi
 
       - name: Build and release

@@ -18,6 +18,45 @@ const signingIdentity = releaseBuild
 
 const isReleaseSign = Boolean(signingIdentity && signingIdentity !== '-')
 
+const gifsicleMingwDlls = ['libwinpthread-1.dll', 'libgcc_s_seh-1.dll']
+
+const findMingwBin = () => {
+  const candidates = [
+    process.env.MSYSTEM_PREFIX
+      ? path.join(process.env.MSYSTEM_PREFIX, 'bin')
+      : '',
+    'C:\\msys64\\mingw64\\bin',
+  ].filter(Boolean)
+
+  return candidates.find((dir) => fs.existsSync(dir)) ?? ''
+}
+
+const copyGifsicleMingwDlls = () => {
+  if (process.platform !== 'win32') {
+    return
+  }
+
+  const mingwBin = findMingwBin()
+  if (!mingwBin) {
+    console.error(
+      'prepare-resources: mingw bin directory not found for gifsicle'
+    )
+    process.exit(1)
+  }
+
+  const gifsicleDir = path.dirname(gifsicleTarget)
+  for (const dll of gifsicleMingwDlls) {
+    const source = path.join(mingwBin, dll)
+    if (!fs.existsSync(source)) {
+      console.error(`prepare-resources: ${dll} missing in ${mingwBin}`)
+      process.exit(1)
+    }
+
+    fs.copyFileSync(source, path.join(gifsicleDir, dll))
+    console.log(`prepare-resources: bundled ${dll} for gifsicle`)
+  }
+}
+
 const vcRuntimeDlls = ['vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll']
 
 const copyWindowsNativeDeps = () => {
@@ -138,6 +177,7 @@ if (process.platform === 'darwin') {
   signBinary(gifsicleTarget)
 } else {
   console.log('prepare-resources: signing skipped (not macOS)')
+  copyGifsicleMingwDlls()
 }
 
 copyWindowsNativeDeps()
