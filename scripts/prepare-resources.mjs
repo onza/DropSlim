@@ -31,8 +31,40 @@ const findMingwBin = () => {
   return candidates.find((dir) => fs.existsSync(dir)) ?? ''
 }
 
+const gifsicleMingwDllDeps = () => {
+  const bash =
+    process.env.MSYSTEM === 'MINGW64'
+      ? 'bash'
+      : 'C:\\msys64\\usr\\bin\\bash.exe'
+  const binary = gifsicleTarget.replaceAll('\\', '/')
+  const result = spawnSync(
+    bash,
+    ['-lc', `export PATH="/mingw64/bin:$PATH"; ldd "${binary}" 2>/dev/null`],
+    { encoding: 'utf8' }
+  )
+
+  if (result.status !== 0 || !result.stdout) {
+    return gifsicleMingwDlls
+  }
+
+  const deps = gifsicleMingwDlls.filter((dll) =>
+    result.stdout.toLowerCase().includes(dll.toLowerCase())
+  )
+
+  if (deps.length === 0) {
+    console.log('prepare-resources: gifsicle is static — no mingw DLLs needed')
+  }
+
+  return deps
+}
+
 const copyGifsicleMingwDlls = () => {
   if (process.platform !== 'win32') {
+    return
+  }
+
+  const needed = gifsicleMingwDllDeps()
+  if (needed.length === 0) {
     return
   }
 
@@ -45,10 +77,13 @@ const copyGifsicleMingwDlls = () => {
   }
 
   const gifsicleDir = path.dirname(gifsicleTarget)
-  for (const dll of gifsicleMingwDlls) {
+  for (const dll of needed) {
     const source = path.join(mingwBin, dll)
     if (!fs.existsSync(source)) {
       console.error(`prepare-resources: ${dll} missing in ${mingwBin}`)
+      console.error(
+        'prepare-resources: install mingw-w64-x86_64-winpthreads and mingw-w64-x86_64-gcc-libs in MSYS2'
+      )
       process.exit(1)
     }
 

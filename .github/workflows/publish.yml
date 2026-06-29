@@ -60,6 +60,8 @@ jobs:
           install: >-
             msys/make
             mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-gcc-libs
+            mingw-w64-x86_64-winpthreads
             mingw-w64-x86_64-make
             autoconf
             automake
