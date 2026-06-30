@@ -20,9 +20,6 @@
         "minWidth": 480,
         "minHeight": 840,
         "resizable": true,
-        "transparent": true,
-        "titleBarStyle": "Overlay",
-        "acceptFirstMouse": true,
         "dragDropEnabled": true
       }
     ],
@@ -33,8 +30,8 @@
   "bundle": {
     "active": true,
     "createUpdaterArtifacts": true,
-    "targets": ["dmg", "app"],
-    "icon": ["icons/icon.png", "icons/icon.icns"],
+    "targets": "all",
+    "icon": ["icons/icon.png"],
     "fileAssociations": [
       {
         "ext": [
@@ -52,18 +49,7 @@
         "role": "Editor"
       }
     ],
-    "resources": ["resources/**/*"],
-    "macOS": {
-      "minimumSystemVersion": "11.0",
-      "signingIdentity": "-",
-      "hardenedRuntime": true,
-      "entitlements": "entitlements.plist",
-      "dmg": {
-        "appPosition": { "x": 168, "y": 240 },
-        "applicationFolderPosition": { "x": 372, "y": 240 },
-        "windowSize": { "width": 660, "height": 400 }
-      }
-    }
+    "resources": ["resources/**/*"]
   },
   "plugins": {
     "updater": {

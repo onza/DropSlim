@@ -169,16 +169,26 @@ fn optimize_png(input: &Path, output: &Path) -> Result<(), String> {
 }
 
 fn optimize_gif(input: &Path, output: &Path, gifsicle: &Path) -> Result<(), String> {
-    let status = Command::new(gifsicle)
-        .args([
-            "-o",
-            &output.to_string_lossy(),
-            &input.to_string_lossy(),
-            "-O3",
-            "-i",
-        ])
-        .status()
-        .map_err(|error| error.to_string())?;
+    let mut command = Command::new(gifsicle);
+    command.args([
+        "-o",
+        &output.to_string_lossy(),
+        &input.to_string_lossy(),
+        "-O3",
+        "-i",
+    ]);
+
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+
+        command.creation_flags(0x08000000);
+        if let Some(dir) = gifsicle.parent() {
+            command.current_dir(dir);
+        }
+    }
+
+    let status = command.status().map_err(|error| error.to_string())?;
 
     if status.success() {
         Ok(())

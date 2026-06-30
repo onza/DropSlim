@@ -1,6 +1,5 @@
 use crate::native_ui::NativeUiStrings;
 
-#[cfg(target_os = "macos")]
 struct OpenPanelOptions {
     title: String,
     choose_files: bool,
@@ -9,7 +8,6 @@ struct OpenPanelOptions {
     create_directories: bool,
 }
 
-#[cfg(target_os = "macos")]
 fn run_open_panel(options: OpenPanelOptions) -> Result<Vec<String>, String> {
     use objc2::MainThreadMarker;
     use objc2_app_kit::{NSModalResponseOK, NSOpenPanel};
@@ -42,7 +40,6 @@ fn run_open_panel(options: OpenPanelOptions) -> Result<Vec<String>, String> {
     Ok(paths)
 }
 
-#[cfg(target_os = "macos")]
 pub fn pick_paths(strings: &NativeUiStrings) -> Result<Vec<String>, String> {
     run_open_panel(OpenPanelOptions {
         title: strings.pick_images.clone(),
@@ -53,7 +50,6 @@ pub fn pick_paths(strings: &NativeUiStrings) -> Result<Vec<String>, String> {
     })
 }
 
-#[cfg(target_os = "macos")]
 pub fn pick_save_folder(strings: &NativeUiStrings) -> Result<Vec<String>, String> {
     let mut paths = run_open_panel(OpenPanelOptions {
         title: strings.pick_save_folder.clone(),
@@ -65,14 +61,4 @@ pub fn pick_save_folder(strings: &NativeUiStrings) -> Result<Vec<String>, String
 
     paths.truncate(1);
     Ok(paths)
-}
-
-#[cfg(not(target_os = "macos"))]
-pub fn pick_save_folder(_strings: &NativeUiStrings) -> Result<Vec<String>, String> {
-    Err("pick_save_folder is only supported on macOS".to_string())
-}
-
-#[cfg(not(target_os = "macos"))]
-pub fn pick_paths(_strings: &NativeUiStrings) -> Result<Vec<String>, String> {
-    Err("pick_paths is only supported on macOS".to_string())
 }

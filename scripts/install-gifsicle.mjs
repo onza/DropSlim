@@ -16,6 +16,8 @@ const binaryName = process.platform === 'win32' ? 'gifsicle.exe' : 'gifsicle'
 const binaryPath = path.join(vendorDir, binaryName)
 const versionPattern = /1\.96/
 
+// windows ci: no configure/make on windows-latest
+// todo: prebuilt gifsicle.exe for ci and release instead of skip
 if (process.env.CI_SKIP_GIFSICLE === '1') {
   console.log('gifsicle: skipped (CI_SKIP_GIFSICLE)')
   process.exit(0)

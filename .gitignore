@@ -3,6 +3,10 @@ dist/
 dist-ui/
 src-tauri/target/
 src-tauri/resources/
+src-tauri/dav1d.dll
+src-tauri/vcruntime140.dll
+src-tauri/vcruntime140_1.dll
+src-tauri/msvcp140.dll
 src-tauri/gen/
 
 vendor/gifsicle/gifsicle
@@ -15,6 +19,7 @@ build/icon.iconset/
 build/icon.icns
 src-tauri/icons/icon.icns
 src-tauri/icons/icon.png
+src-tauri/icons/icon.ico
 
 .env
 .release.env

@@ -1,0 +1,30 @@
+{
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "DropSlim",
+        "width": 480,
+        "height": 840,
+        "minWidth": 480,
+        "minHeight": 840,
+        "resizable": true,
+        "dragDropEnabled": true,
+        "transparent": false,
+        "titleBarStyle": "Visible",
+        "acceptFirstMouse": false
+      }
+    ]
+  },
+  "bundle": {
+    "targets": ["nsis"],
+    "icon": ["icons/icon.ico", "icons/icon.png"],
+    "resources": {
+      "resources/": "resources/",
+      "dav1d.dll": "dav1d.dll",
+      "vcruntime140.dll": "vcruntime140.dll",
+      "vcruntime140_1.dll": "vcruntime140_1.dll",
+      "msvcp140.dll": "msvcp140.dll"
+    }
+  }
+}

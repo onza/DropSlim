@@ -1,0 +1,148 @@
+name: publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_tag:
+        description: draft tag for this windows test build
+        required: true
+        default: v1.3.1-windows-test1
+
+jobs:
+  publish-windows:
+    permissions:
+      contents: write
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Cache vcpkg
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.VCPKG_INSTALLATION_ROOT }}/installed/x64-windows
+          key: vcpkg-dav1d-x64-windows-1
+          restore-keys: |
+            vcpkg-dav1d-x64-windows-
+
+      - name: Install dav1d
+        shell: pwsh
+        run: |
+          choco install pkgconfiglite -y
+          vcpkg install dav1d:x64-windows
+          Add-Content -Path $env:GITHUB_ENV -Value "PKG_CONFIG_PATH=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\lib\pkgconfig"
+          Add-Content -Path $env:GITHUB_ENV -Value "PATH=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin;$env:PATH"
+
+      - name: Set VC runtime path
+        shell: pwsh
+        run: ./scripts/set-vc-runtime-env.ps1
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            msys/make
+            mingw-w64-x86_64-gcc
+            mingw-w64-x86_64-gcc-libs
+            mingw-w64-x86_64-winpthreads
+            mingw-w64-x86_64-make
+            autoconf
+            automake
+            libtool
+            pkg-config
+
+      - name: Cache gifsicle binary
+        uses: actions/cache@v5
+        with:
+          path: vendor/gifsicle
+          key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96-mingw-3
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+        env:
+          HUSKY: 0
+
+      - name: Install gifsicle
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          export PATH="/mingw64/bin:$PATH"
+          ROOT="$GITHUB_WORKSPACE"
+          GIFSICLE_DIR="$ROOT/vendor/gifsicle"
+          GIFSICLE="$GIFSICLE_DIR/gifsicle.exe"
+          MINGW_DLLS=(libwinpthread-1.dll libgcc_s_seh-1.dll)
+
+          verify_gifsicle() {
+            if [ ! -f "$GIFSICLE" ]; then
+              return 1
+            fi
+            "$GIFSICLE" --version | grep -F 1.96
+            for dll in "${MINGW_DLLS[@]}"; do
+              if [ ! -f "$GIFSICLE_DIR/$dll" ]; then
+                echo "gifsicle: missing bundled $dll"
+                return 1
+              fi
+            done
+          }
+
+          bundle_mingw_dlls() {
+            for dll in "${MINGW_DLLS[@]}"; do
+              cp "/mingw64/bin/$dll" "$GIFSICLE_DIR/"
+              echo "gifsicle: bundled $dll"
+            done
+          }
+
+          if verify_gifsicle; then
+            echo "gifsicle: cache hit"
+            exit 0
+          fi
+
+          export LDFLAGS="-static -static-libgcc"
+          MAKE="$(command -v mingw32-make || command -v make)"
+          VERSION=1.96
+          mkdir -p "$ROOT/vendor/source" "$GIFSICLE_DIR"
+          cd "$ROOT/vendor/source"
+          if [ ! -f "gifsicle-$VERSION.tar.gz" ]; then
+            curl -fsSL -o "gifsicle-$VERSION.tar.gz" "https://www.lcdf.org/gifsicle/gifsicle-$VERSION.tar.gz"
+          fi
+          rm -rf "gifsicle-$VERSION"
+          tar xzf "gifsicle-$VERSION.tar.gz"
+          cd "gifsicle-$VERSION"
+          ./configure --disable-gifview --disable-gifdiff --disable-dependency-tracking \
+            --prefix="$GIFSICLE_DIR" --bindir="$GIFSICLE_DIR" "MAKE=$MAKE" \
+            "LDFLAGS=$LDFLAGS"
+          "$MAKE" install
+          bundle_mingw_dlls
+          "$GIFSICLE" --version
+          verify_gifsicle
+
+      - name: Build and release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.event.inputs.test_tag }}
+          releaseName: 'DropSlim Windows test (${{ github.event.inputs.test_tag }})'
+          releaseBody: 'Windows test build only — not a full release. App version remains 1.3.1.'
+          releaseDraft: true
+          prerelease: true
+          args: '--bundles nsis'

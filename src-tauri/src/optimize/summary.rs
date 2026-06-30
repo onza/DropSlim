@@ -136,8 +136,8 @@ mod tests {
             build_optimize_summary_payload(100_000, 40_000, None),
             SummaryPayload::Saved {
                 percent: 60,
-                from: "100 KB".into(),
-                to: "40 KB".into(),
+                from: format_bytes(100_000),
+                to: format_bytes(40_000),
             }
         );
     }
@@ -147,7 +147,7 @@ mod tests {
         assert_eq!(
             build_optimize_summary_payload(1_000, 1_200, None),
             SummaryPayload::AlreadyOptimized {
-                size: "1 KB".into()
+                size: format_bytes(1_200),
             }
         );
     }
@@ -157,7 +157,7 @@ mod tests {
         assert_eq!(
             build_optimize_summary_payload(100_000, 50_000, Some(50_000)),
             SummaryPayload::AlreadyOptimized {
-                size: "50 KB".into()
+                size: format_bytes(50_000),
             }
         );
     }
@@ -168,8 +168,8 @@ mod tests {
             build_optimize_summary_payload(100_000, 40_000, Some(50_000)),
             SummaryPayload::SavedMore {
                 percent: 20,
-                from: "50 KB".into(),
-                to: "40 KB".into(),
+                from: format_bytes(50_000),
+                to: format_bytes(40_000),
             }
         );
     }

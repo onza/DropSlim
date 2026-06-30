@@ -99,7 +99,7 @@ pub fn optimize_heic(_input: &Path, _output: &Path) -> Result<(), ErrorPayload> 
     Err(ErrorPayload::heic_unsupported_platform())
 }
 
-#[cfg(test)]
+#[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
     use std::fs;
@@ -110,7 +110,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(target_os = "macos")]
     fn optimizes_heic_fixture() {
         let input = heic_fixture();
         assert!(

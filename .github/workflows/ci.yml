@@ -53,7 +53,21 @@ jobs:
   test:
     needs: changes
     if: needs.changes.outputs.rust == 'true'
-    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            gifsicle-path: vendor/gifsicle/gifsicle
+            skip_gifsicle: ''
+          # todo: prebuilt gifsicle.exe for ci and windows release
+          - os: windows-latest
+            gifsicle-path: vendor/gifsicle/gifsicle.exe
+            skip_gifsicle: '1'
+
+    runs-on: ${{ matrix.os }}
+    env:
+      CI_SKIP_GIFSICLE: ${{ matrix.skip_gifsicle }}
 
     steps:
       - name: Checkout
@@ -74,21 +88,47 @@ jobs:
           workspaces: src-tauri
 
       - name: Cache Homebrew
-        uses: actions/cache@v4
+        if: runner.os == 'macOS'
+        uses: actions/cache@v5
         with:
           path: ~/Library/Caches/Homebrew
           key: brew-${{ runner.os }}-${{ runner.arch }}
           restore-keys: |
             brew-${{ runner.os }}-
 
-      - name: Install system dependencies
+      - name: Install dav1d (macOS)
+        if: runner.os == 'macOS'
         run: brew install dav1d
 
+      - name: Cache vcpkg (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.VCPKG_INSTALLATION_ROOT }}/installed/x64-windows
+          key: vcpkg-dav1d-x64-windows-1
+          restore-keys: |
+            vcpkg-dav1d-x64-windows-
+
+      - name: Install dav1d (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          choco install pkgconfiglite -y
+          vcpkg install dav1d:x64-windows
+          Add-Content -Path $env:GITHUB_ENV -Value "PKG_CONFIG_PATH=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\lib\pkgconfig"
+          Add-Content -Path $env:GITHUB_ENV -Value "PATH=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin;$env:PATH"
+
+      - name: Set VC runtime path (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/set-vc-runtime-env.ps1
+
       - name: Cache gifsicle binary
-        uses: actions/cache@v4
+        if: runner.os == 'macOS'
+        uses: actions/cache@v5
         id: gifsicle-cache
         with:
-          path: vendor/gifsicle/gifsicle
+          path: ${{ matrix.gifsicle-path }}
           key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96
 
       - name: Install dependencies

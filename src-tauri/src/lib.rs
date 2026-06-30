@@ -1,13 +1,15 @@
 mod app_menu;
 mod commands;
-mod macos_dialog;
 mod native_ui;
 pub mod optimize;
+mod platform;
 mod startup_paths;
 
 use commands::startup::{emit_startup_paths, focus_main_window, StartupState};
 use std::sync::Mutex;
-use tauri::{Manager, RunEvent};
+use tauri::Manager;
+#[cfg(target_os = "macos")]
+use tauri::RunEvent;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -81,6 +83,7 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
 
+    #[cfg(target_os = "macos")]
     app.run(|app_handle, event| {
         if let RunEvent::Opened { urls } = event {
             let paths: Vec<String> = urls
@@ -95,4 +98,7 @@ pub fn run() {
             }
         }
     });
+
+    #[cfg(not(target_os = "macos"))]
+    app.run(|_, _| {});
 }
