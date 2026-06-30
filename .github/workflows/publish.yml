@@ -1,12 +1,11 @@
 name: publish
 
+# Windows release build. Trigger manually after version bump is on main.
+# Creates a draft GitHub release for v<package.json version>.
+# Then: Mac build locally, upload assets, merge latest.json, publish release.
+
 on:
   workflow_dispatch:
-    inputs:
-      test_tag:
-        description: draft tag for this windows test build
-        required: true
-        default: v1.3.1-windows-test1
 
 jobs:
   publish-windows:
@@ -17,6 +16,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Read app version
+        id: app
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "tag=v$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Setup Node.js
         uses: actions/setup-node@v5
@@ -140,9 +147,15 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.event.inputs.test_tag }}
-          releaseName: 'DropSlim Windows test (${{ github.event.inputs.test_tag }})'
-          releaseBody: 'Windows test build only — not a full release. App version remains 1.3.1.'
+          tagName: ${{ steps.app.outputs.tag }}
+          releaseName: DropSlim v${{ steps.app.outputs.version }}
+          releaseBody: |
+            DropSlim v${{ steps.app.outputs.version }}
+
+            - macOS: `DropSlim_*_aarch64.dmg` (Apple Silicon)
+            - Windows: `DropSlim_*_x64-setup.exe` (64-bit)
+
+            macOS assets are uploaded separately after the local release build.
           releaseDraft: true
-          prerelease: true
+          prerelease: false
           args: '--bundles nsis'

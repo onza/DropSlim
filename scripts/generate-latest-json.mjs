@@ -2,6 +2,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+// macOS updater manifest. After the Windows publish workflow, merge with:
+// node scripts/merge-latest-json.mjs dist/latest.json <windows-latest.json>
+
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const target =
   process.env.CARGO_TARGET_DIR ?? path.join(root, 'src-tauri', 'target')

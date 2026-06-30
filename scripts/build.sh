@@ -5,9 +5,9 @@ set -euo pipefail
 #   APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name (TEAMID)"
 #   APPLE_ID="you@example.com"
 #   APPLE_TEAM_ID="XXXXXXXXXX"
-#   APPLE_PASSWORD="xxxx-xxxx-xxxx-xxxx"  # app-specific password from appleid.apple.com
+#   APPLE_PASSWORD="xxxx-xxxx-xxxx-xxxx"                 # app-specific password from appleid.apple.com
 #   TAURI_SIGNING_PRIVATE_KEY_PATH=".tauri/updater.key"  # updater signing key (keep secret)
-#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""                 # empty for keys generated without a passphrase
+#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""                # empty for keys generated without a passphrase
 # Test credentials first: bash scripts/verify-notarize-credentials.sh
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -78,5 +78,8 @@ node "$root/scripts/generate-latest-json.mjs"
 
 echo "build: ok (dist/$(basename "$dmg"))"
 if [[ -f "$root/dist/latest.json" ]]; then
-  echo "build: updater manifest (dist/latest.json)"
+  echo "build: updater manifest (dist/latest.json, macOS only)"
+  echo "build: after Windows publish workflow, merge updater manifest:"
+  echo "build: gh release download <tag> -p latest.json -D /tmp/dropslim-win"
+  echo "build: node scripts/merge-latest-json.mjs dist/latest.json /tmp/dropslim-win/latest.json"
 fi
