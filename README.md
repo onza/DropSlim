@@ -32,7 +32,7 @@ Drop your images. DropSlim crunches the numbers. Done. Everything stays on your 
 
 ## Install (macOS)
 
-Requires macOS 11 (Big Sur) or later and an **Apple Silicon** Mac (M1 or newer).
+Requires **`macOS 11 (Big Sur)`** or later and an **Apple Silicon** Mac (M1 or newer).
 
 1. Download **`DropSlim_*.dmg`** from **[GitHub Releases](https://github.com/onza/DropSlim/releases)**.
 2. Open the DMG and drag **DropSlim** to **Applications**.
