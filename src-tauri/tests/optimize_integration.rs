@@ -35,17 +35,18 @@ fn create_raster_fixture(dir: &TempDir, name: &str, create: impl FnOnce(&Path)) 
     path
 }
 
-// skips when gifsicle is missing (e.g. windows ci with ci_skip_gifsicle=1)
-// todo: bundle gifsicle.exe and run gif integration tests on windows
+// skips tests when gifsicle is missing (e.g. windows ci with ci_skip_gifsicle=1)
+// linux/macos build gifsicle from source, windows ci still needs a prebuilt .exe
 fn require_gifsicle() -> Option<PathBuf> {
+    let binary_name = if cfg!(windows) {
+        "gifsicle.exe"
+    } else {
+        "gifsicle"
+    };
     let gifsicle = project_root()
         .join("vendor")
         .join("gifsicle")
-        .join(if cfg!(windows) {
-            "gifsicle.exe"
-        } else {
-            "gifsicle"
-        });
+        .join(binary_name);
 
     if !gifsicle.exists() {
         eprintln!(

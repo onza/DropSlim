@@ -2,10 +2,10 @@
 mod macos;
 
 #[cfg(not(target_os = "macos"))]
-mod desktop;
+mod non_macos;
 
 #[cfg(target_os = "macos")]
 pub use macos::{pick_paths, pick_save_folder};
 
 #[cfg(not(target_os = "macos"))]
-pub use desktop::{pick_paths, pick_save_folder};
+pub use non_macos::{pick_paths, pick_save_folder};
