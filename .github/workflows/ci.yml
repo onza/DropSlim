@@ -60,6 +60,9 @@ jobs:
           - os: macos-latest
             gifsicle-path: vendor/gifsicle/gifsicle
             skip_gifsicle: ''
+          - os: ubuntu-latest
+            gifsicle-path: vendor/gifsicle/gifsicle
+            skip_gifsicle: ''
           # todo: prebuilt gifsicle.exe for ci and windows release
           - os: windows-latest
             gifsicle-path: vendor/gifsicle/gifsicle.exe
@@ -100,6 +103,19 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install dav1d
 
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            libssl-dev \
+            libdav1d-dev \
+            patchelf
+
       - name: Cache vcpkg (Windows)
         if: runner.os == 'Windows'
         uses: actions/cache@v5
@@ -124,7 +140,7 @@ jobs:
         run: ./scripts/set-vc-runtime-env.ps1
 
       - name: Cache gifsicle binary
-        if: runner.os == 'macOS'
+        if: runner.os != 'Windows'
         uses: actions/cache@v5
         id: gifsicle-cache
         with:
