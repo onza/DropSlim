@@ -114,6 +114,7 @@ jobs:
             libxdo-dev \
             libssl-dev \
             libdav1d-dev \
+            nasm \
             patchelf
 
       - name: Cache vcpkg (Windows)
@@ -189,6 +190,7 @@ jobs:
             libssl-dev \
             libdav1d-dev \
             libfuse2 \
+            nasm \
             file \
             patchelf
 
