@@ -1,0 +1,23 @@
+{
+  "app": {
+    "windows": [
+      {
+        "transparent": false,
+        "titleBarStyle": "Visible",
+        "acceptFirstMouse": false
+      }
+    ]
+  },
+  "bundle": {
+    "targets": ["appimage"],
+    "icon": ["icons/icon.png"],
+    "resources": {
+      "resources/": "resources/"
+    },
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    }
+  }
+}

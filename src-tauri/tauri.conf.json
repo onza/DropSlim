@@ -34,17 +34,7 @@
     "icon": ["icons/icon.png"],
     "fileAssociations": [
       {
-        "ext": [
-          "png",
-          "jpg",
-          "jpeg",
-          "gif",
-          "svg",
-          "webp",
-          "avif",
-          "heic",
-          "heif"
-        ],
+        "ext": ["png", "jpg", "jpeg", "gif", "svg", "webp", "avif"],
         "name": "Image",
         "role": "Editor"
       }
