@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80">
+  <metadata>
+    <title>DropSlim fixture</title>
+    <desc>Used by optimizer integration tests</desc>
+  </metadata>
+  <rect x="0" y="0" width="120" height="80" fill="#2563eb" />
+  <circle cx="60" cy="40" r="24" fill="#ffffff" />
+  <path d="M 20 60 L 100 60 L 60 20 Z" fill="#93c5fd" opacity="0.8" />
+</svg>
