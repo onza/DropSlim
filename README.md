@@ -56,6 +56,12 @@ Requires **Windows 10 or later** (64-bit).
 
 <br>
 
+## Linux (planned)
+
+A Linux version is **planned but not released yet**. Work is happening on the [`feature/linux`](https://github.com/onza/DropSlim/tree/feature/linux) branch, where CI already builds an **AppImage** (x86_64). For now it is **on hold** because of limited testing capacity. If you'd like to help test, please [open an issue](https://github.com/onza/DropSlim/issues).
+
+<br>
+
 ## Translations
 
 UI translations were **generated with AI** and may contain errors or awkward wording. **Corrections are welcome** — if you spot a mistake, please [open an issue](https://github.com/onza/DropSlim/issues) or submit a pull request with an updated string in `ui/i18n/locales/`.
