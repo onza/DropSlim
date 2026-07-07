@@ -27,9 +27,7 @@ src-tauri/icons/icon.ico
 .tauri/
 
 .DS_Store
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
+.vscode/
 *.swp
 *.swo
 *~
