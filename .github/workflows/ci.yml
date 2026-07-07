@@ -60,6 +60,9 @@ jobs:
           - os: macos-latest
             gifsicle-path: vendor/gifsicle/gifsicle
             skip_gifsicle: ''
+          - os: ubuntu-latest
+            gifsicle-path: vendor/gifsicle/gifsicle
+            skip_gifsicle: ''
           # todo: prebuilt gifsicle.exe for ci and windows release
           - os: windows-latest
             gifsicle-path: vendor/gifsicle/gifsicle.exe
@@ -100,6 +103,20 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install dav1d
 
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            libssl-dev \
+            libdav1d-dev \
+            nasm \
+            patchelf
+
       - name: Cache vcpkg (Windows)
         if: runner.os == 'Windows'
         uses: actions/cache@v5
@@ -124,7 +141,7 @@ jobs:
         run: ./scripts/set-vc-runtime-env.ps1
 
       - name: Cache gifsicle binary
-        if: runner.os == 'macOS'
+        if: runner.os != 'Windows'
         uses: actions/cache@v5
         id: gifsicle-cache
         with:
@@ -138,3 +155,66 @@ jobs:
 
       - name: Rust tests
         run: npm run ci:rust
+
+  build-linux:
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            libssl-dev \
+            libdav1d-dev \
+            libfuse2 \
+            nasm \
+            file \
+            patchelf
+
+      - name: Cache gifsicle binary
+        uses: actions/cache@v5
+        with:
+          path: vendor/gifsicle/gifsicle
+          key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          HUSKY: 0
+
+      - name: Build AppImage
+        run: >-
+          npm run tauri -- build --bundles appimage
+          --config '{"bundle":{"createUpdaterArtifacts":false}}'
+
+      - name: Verify AppImage bundle
+        run: |
+          appimage="$(find src-tauri/target -name '*.AppImage' -path '*/release/bundle/appimage/*' | head -1)"
+          if [[ -z "$appimage" ]]; then
+            echo "build-linux: AppImage bundle not found"
+            exit 1
+          fi
+          ls -lh "$appimage"

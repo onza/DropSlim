@@ -1,9 +1,5 @@
 name: publish
 
-# Windows release build. Trigger manually after version bump is on main.
-# Creates a draft GitHub release for v<package.json version>.
-# Then: Mac build locally, upload assets, merge latest.json, publish release.
-
 on:
   workflow_dispatch:
 
@@ -154,8 +150,86 @@ jobs:
 
             - macOS: `DropSlim_*_aarch64.dmg` (Apple Silicon)
             - Windows: `DropSlim_*_x64-setup.exe` (64-bit)
+            - Linux: `DropSlim_*_amd64.AppImage` (x86_64)
 
             macOS assets are uploaded separately after the local release build.
           releaseDraft: true
           prerelease: false
           args: '--bundles nsis'
+
+  publish-linux:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Read app version
+        id: app
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            libssl-dev \
+            libdav1d-dev \
+            libfuse2 \
+            nasm \
+            file \
+            patchelf
+
+      - name: Cache gifsicle binary
+        uses: actions/cache@v5
+        with:
+          path: vendor/gifsicle/gifsicle
+          key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          HUSKY: 0
+
+      - name: Build and release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ steps.app.outputs.tag }}
+          releaseName: DropSlim v${{ steps.app.outputs.version }}
+          releaseBody: |
+            DropSlim v${{ steps.app.outputs.version }}
+
+            - macOS: `DropSlim_*_aarch64.dmg` (Apple Silicon)
+            - Windows: `DropSlim_*_x64-setup.exe` (64-bit)
+            - Linux: `DropSlim_*_amd64.AppImage` (x86_64)
+
+            macOS assets are uploaded separately after the local release build.
+          releaseDraft: true
+          prerelease: false
+          args: '--bundles appimage'

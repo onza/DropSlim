@@ -15,6 +15,8 @@ const boot = async () => {
     document.body.classList.add('platform-desktop')
     if (osType === 'windows') {
       document.body.classList.add('platform-win')
+    } else if (osType === 'linux') {
+      document.body.classList.add('platform-linux')
     }
   }
 

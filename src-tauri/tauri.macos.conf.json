@@ -11,6 +11,23 @@
   "bundle": {
     "targets": ["dmg", "app"],
     "icon": ["icons/icon.png", "icons/icon.icns"],
+    "fileAssociations": [
+      {
+        "ext": [
+          "png",
+          "jpg",
+          "jpeg",
+          "gif",
+          "svg",
+          "webp",
+          "avif",
+          "heic",
+          "heif"
+        ],
+        "name": "Image",
+        "role": "Editor"
+      }
+    ],
     "macOS": {
       "minimumSystemVersion": "11.0",
       "signingIdentity": "-",

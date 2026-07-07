@@ -1,0 +1,31 @@
+{
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "DropSlim",
+        "width": 480,
+        "height": 840,
+        "minWidth": 480,
+        "minHeight": 840,
+        "resizable": true,
+        "dragDropEnabled": true,
+        "transparent": false,
+        "titleBarStyle": "Visible",
+        "acceptFirstMouse": false
+      }
+    ]
+  },
+  "bundle": {
+    "targets": ["appimage"],
+    "icon": ["icons/icon.png"],
+    "resources": {
+      "resources/": "resources/"
+    },
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    }
+  }
+}
