@@ -1,6 +1,13 @@
-# DropSlim
+<p>
+  <img src="assets/dropslim_logo.svg#gh-light-mode-only" alt="DropSlim" width="200">
+  <img src="assets/dropslim_logo-dark.svg#gh-dark-mode-only" alt="DropSlim" width="200">
+</p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) [![CI](https://github.com/onza/DropSlim/actions/workflows/ci.yml/badge.svg)](https://github.com/onza/DropSlim/actions/workflows/ci.yml)
+
+<br>
+
+# Compress images locally with drag and drop
 
 Make large image files **small** — on your computer, with drag & drop. Local, fast, private, free, and open source.
 
