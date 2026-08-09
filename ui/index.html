@@ -67,6 +67,50 @@
             </label>
           </div>
           <div class="setting-row">
+            <span
+              class="setting-label"
+              data-i18n="settings.limitDimensions"
+            ></span>
+            <label class="toggle">
+              <input
+                id="limit_dimensions"
+                name="limit_dimensions"
+                type="checkbox"
+              />
+              <span class="toggle-track" aria-hidden="true"></span>
+            </label>
+          </div>
+          <div id="wrapperDimensionLimits" class="dimension-limits is-hidden">
+            <label class="dimension-limits-field" for="max_width">
+              <span
+                class="dimension-limits-label"
+                data-i18n="settings.maxWidth"
+              ></span>
+              <input
+                id="max_width"
+                name="max_width"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+              />
+            </label>
+            <label class="dimension-limits-field" for="max_height">
+              <span
+                class="dimension-limits-label"
+                data-i18n="settings.maxHeight"
+              ></span>
+              <input
+                id="max_height"
+                name="max_height"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+              />
+            </label>
+          </div>
+          <div class="setting-row">
             <span class="setting-label" data-i18n="settings.clearOnNew"></span>
             <label class="toggle">
               <input id="clearlist" name="clearlist" type="checkbox" />

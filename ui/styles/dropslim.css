@@ -517,6 +517,43 @@ button {
   padding: 0.75rem 0 1rem;
 }
 
+.dimension-limits {
+  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.75rem 0 1rem;
+}
+
+.dimension-limits-field {
+  align-items: center;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr auto;
+}
+
+.dimension-limits-label {
+  line-height: 1.2;
+}
+
+.dimension-limits input[type='number'] {
+  appearance: textfield;
+  background: rgb(var(--color-surface-rgb));
+  border: 1px solid var(--color-border);
+  border-radius: 0.35rem;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.45rem;
+  text-align: right;
+  width: 5.5rem;
+}
+
+.dimension-limits input[type='number']::-webkit-outer-spin-button,
+.dimension-limits input[type='number']::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
 .save-path-label {
   line-height: 1.2;
 }

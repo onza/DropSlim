@@ -6,6 +6,20 @@ import {
 } from '../i18n/index.js'
 import { cutFolderName } from '../utils/pathDisplay.js'
 
+const parseDimensionPx = (raw) => {
+  const trimmed = String(raw ?? '').trim()
+  if (!trimmed) {
+    return null
+  }
+
+  const value = Number.parseInt(trimmed, 10)
+  if (!Number.isFinite(value) || value < 1) {
+    return null
+  }
+
+  return value
+}
+
 export const initSettingsView = ({ api, i18n }) => {
   const menuSettings = document.getElementById('menuSettings')
   const wrapper = document.querySelector('.wrapper')
@@ -17,6 +31,12 @@ export const initSettingsView = ({ api, i18n }) => {
   const clearlist = document.getElementById('clearlist')
   const suffix = document.getElementById('suffix')
   const subfolder = document.getElementById('subfolder')
+  const limitDimensions = document.getElementById('limit_dimensions')
+  const wrapperDimensionLimits = document.getElementById(
+    'wrapperDimensionLimits'
+  )
+  const maxWidth = document.getElementById('max_width')
+  const maxHeight = document.getElementById('max_height')
   const autoCheckUpdates = document.getElementById('autoCheckUpdates')
   const autoInstallUpdates = document.getElementById('autoInstallUpdates')
   const btnCheckUpdates = document.getElementById('btnCheckUpdates')
@@ -27,6 +47,10 @@ export const initSettingsView = ({ api, i18n }) => {
 
   const settings = api.settings
   let userSetting = settings.getSync()
+
+  const syncDimensionLimitsVisibility = (enabled) => {
+    wrapperDimensionLimits?.classList.toggle('is-hidden', !enabled)
+  }
 
   const updateLocaleDisplay = () => {
     if (!localeSelect || !localeValue) {
@@ -72,6 +96,16 @@ export const initSettingsView = ({ api, i18n }) => {
   clearlist.checked = userSetting.clearlist
   suffix.checked = userSetting.suffix
   subfolder.checked = userSetting.subfolder
+  limitDimensions.checked = Boolean(userSetting.limit_dimensions)
+  syncDimensionLimitsVisibility(limitDimensions.checked)
+  if (maxWidth) {
+    maxWidth.value =
+      userSetting.max_width == null ? '' : String(userSetting.max_width)
+  }
+  if (maxHeight) {
+    maxHeight.value =
+      userSetting.max_height == null ? '' : String(userSetting.max_height)
+  }
   autoCheckUpdates.checked = userSetting.autoCheckUpdates
   autoInstallUpdates.checked = userSetting.autoInstallUpdates
 
@@ -150,8 +184,27 @@ export const initSettingsView = ({ api, i18n }) => {
       if (event.target.name === 'folderswitch' && wrapperSavePath) {
         wrapperSavePath.classList.toggle('is-hidden', event.target.checked)
       }
+
+      if (event.target.name === 'limit_dimensions') {
+        syncDimensionLimitsVisibility(event.target.checked)
+      }
     }
   })
+
+  const bindDimensionInput = (input) => {
+    if (!input) {
+      return
+    }
+
+    input.onchange = (event) => {
+      const value = parseDimensionPx(event.target.value)
+      event.target.value = value == null ? '' : String(value)
+      settings.setSync(event.target.name, value)
+    }
+  }
+
+  bindDimensionInput(maxWidth)
+  bindDimensionInput(maxHeight)
 
   if (btnCheckUpdates) {
     btnCheckUpdates.onclick = (event) => {
