@@ -126,6 +126,7 @@ fn resolve_optimization(
     file_path: &std::path::Path,
     output_path: &std::path::Path,
     project_root: &std::path::Path,
+    dimension_limits: Option<super::image::DimensionLimits>,
 ) -> Result<ResolvedOptimization, ErrorPayload> {
     let size_orig = file_size(file_path).map_err(|error| ErrorPayload::io(error.to_string()))?;
     let previous_output_size = file_size(output_path).ok();
@@ -133,7 +134,7 @@ fn resolve_optimization(
     let candidate = TempFile::at(output_path);
     let candidate_path = candidate.path();
 
-    optimize_image_file(file_path, candidate_path, project_root)?;
+    optimize_image_file(file_path, candidate_path, project_root, dimension_limits)?;
 
     let candidate_size =
         file_size(candidate_path).map_err(|error| ErrorPayload::io(error.to_string()))?;
@@ -192,7 +193,12 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
             .map_err(|error| ErrorPayload::io(error.to_string()))?;
         let size_orig =
             file_size(&file_path).map_err(|error| ErrorPayload::io(error.to_string()))?;
-        let resolved = resolve_optimization(&file_path, &output_path, &project_root)?;
+        let resolved = resolve_optimization(
+            &file_path,
+            &output_path,
+            &project_root,
+            settings.dimension_limits(),
+        )?;
 
         Ok::<_, ErrorPayload>((
             resolved.output_path,
@@ -628,7 +634,7 @@ mod tests {
         write_png(&file);
         let output = dir.path().join("photo.min.png");
 
-        optimize_image_file(&file, &output, &project_root()).expect("seed output");
+        optimize_image_file(&file, &output, &project_root(), None).expect("seed output");
         let first_size = fs::metadata(&output).expect("output metadata").len();
 
         let recording = Arc::new(RecordingEventSink::new());
