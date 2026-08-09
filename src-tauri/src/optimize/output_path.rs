@@ -12,6 +12,12 @@ pub struct UserSettings {
     #[serde(default)]
     pub subfolder: bool,
     pub savepath: Option<Vec<String>>,
+    #[serde(default)]
+    pub limit_dimensions: bool,
+    #[serde(default)]
+    pub max_width: Option<u32>,
+    #[serde(default)]
+    pub max_height: Option<u32>,
 }
 
 impl Default for UserSettings {
@@ -21,6 +27,22 @@ impl Default for UserSettings {
             suffix: true,
             subfolder: false,
             savepath: None,
+            limit_dimensions: false,
+            max_width: None,
+            max_height: None,
+        }
+    }
+}
+
+impl UserSettings {
+    pub fn dimension_limits(&self) -> Option<(Option<u32>, Option<u32>)> {
+        if !self.limit_dimensions {
+            return None;
+        }
+
+        match (self.max_width, self.max_height) {
+            (None, None) => None,
+            (max_width, max_height) => Some((max_width, max_height)),
         }
     }
 }
@@ -177,5 +199,55 @@ mod tests {
             savepath: Some(vec!["  ".into()]),
             ..Default::default()
         }));
+    }
+
+    #[test]
+    fn dimension_limits_default_off() {
+        assert!(UserSettings::default().dimension_limits().is_none());
+    }
+
+    #[test]
+    fn dimension_limits_require_toggle_and_value() {
+        assert!(UserSettings {
+            limit_dimensions: true,
+            max_width: None,
+            max_height: None,
+            ..Default::default()
+        }
+        .dimension_limits()
+        .is_none());
+
+        assert_eq!(
+            UserSettings {
+                limit_dimensions: true,
+                max_width: Some(2000),
+                max_height: None,
+                ..Default::default()
+            }
+            .dimension_limits(),
+            Some((Some(2000), None))
+        );
+
+        assert!(UserSettings {
+            limit_dimensions: false,
+            max_width: Some(2000),
+            max_height: Some(1500),
+            ..Default::default()
+        }
+        .dimension_limits()
+        .is_none());
+    }
+
+    #[test]
+    fn deserializes_legacy_settings_without_dimension_fields() {
+        let settings: UserSettings = serde_json::from_str(
+            r#"{"folderswitch":true,"suffix":true,"subfolder":false}"#,
+        )
+        .expect("legacy settings");
+
+        assert!(!settings.limit_dimensions);
+        assert_eq!(settings.max_width, None);
+        assert_eq!(settings.max_height, None);
+        assert!(settings.dimension_limits().is_none());
     }
 }

@@ -28,6 +28,7 @@ src-tauri/icons/icon.ico
 
 .DS_Store
 .vscode/
+roadmap.md
 *.swp
 *.swo
 *~
