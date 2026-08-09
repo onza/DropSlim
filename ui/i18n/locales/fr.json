@@ -102,6 +102,10 @@
   },
   "dialog": {
     "pickImages": "Choisir des images ou des dossiers",
-    "pickSaveFolder": "Choisir un dossier d'enregistrement"
+    "pickSaveFolder": "Choisir un dossier d'enregistrement",
+    "overwriteDimensionWarningTitle": "Écraser les originaux ?",
+    "overwriteDimensionWarningBody": "La largeur/hauteur max. est activée, et les fichiers seront enregistrés dans le même dossier sans suffixe .min. Les originaux seront écrasés.",
+    "overwriteDimensionWarningConfirm": "Continuer quand même",
+    "dontAskAgain": "Ne plus demander"
   }
 }

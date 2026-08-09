@@ -216,6 +216,36 @@
         </div>
       </footer>
     </div>
+    <div
+      id="confirmDialog"
+      class="confirm-dialog is-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      aria-labelledby="confirmDialogTitle"
+    >
+      <div class="confirm-dialog-backdrop"></div>
+      <div class="confirm-dialog-panel">
+        <h2 id="confirmDialogTitle" class="confirm-dialog-title"></h2>
+        <p id="confirmDialogBody" class="confirm-dialog-body"></p>
+        <label class="confirm-dialog-dont-ask" for="confirmDialogDontAsk">
+          <input id="confirmDialogDontAsk" type="checkbox" />
+          <span id="confirmDialogDontAskLabel"></span>
+        </label>
+        <div class="confirm-dialog-actions">
+          <button
+            type="button"
+            id="confirmDialogCancel"
+            class="text-btn"
+          ></button>
+          <button
+            type="button"
+            id="confirmDialogConfirm"
+            class="btn confirm-dialog-confirm"
+          ></button>
+        </div>
+      </div>
+    </div>
     <script type="module" src="main.js"></script>
   </body>
 </html>

@@ -102,6 +102,10 @@
   },
   "dialog": {
     "pickImages": "Escolher imagens ou pastas",
-    "pickSaveFolder": "Escolher pasta de destino"
+    "pickSaveFolder": "Escolher pasta de destino",
+    "overwriteDimensionWarningTitle": "Substituir originais?",
+    "overwriteDimensionWarningBody": "A largura/altura máx. está ativa e os arquivos serão salvos na mesma pasta sem o sufixo .min. Os originais serão substituídos.",
+    "overwriteDimensionWarningConfirm": "Continuar mesmo assim",
+    "dontAskAgain": "Não perguntar novamente"
   }
 }

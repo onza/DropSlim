@@ -102,6 +102,10 @@
   },
   "dialog": {
     "pickImages": "画像またはフォルダを選択",
-    "pickSaveFolder": "保存フォルダを選択"
+    "pickSaveFolder": "保存フォルダを選択",
+    "overwriteDimensionWarningTitle": "オリジナルを上書きしますか？",
+    "overwriteDimensionWarningBody": "最大幅/高さが有効で、ファイルは .min サフィックスなしで同じフォルダに保存されます。オリジナルが上書きされます。",
+    "overwriteDimensionWarningConfirm": "続行する",
+    "dontAskAgain": "今後表示しない"
   }
 }

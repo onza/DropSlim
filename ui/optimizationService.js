@@ -1,8 +1,10 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { confirmOverwriteDimensionWarning } from './confirmDialog.js'
 import { t } from './i18n/index.js'
 import { formatBackendError } from './i18n/backend.js'
+import { shouldWarnOverwriteWithDimensionLimits } from './utils/overwriteWarning.js'
 
 export const createOptimizationService = ({
   settings,
@@ -31,6 +33,16 @@ export const createOptimizationService = ({
     if (inFlight) {
       onStatus?.(t('status.alreadyCompressing'))
       return false
+    }
+
+    if (shouldWarnOverwriteWithDimensionLimits(settings.getSync())) {
+      const { proceed, dontAskAgain } = await confirmOverwriteDimensionWarning()
+      if (!proceed) {
+        return false
+      }
+      if (dontAskAgain) {
+        settings.setSync('skipOverwriteDimensionWarning', true)
+      }
     }
 
     inFlight = true

@@ -102,6 +102,10 @@
   },
   "dialog": {
     "pickImages": "Scegli immagini o cartelle",
-    "pickSaveFolder": "Scegli cartella di salvataggio"
+    "pickSaveFolder": "Scegli cartella di salvataggio",
+    "overwriteDimensionWarningTitle": "Sovrascrivere gli originali?",
+    "overwriteDimensionWarningBody": "Larghezza/altezza max. è attiva e i file verranno salvati nella stessa cartella senza suffisso .min. Gli originali verranno sovrascritti.",
+    "overwriteDimensionWarningConfirm": "Continua comunque",
+    "dontAskAgain": "Non chiedere più"
   }
 }

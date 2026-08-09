@@ -102,6 +102,10 @@
   },
   "dialog": {
     "pickImages": "Bilder oder Ordner auswählen",
-    "pickSaveFolder": "Speicherordner auswählen"
+    "pickSaveFolder": "Speicherordner auswählen",
+    "overwriteDimensionWarningTitle": "Originale überschreiben?",
+    "overwriteDimensionWarningBody": "Max. Breite/Höhe ist aktiv, und die Dateien werden ohne .min-Suffix im selben Ordner gespeichert. Originale werden überschrieben.",
+    "overwriteDimensionWarningConfirm": "Trotzdem fortfahren",
+    "dontAskAgain": "Nicht mehr fragen"
   }
 }

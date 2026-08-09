@@ -102,6 +102,10 @@
   },
   "dialog": {
     "pickImages": "Choose images or folders",
-    "pickSaveFolder": "Choose a save folder"
+    "pickSaveFolder": "Choose a save folder",
+    "overwriteDimensionWarningTitle": "Overwrite originals?",
+    "overwriteDimensionWarningBody": "Max. width/height is on, and files will be saved in the same folder without a .min suffix. Originals will be overwritten.",
+    "overwriteDimensionWarningConfirm": "Continue anyway",
+    "dontAskAgain": "Don't ask again"
   }
 }

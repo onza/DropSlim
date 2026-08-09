@@ -20,6 +20,7 @@ const SETTINGS_DEFAULTS = {
   max_height: null,
   autoCheckUpdates: true,
   autoInstallUpdates: false,
+  skipOverwriteDimensionWarning: false,
   locale: 'system',
 }
 
