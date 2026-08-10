@@ -22,6 +22,7 @@ Drop your images. DropSlim crunches the numbers. Done. Everything stays on your 
 - **Runs offline** — no internet required; compression runs entirely on your computer
 - **Privacy** — no upload, no tracking; your images never leave your machine
 - **Batch processing** — hundreds of files in one go; new file alongside the original, or replace in place
+- **Optional max width / height** — set pixel limits in settings; shrink oversized JPEG, PNG, WebP, and AVIF while keeping aspect ratio
 - **Common formats** — PNG, JPEG, GIF, SVG, WebP, and AVIF. **HEIC on macOS only**
 - **Open with DropSlim** (macOS) — right-click an image in Finder → **Open With** → DropSlim
 - **Review results** in a simple list and reveal outputs in Finder or File Explorer
