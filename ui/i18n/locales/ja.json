@@ -18,6 +18,10 @@
     "chooseFolderOpen": "開く",
     "minSuffix": "最適化ファイルに .min サフィックスを付ける",
     "minifiedSubfolder": "「minified」サブフォルダを作成",
+    "limitDimensions": "最大幅 / 高さを制限",
+    "limitDimensionsHint": "JPEG、PNG、WebP、AVIF",
+    "maxWidth": "最大幅 (px)",
+    "maxHeight": "最大高さ (px)",
     "clearOnNew": "新しい画像を最適化するときに結果リストをクリア",
     "autoCheckUpdates": "自動的にアップデートを確認",
     "autoInstallUpdates": "確認なしでアップデートをインストール",
@@ -99,6 +103,13 @@
   },
   "dialog": {
     "pickImages": "画像またはフォルダを選択",
-    "pickSaveFolder": "保存フォルダを選択"
+    "pickSaveFolder": "保存フォルダを選択",
+    "overwriteDimensionWarningTitle": "オリジナルを上書きしますか？",
+    "overwriteDimensionWarningBody": "最大幅/高さが有効で、ファイルは .min サフィックスなしで同じフォルダに保存されます。オリジナルが上書きされます。",
+    "overwriteDimensionWarningConfirm": "続行する",
+    "disableMinSuffixWarningTitle": "オリジナルを上書きしますか？",
+    "disableMinSuffixWarningBody": ".min サフィックスなしでは、最適化したファイルが同じ名前の既存ファイルを上書きすることがあります。",
+    "disableMinSuffixWarningConfirm": "サフィックスをオフにする",
+    "dontAskAgain": "今後表示しない"
   }
 }

@@ -18,6 +18,10 @@
     "chooseFolderOpen": "Open",
     "minSuffix": "Add .min suffix to optimized files",
     "minifiedSubfolder": "Add \"minified\" subfolder",
+    "limitDimensions": "Limit max. width / height",
+    "limitDimensionsHint": "JPEG, PNG, WebP, and AVIF",
+    "maxWidth": "Max. width (px)",
+    "maxHeight": "Max. height (px)",
     "clearOnNew": "Clear result list when optimizing new images",
     "autoCheckUpdates": "Check for updates automatically",
     "autoInstallUpdates": "Install updates without asking",
@@ -99,6 +103,13 @@
   },
   "dialog": {
     "pickImages": "Choose images or folders",
-    "pickSaveFolder": "Choose a save folder"
+    "pickSaveFolder": "Choose a save folder",
+    "overwriteDimensionWarningTitle": "Overwrite originals?",
+    "overwriteDimensionWarningBody": "Max. width/height is on, and files will be saved in the same folder without a .min suffix. Originals will be overwritten.",
+    "overwriteDimensionWarningConfirm": "Continue anyway",
+    "disableMinSuffixWarningTitle": "Overwrite originals?",
+    "disableMinSuffixWarningBody": "Without the .min suffix, optimized files can overwrite existing files with the same name.",
+    "disableMinSuffixWarningConfirm": "Turn off suffix",
+    "dontAskAgain": "Don't ask again"
   }
 }

@@ -5,6 +5,9 @@ const OPTIMIZE_SETTING_KEYS = [
   'suffix',
   'subfolder',
   'savepath',
+  'limit_dimensions',
+  'max_width',
+  'max_height',
 ]
 
 const SETTINGS_DEFAULTS = {
@@ -12,8 +15,12 @@ const SETTINGS_DEFAULTS = {
   clearlist: false,
   suffix: true,
   subfolder: false,
+  limit_dimensions: false,
+  max_width: null,
+  max_height: null,
   autoCheckUpdates: true,
   autoInstallUpdates: false,
+  skipOverwriteDimensionWarning: false,
   locale: 'system',
 }
 

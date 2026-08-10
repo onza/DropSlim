@@ -1,8 +1,10 @@
 use std::fs;
-use std::io::BufReader;
+use std::io::{BufReader, Cursor};
 use std::path::Path;
 use std::process::Command;
 
+use image::imageops::FilterType;
+use image::{DynamicImage, GenericImageView};
 use oxipng::{optimize_from_memory, Options, StripChunks};
 use oxvg_ast::parse::roxmltree::{parse_with_options, ParsingOptions};
 use oxvg_ast::serialize::Node;
@@ -25,6 +27,46 @@ const PNG_DITHERING_LEVEL: f32 = 1.0;
 const WEBP_QUALITY: f32 = 80.0;
 const AVIF_QUALITY: f32 = 50.0;
 const AVIF_SPEED: u8 = 4;
+
+pub type DimensionLimits = (Option<u32>, Option<u32>);
+
+fn scaled_dimensions(
+    width: u32,
+    height: u32,
+    max_width: Option<u32>,
+    max_height: Option<u32>,
+) -> Option<(u32, u32)> {
+    let width_scale = max_width
+        .filter(|&limit| limit > 0 && width > limit)
+        .map(|limit| limit as f64 / width as f64);
+    let height_scale = max_height
+        .filter(|&limit| limit > 0 && height > limit)
+        .map(|limit| limit as f64 / height as f64);
+
+    let scale = match (width_scale, height_scale) {
+        (None, None) => return None,
+        (Some(scale), None) | (None, Some(scale)) => scale,
+        (Some(width_scale), Some(height_scale)) => width_scale.min(height_scale),
+    };
+
+    let new_width = ((width as f64) * scale).round().max(1.0) as u32;
+    let new_height = ((height as f64) * scale).round().max(1.0) as u32;
+    Some((new_width, new_height))
+}
+
+fn apply_dimension_limits(img: DynamicImage, limits: Option<DimensionLimits>) -> DynamicImage {
+    let Some((max_width, max_height)) = limits else {
+        return img;
+    };
+
+    let (width, height) = img.dimensions();
+    let Some((new_width, new_height)) = scaled_dimensions(width, height, max_width, max_height)
+    else {
+        return img;
+    };
+
+    img.resize_exact(new_width, new_height, FilterType::Lanczos3)
+}
 
 fn with_safe_source<F>(input: &Path, output: &Path, optimize: F) -> Result<(), ErrorPayload>
 where
@@ -60,8 +102,15 @@ fn optimize_svg(input: &Path, output: &Path) -> Result<(), String> {
     fs::write(output, optimized).map_err(|error| error.to_string())
 }
 
-fn optimize_jpeg(input: &Path, output: &Path) -> Result<(), String> {
-    let img = image::open(input).map_err(|error| error.to_string())?;
+fn optimize_jpeg(
+    input: &Path,
+    output: &Path,
+    limits: Option<DimensionLimits>,
+) -> Result<(), String> {
+    let img = apply_dimension_limits(
+        image::open(input).map_err(|error| error.to_string())?,
+        limits,
+    );
     let rgb = img.to_rgb8();
     let (width, height) = rgb.dimensions();
 
@@ -107,8 +156,22 @@ fn optimize_png_oxipng_only(input: &Path, output: &Path) -> Result<(), String> {
     fs::write(output, optimized).map_err(|error| error.to_string())
 }
 
+fn optimize_png_from_image(img: DynamicImage, output: &Path) -> Result<(), String> {
+    let mut buffer = Cursor::new(Vec::new());
+    img.write_to(&mut buffer, image::ImageFormat::Png)
+        .map_err(|error| error.to_string())?;
+    let optimized = optimize_from_memory(&buffer.into_inner(), &png_recompress_options())
+        .map_err(|error| error.to_string())?;
+
+    fs::write(output, optimized).map_err(|error| error.to_string())
+}
+
 fn optimize_png_quantized(input: &Path, output: &Path) -> Result<(), String> {
     let img = image::open(input).map_err(|error| error.to_string())?;
+    optimize_png_quantized_image(img, output)
+}
+
+fn optimize_png_quantized_image(img: DynamicImage, output: &Path) -> Result<(), String> {
     let rgba = img.to_rgba8();
     let (width, height) = rgba.dimensions();
 
@@ -160,7 +223,24 @@ fn optimize_png_quantized(input: &Path, output: &Path) -> Result<(), String> {
     fs::write(output, optimized).map_err(|error| error.to_string())
 }
 
-fn optimize_png(input: &Path, output: &Path) -> Result<(), String> {
+fn optimize_png(
+    input: &Path,
+    output: &Path,
+    limits: Option<DimensionLimits>,
+) -> Result<(), String> {
+    if limits.is_some() {
+        let original = image::open(input).map_err(|error| error.to_string())?;
+        let before = original.dimensions();
+        let img = apply_dimension_limits(original, limits);
+        if img.dimensions() != before {
+            return if png_uses_palette(input)? {
+                optimize_png_quantized_image(img, output)
+            } else {
+                optimize_png_from_image(img, output)
+            };
+        }
+    }
+
     if png_uses_palette(input)? {
         optimize_png_quantized(input, output)
     } else {
@@ -197,8 +277,15 @@ fn optimize_gif(input: &Path, output: &Path, gifsicle: &Path) -> Result<(), Stri
     }
 }
 
-fn optimize_webp(input: &Path, output: &Path) -> Result<(), String> {
-    let img = image::open(input).map_err(|error| error.to_string())?;
+fn optimize_webp(
+    input: &Path,
+    output: &Path,
+    limits: Option<DimensionLimits>,
+) -> Result<(), String> {
+    let img = apply_dimension_limits(
+        image::open(input).map_err(|error| error.to_string())?,
+        limits,
+    );
     let rgba = img.to_rgba8();
     let (width, height) = rgba.dimensions();
 
@@ -208,8 +295,15 @@ fn optimize_webp(input: &Path, output: &Path) -> Result<(), String> {
     fs::write(output, &*webp).map_err(|error| error.to_string())
 }
 
-fn optimize_avif(input: &Path, output: &Path) -> Result<(), String> {
-    let img = image::open(input).map_err(|error| error.to_string())?;
+fn optimize_avif(
+    input: &Path,
+    output: &Path,
+    limits: Option<DimensionLimits>,
+) -> Result<(), String> {
+    let img = apply_dimension_limits(
+        image::open(input).map_err(|error| error.to_string())?,
+        limits,
+    );
     let rgba = img.to_rgba8();
     let (width, height) = rgba.dimensions();
 
@@ -232,6 +326,7 @@ pub fn optimize_image_file(
     input: &Path,
     output: &Path,
     project_root: &Path,
+    dimension_limits: Option<DimensionLimits>,
 ) -> Result<(), ErrorPayload> {
     let format = ImageFormat::from_path(input).ok_or_else(ErrorPayload::unsupported_format)?;
 
@@ -243,11 +338,15 @@ pub fn optimize_image_file(
     }
 
     let gifsicle = gifsicle_path(project_root);
+    let raster_limits = match format {
+        ImageFormat::Gif | ImageFormat::Svg | ImageFormat::Heic => None,
+        _ => dimension_limits,
+    };
 
     with_safe_source(input, output, |source, destination| match format {
         ImageFormat::Svg => optimize_svg(source, destination).map_err(io_error),
-        ImageFormat::Jpeg => optimize_jpeg(source, destination).map_err(io_error),
-        ImageFormat::Png => optimize_png(source, destination).map_err(io_error),
+        ImageFormat::Jpeg => optimize_jpeg(source, destination, raster_limits).map_err(io_error),
+        ImageFormat::Png => optimize_png(source, destination, raster_limits).map_err(io_error),
         ImageFormat::Gif => {
             let gifsicle = gifsicle
                 .as_deref()
@@ -255,8 +354,8 @@ pub fn optimize_image_file(
             optimize_gif(source, destination, gifsicle)
                 .map_err(|message| ErrorPayload::from_message(&message))
         }
-        ImageFormat::Webp => optimize_webp(source, destination).map_err(io_error),
-        ImageFormat::Avif => optimize_avif(source, destination).map_err(io_error),
+        ImageFormat::Webp => optimize_webp(source, destination, raster_limits).map_err(io_error),
+        ImageFormat::Avif => optimize_avif(source, destination, raster_limits).map_err(io_error),
         ImageFormat::Heic => optimize_heic(source, destination),
     })
 }
@@ -307,7 +406,7 @@ mod tests {
         write_rgba_png(&input);
         let output = dir.path().join("photo.min.png");
 
-        optimize_png(&input, &output).expect("optimize png");
+        optimize_png(&input, &output, None).expect("optimize png");
 
         let optimized = fs::read(&output).expect("read output");
         let info = png::Decoder::new(Cursor::new(&optimized))
@@ -326,7 +425,7 @@ mod tests {
         write_indexed_png(&input);
         let output = dir.path().join("graphic.min.png");
 
-        optimize_png(&input, &output).expect("optimize indexed png");
+        optimize_png(&input, &output, None).expect("optimize indexed png");
 
         let optimized = fs::read(&output).expect("read output");
         let info = png::Decoder::new(Cursor::new(&optimized))
@@ -336,5 +435,38 @@ mod tests {
             .color_type;
 
         assert_eq!(info, png::ColorType::Indexed);
+    }
+
+    #[test]
+    fn scales_down_to_fit_max_width_and_height() {
+        assert_eq!(
+            scaled_dimensions(800, 600, Some(400), None),
+            Some((400, 300))
+        );
+        assert_eq!(
+            scaled_dimensions(800, 600, None, Some(300)),
+            Some((400, 300))
+        );
+        assert_eq!(
+            scaled_dimensions(800, 600, Some(400), Some(200)),
+            Some((267, 200))
+        );
+        assert_eq!(scaled_dimensions(400, 300, Some(800), Some(600)), None);
+        assert_eq!(scaled_dimensions(400, 300, Some(400), Some(300)), None);
+    }
+
+    #[test]
+    fn resizes_true_color_png_when_limits_set() {
+        let dir = tempdir().expect("tempdir");
+        let input = dir.path().join("large.png");
+        let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
+            ImageBuffer::from_pixel(80, 60, Rgba([12, 34, 56, 255]));
+        img.save(&input).expect("write rgba png");
+        let output = dir.path().join("large.min.png");
+
+        optimize_png(&input, &output, Some((Some(40), None))).expect("optimize png");
+
+        let optimized = image::open(&output).expect("open output");
+        assert_eq!(optimized.dimensions(), (40, 30));
     }
 }

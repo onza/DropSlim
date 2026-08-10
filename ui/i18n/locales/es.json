@@ -18,6 +18,10 @@
     "chooseFolderOpen": "Abrir",
     "minSuffix": "Añadir sufijo .min a los archivos optimizados",
     "minifiedSubfolder": "Añadir subcarpeta «minified»",
+    "limitDimensions": "Limitar ancho / alto máx.",
+    "limitDimensionsHint": "JPEG, PNG, WebP y AVIF",
+    "maxWidth": "Ancho máx. (px)",
+    "maxHeight": "Alto máx. (px)",
     "clearOnNew": "Vaciar la lista al optimizar nuevas imágenes",
     "autoCheckUpdates": "Buscar actualizaciones automáticamente",
     "autoInstallUpdates": "Instalar actualizaciones sin preguntar",
@@ -99,6 +103,13 @@
   },
   "dialog": {
     "pickImages": "Elegir imágenes o carpetas",
-    "pickSaveFolder": "Elegir carpeta de guardado"
+    "pickSaveFolder": "Elegir carpeta de guardado",
+    "overwriteDimensionWarningTitle": "¿Sobrescribir originales?",
+    "overwriteDimensionWarningBody": "El ancho/alto máx. está activo y los archivos se guardarán en la misma carpeta sin el sufijo .min. Se sobrescribirán los originales.",
+    "overwriteDimensionWarningConfirm": "Continuar de todos modos",
+    "disableMinSuffixWarningTitle": "¿Sobrescribir originales?",
+    "disableMinSuffixWarningBody": "Sin el sufijo .min, los archivos optimizados pueden sobrescribir archivos existentes con el mismo nombre.",
+    "disableMinSuffixWarningConfirm": "Desactivar sufijo",
+    "dontAskAgain": "No volver a preguntar"
   }
 }

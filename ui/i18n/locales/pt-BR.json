@@ -18,6 +18,10 @@
     "chooseFolderOpen": "Abrir",
     "minSuffix": "Adicionar sufixo .min aos arquivos otimizados",
     "minifiedSubfolder": "Adicionar subpasta «minified»",
+    "limitDimensions": "Limitar largura / altura máx.",
+    "limitDimensionsHint": "JPEG, PNG, WebP e AVIF",
+    "maxWidth": "Largura máx. (px)",
+    "maxHeight": "Altura máx. (px)",
     "clearOnNew": "Limpar a lista ao otimizar novas imagens",
     "autoCheckUpdates": "Verificar atualizações automaticamente",
     "autoInstallUpdates": "Instalar atualizações sem perguntar",
@@ -99,6 +103,13 @@
   },
   "dialog": {
     "pickImages": "Escolher imagens ou pastas",
-    "pickSaveFolder": "Escolher pasta de destino"
+    "pickSaveFolder": "Escolher pasta de destino",
+    "overwriteDimensionWarningTitle": "Substituir originais?",
+    "overwriteDimensionWarningBody": "A largura/altura máx. está ativa e os arquivos serão salvos na mesma pasta sem o sufixo .min. Os originais serão substituídos.",
+    "overwriteDimensionWarningConfirm": "Continuar mesmo assim",
+    "disableMinSuffixWarningTitle": "Substituir originais?",
+    "disableMinSuffixWarningBody": "Sem o sufixo .min, os arquivos otimizados podem substituir arquivos existentes com o mesmo nome.",
+    "disableMinSuffixWarningConfirm": "Desativar sufixo",
+    "dontAskAgain": "Não perguntar novamente"
   }
 }

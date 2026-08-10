@@ -18,6 +18,10 @@
     "chooseFolderOpen": "Ouvrir",
     "minSuffix": "Ajouter le suffixe .min aux fichiers optimisés",
     "minifiedSubfolder": "Ajouter le sous-dossier « minified »",
+    "limitDimensions": "Limiter la largeur / hauteur max.",
+    "limitDimensionsHint": "JPEG, PNG, WebP et AVIF",
+    "maxWidth": "Largeur max. (px)",
+    "maxHeight": "Hauteur max. (px)",
     "clearOnNew": "Vider la liste lors d'une nouvelle optimisation",
     "autoCheckUpdates": "Rechercher les mises à jour automatiquement",
     "autoInstallUpdates": "Installer les mises à jour sans demander",
@@ -99,6 +103,13 @@
   },
   "dialog": {
     "pickImages": "Choisir des images ou des dossiers",
-    "pickSaveFolder": "Choisir un dossier d'enregistrement"
+    "pickSaveFolder": "Choisir un dossier d'enregistrement",
+    "overwriteDimensionWarningTitle": "Écraser les originaux ?",
+    "overwriteDimensionWarningBody": "La largeur/hauteur max. est activée, et les fichiers seront enregistrés dans le même dossier sans suffixe .min. Les originaux seront écrasés.",
+    "overwriteDimensionWarningConfirm": "Continuer quand même",
+    "disableMinSuffixWarningTitle": "Écraser les originaux ?",
+    "disableMinSuffixWarningBody": "Sans le suffixe .min, les fichiers optimisés peuvent écraser des fichiers existants portant le même nom.",
+    "disableMinSuffixWarningConfirm": "Désactiver le suffixe",
+    "dontAskAgain": "Ne plus demander"
   }
 }

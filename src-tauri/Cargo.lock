@@ -1348,7 +1348,7 @@ dependencies = [
 
 [[package]]
 name = "dropslim"
-version = "1.4.1"
+version = "1.5.0-test.1"
 dependencies = [
  "image",
  "imagequant",

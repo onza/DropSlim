@@ -18,6 +18,10 @@
     "chooseFolderOpen": "Öffnen",
     "minSuffix": ".min-Suffix für optimierte Dateien",
     "minifiedSubfolder": "Unterordner „minified“ anlegen",
+    "limitDimensions": "Max. Breite / Höhe begrenzen",
+    "limitDimensionsHint": "JPEG, PNG, WebP und AVIF",
+    "maxWidth": "Max. Breite (px)",
+    "maxHeight": "Max. Höhe (px)",
     "clearOnNew": "Ergebnisliste bei neuen Bildern leeren",
     "autoCheckUpdates": "Automatisch nach Updates suchen",
     "autoInstallUpdates": "Updates ohne Nachfrage installieren",
@@ -99,6 +103,13 @@
   },
   "dialog": {
     "pickImages": "Bilder oder Ordner auswählen",
-    "pickSaveFolder": "Speicherordner auswählen"
+    "pickSaveFolder": "Speicherordner auswählen",
+    "overwriteDimensionWarningTitle": "Originale überschreiben?",
+    "overwriteDimensionWarningBody": "Max. Breite/Höhe ist aktiv, und die Dateien werden ohne .min-Suffix im selben Ordner gespeichert. Originale werden überschrieben.",
+    "overwriteDimensionWarningConfirm": "Trotzdem fortfahren",
+    "disableMinSuffixWarningTitle": "Originale überschreiben?",
+    "disableMinSuffixWarningBody": "Ohne .min-Suffix können optimierte Dateien bestehende Dateien mit demselben Namen überschreiben.",
+    "disableMinSuffixWarningConfirm": "Suffix ausschalten",
+    "dontAskAgain": "Nicht mehr fragen"
   }
 }
