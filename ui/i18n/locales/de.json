@@ -19,6 +19,7 @@
     "minSuffix": ".min-Suffix für optimierte Dateien",
     "minifiedSubfolder": "Unterordner „minified“ anlegen",
     "limitDimensions": "Max. Breite / Höhe begrenzen",
+    "limitDimensionsHint": "JPEG, PNG, WebP und AVIF",
     "maxWidth": "Max. Breite (px)",
     "maxHeight": "Max. Höhe (px)",
     "clearOnNew": "Ergebnisliste bei neuen Bildern leeren",

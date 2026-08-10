@@ -524,6 +524,13 @@ button {
   padding: 0.75rem 0.25rem 1rem 0;
 }
 
+.dimension-limits-hint {
+  color: var(--color-muted);
+  font-size: 0.65rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
 .dimension-limits-field {
   align-items: center;
   display: grid;

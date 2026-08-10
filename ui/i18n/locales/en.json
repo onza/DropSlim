@@ -19,6 +19,7 @@
     "minSuffix": "Add .min suffix to optimized files",
     "minifiedSubfolder": "Add \"minified\" subfolder",
     "limitDimensions": "Limit max. width / height",
+    "limitDimensionsHint": "JPEG, PNG, WebP, and AVIF",
     "maxWidth": "Max. width (px)",
     "maxHeight": "Max. height (px)",
     "clearOnNew": "Clear result list when optimizing new images",

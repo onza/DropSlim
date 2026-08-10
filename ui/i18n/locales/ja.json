@@ -19,6 +19,7 @@
     "minSuffix": "最適化ファイルに .min サフィックスを付ける",
     "minifiedSubfolder": "「minified」サブフォルダを作成",
     "limitDimensions": "最大幅 / 高さを制限",
+    "limitDimensionsHint": "JPEG、PNG、WebP、AVIF",
     "maxWidth": "最大幅 (px)",
     "maxHeight": "最大高さ (px)",
     "clearOnNew": "新しい画像を最適化するときに結果リストをクリア",
