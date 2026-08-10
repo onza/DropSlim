@@ -240,10 +240,9 @@ mod tests {
 
     #[test]
     fn deserializes_legacy_settings_without_dimension_fields() {
-        let settings: UserSettings = serde_json::from_str(
-            r#"{"folderswitch":true,"suffix":true,"subfolder":false}"#,
-        )
-        .expect("legacy settings");
+        let settings: UserSettings =
+            serde_json::from_str(r#"{"folderswitch":true,"suffix":true,"subfolder":false}"#)
+                .expect("legacy settings");
 
         assert!(!settings.limit_dimensions);
         assert_eq!(settings.max_width, None);

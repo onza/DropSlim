@@ -54,10 +54,7 @@ fn scaled_dimensions(
     Some((new_width, new_height))
 }
 
-fn apply_dimension_limits(
-    img: DynamicImage,
-    limits: Option<DimensionLimits>,
-) -> DynamicImage {
+fn apply_dimension_limits(img: DynamicImage, limits: Option<DimensionLimits>) -> DynamicImage {
     let Some((max_width, max_height)) = limits else {
         return img;
     };
@@ -110,7 +107,10 @@ fn optimize_jpeg(
     output: &Path,
     limits: Option<DimensionLimits>,
 ) -> Result<(), String> {
-    let img = apply_dimension_limits(image::open(input).map_err(|error| error.to_string())?, limits);
+    let img = apply_dimension_limits(
+        image::open(input).map_err(|error| error.to_string())?,
+        limits,
+    );
     let rgb = img.to_rgb8();
     let (width, height) = rgb.dimensions();
 
@@ -282,7 +282,10 @@ fn optimize_webp(
     output: &Path,
     limits: Option<DimensionLimits>,
 ) -> Result<(), String> {
-    let img = apply_dimension_limits(image::open(input).map_err(|error| error.to_string())?, limits);
+    let img = apply_dimension_limits(
+        image::open(input).map_err(|error| error.to_string())?,
+        limits,
+    );
     let rgba = img.to_rgba8();
     let (width, height) = rgba.dimensions();
 
@@ -297,7 +300,10 @@ fn optimize_avif(
     output: &Path,
     limits: Option<DimensionLimits>,
 ) -> Result<(), String> {
-    let img = apply_dimension_limits(image::open(input).map_err(|error| error.to_string())?, limits);
+    let img = apply_dimension_limits(
+        image::open(input).map_err(|error| error.to_string())?,
+        limits,
+    );
     let rgba = img.to_rgba8();
     let (width, height) = rgba.dimensions();
 

@@ -255,13 +255,8 @@ fn ignores_dimension_limits_for_gif() {
     });
     let output = dir.path().join("sample.min.gif");
 
-    optimize_image_file(
-        &input,
-        &output,
-        &project_root(),
-        Some((Some(40), Some(40))),
-    )
-    .expect("optimize gif");
+    optimize_image_file(&input, &output, &project_root(), Some((Some(40), Some(40))))
+        .expect("optimize gif");
 
     let optimized = image::open(&output).expect("open output");
     assert_eq!(optimized.dimensions(), (120, 80));
