@@ -2,6 +2,8 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
+use super::formats::OutputFormatSetting;
+
 #[derive(Debug, Clone, Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct UserSettings {
@@ -18,6 +20,8 @@ pub struct UserSettings {
     pub max_width: Option<u32>,
     #[serde(default)]
     pub max_height: Option<u32>,
+    #[serde(default)]
+    pub output_format: OutputFormatSetting,
 }
 
 impl Default for UserSettings {
@@ -30,6 +34,7 @@ impl Default for UserSettings {
             limit_dimensions: false,
             max_width: None,
             max_height: None,
+            output_format: OutputFormatSetting::Original,
         }
     }
 }
@@ -248,5 +253,24 @@ mod tests {
         assert_eq!(settings.max_width, None);
         assert_eq!(settings.max_height, None);
         assert!(settings.dimension_limits().is_none());
+        assert_eq!(settings.output_format, OutputFormatSetting::Original);
+    }
+
+    #[test]
+    fn output_format_defaults_to_original() {
+        assert_eq!(
+            UserSettings::default().output_format,
+            OutputFormatSetting::Original
+        );
+    }
+
+    #[test]
+    fn deserializes_output_format() {
+        let settings: UserSettings = serde_json::from_str(
+            r#"{"folderswitch":true,"suffix":true,"subfolder":false,"output_format":"webp"}"#,
+        )
+        .expect("settings with output format");
+
+        assert_eq!(settings.output_format, OutputFormatSetting::Webp);
     }
 }
