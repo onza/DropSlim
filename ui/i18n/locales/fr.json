@@ -106,6 +106,9 @@
     "overwriteDimensionWarningTitle": "Écraser les originaux ?",
     "overwriteDimensionWarningBody": "La largeur/hauteur max. est activée, et les fichiers seront enregistrés dans le même dossier sans suffixe .min. Les originaux seront écrasés.",
     "overwriteDimensionWarningConfirm": "Continuer quand même",
+    "disableMinSuffixWarningTitle": "Écraser les originaux ?",
+    "disableMinSuffixWarningBody": "Sans le suffixe .min, les fichiers optimisés peuvent écraser des fichiers existants portant le même nom.",
+    "disableMinSuffixWarningConfirm": "Désactiver le suffixe",
     "dontAskAgain": "Ne plus demander"
   }
 }

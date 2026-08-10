@@ -106,6 +106,9 @@
     "overwriteDimensionWarningTitle": "¿Sobrescribir originales?",
     "overwriteDimensionWarningBody": "El ancho/alto máx. está activo y los archivos se guardarán en la misma carpeta sin el sufijo .min. Se sobrescribirán los originales.",
     "overwriteDimensionWarningConfirm": "Continuar de todos modos",
+    "disableMinSuffixWarningTitle": "¿Sobrescribir originales?",
+    "disableMinSuffixWarningBody": "Sin el sufijo .min, los archivos optimizados pueden sobrescribir archivos existentes con el mismo nombre.",
+    "disableMinSuffixWarningConfirm": "Desactivar sufijo",
     "dontAskAgain": "No volver a preguntar"
   }
 }

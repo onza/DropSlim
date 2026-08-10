@@ -106,6 +106,9 @@
     "overwriteDimensionWarningTitle": "Sovrascrivere gli originali?",
     "overwriteDimensionWarningBody": "Larghezza/altezza max. è attiva e i file verranno salvati nella stessa cartella senza suffisso .min. Gli originali verranno sovrascritti.",
     "overwriteDimensionWarningConfirm": "Continua comunque",
+    "disableMinSuffixWarningTitle": "Sovrascrivere gli originali?",
+    "disableMinSuffixWarningBody": "Senza il suffisso .min, i file ottimizzati possono sovrascrivere file esistenti con lo stesso nome.",
+    "disableMinSuffixWarningConfirm": "Disattiva suffisso",
     "dontAskAgain": "Non chiedere più"
   }
 }

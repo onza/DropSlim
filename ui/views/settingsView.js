@@ -4,6 +4,7 @@ import {
   onLocaleChange,
   t,
 } from '../i18n/index.js'
+import { confirmDisableMinSuffixWarning } from '../confirmDialog.js'
 import { cutFolderName } from '../utils/pathDisplay.js'
 
 const parseDimensionPx = (raw) => {
@@ -179,14 +180,28 @@ export const initSettingsView = ({ api, i18n }) => {
 
   Array.from(switches).forEach((switchEl) => {
     switchEl.onchange = (event) => {
-      settings.setSync(event.target.name, event.target.checked)
+      const { name, checked } = event.target
 
-      if (event.target.name === 'folderswitch' && wrapperSavePath) {
-        wrapperSavePath.classList.toggle('is-hidden', event.target.checked)
+      if (name === 'suffix' && !checked) {
+        event.target.checked = true
+        void confirmDisableMinSuffixWarning().then(({ proceed }) => {
+          if (!proceed) {
+            return
+          }
+          event.target.checked = false
+          settings.setSync('suffix', false)
+        })
+        return
       }
 
-      if (event.target.name === 'limit_dimensions') {
-        syncDimensionLimitsVisibility(event.target.checked)
+      settings.setSync(name, checked)
+
+      if (name === 'folderswitch' && wrapperSavePath) {
+        wrapperSavePath.classList.toggle('is-hidden', checked)
+      }
+
+      if (name === 'limit_dimensions') {
+        syncDimensionLimitsVisibility(checked)
       }
     }
   })

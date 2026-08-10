@@ -106,6 +106,9 @@
     "overwriteDimensionWarningTitle": "Originale überschreiben?",
     "overwriteDimensionWarningBody": "Max. Breite/Höhe ist aktiv, und die Dateien werden ohne .min-Suffix im selben Ordner gespeichert. Originale werden überschrieben.",
     "overwriteDimensionWarningConfirm": "Trotzdem fortfahren",
+    "disableMinSuffixWarningTitle": "Originale überschreiben?",
+    "disableMinSuffixWarningBody": "Ohne .min-Suffix können optimierte Dateien bestehende Dateien mit demselben Namen überschreiben.",
+    "disableMinSuffixWarningConfirm": "Suffix ausschalten",
     "dontAskAgain": "Nicht mehr fragen"
   }
 }

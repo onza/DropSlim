@@ -106,6 +106,9 @@
     "overwriteDimensionWarningTitle": "Substituir originais?",
     "overwriteDimensionWarningBody": "A largura/altura máx. está ativa e os arquivos serão salvos na mesma pasta sem o sufixo .min. Os originais serão substituídos.",
     "overwriteDimensionWarningConfirm": "Continuar mesmo assim",
+    "disableMinSuffixWarningTitle": "Substituir originais?",
+    "disableMinSuffixWarningBody": "Sem o sufixo .min, os arquivos otimizados podem substituir arquivos existentes com o mesmo nome.",
+    "disableMinSuffixWarningConfirm": "Desativar sufixo",
     "dontAskAgain": "Não perguntar novamente"
   }
 }

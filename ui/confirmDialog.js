@@ -4,11 +4,13 @@ let openResolver = null
 
 const getElements = () => {
   const root = document.getElementById('confirmDialog')
+  const dontAsk = document.getElementById('confirmDialogDontAsk')
   return {
     root,
     title: document.getElementById('confirmDialogTitle'),
     body: document.getElementById('confirmDialogBody'),
-    dontAsk: document.getElementById('confirmDialogDontAsk'),
+    dontAsk,
+    dontAskRow: dontAsk?.closest('label') ?? null,
     dontAskLabel: document.getElementById('confirmDialogDontAskLabel'),
     cancel: document.getElementById('confirmDialogCancel'),
     confirm: document.getElementById('confirmDialogConfirm'),
@@ -43,18 +45,31 @@ const onKeyDown = (event) => {
   closeDialog(false)
 }
 
-export const confirmOverwriteDimensionWarning = () => {
+export const showConfirmDialog = ({
+  title,
+  body,
+  confirmLabel,
+  cancelLabel,
+  dontAskAgainLabel,
+  showDontAskAgain = true,
+}) => {
   const elements = getElements()
   if (!elements.root || openResolver) {
     return Promise.resolve({ proceed: true, dontAskAgain: false })
   }
 
-  elements.title.textContent = t('dialog.overwriteDimensionWarningTitle')
-  elements.body.textContent = t('dialog.overwriteDimensionWarningBody')
-  elements.dontAskLabel.textContent = t('dialog.dontAskAgain')
-  elements.cancel.textContent = t('footer.cancel')
-  elements.confirm.textContent = t('dialog.overwriteDimensionWarningConfirm')
+  elements.title.textContent = title
+  elements.body.textContent = body
+  elements.cancel.textContent = cancelLabel
+  elements.confirm.textContent = confirmLabel
   elements.dontAsk.checked = false
+
+  if (showDontAskAgain) {
+    elements.dontAskLabel.textContent = dontAskAgainLabel
+    elements.dontAskRow?.classList.remove('is-hidden')
+  } else {
+    elements.dontAskRow?.classList.add('is-hidden')
+  }
 
   elements.root.classList.remove('is-hidden')
   elements.root.setAttribute('aria-hidden', 'false')
@@ -68,3 +83,21 @@ export const confirmOverwriteDimensionWarning = () => {
     openResolver = resolve
   })
 }
+
+export const confirmOverwriteDimensionWarning = () =>
+  showConfirmDialog({
+    title: t('dialog.overwriteDimensionWarningTitle'),
+    body: t('dialog.overwriteDimensionWarningBody'),
+    confirmLabel: t('dialog.overwriteDimensionWarningConfirm'),
+    cancelLabel: t('footer.cancel'),
+    dontAskAgainLabel: t('dialog.dontAskAgain'),
+  })
+
+export const confirmDisableMinSuffixWarning = () =>
+  showConfirmDialog({
+    title: t('dialog.disableMinSuffixWarningTitle'),
+    body: t('dialog.disableMinSuffixWarningBody'),
+    confirmLabel: t('dialog.disableMinSuffixWarningConfirm'),
+    cancelLabel: t('footer.cancel'),
+    showDontAskAgain: false,
+  })

@@ -106,6 +106,9 @@
     "overwriteDimensionWarningTitle": "オリジナルを上書きしますか？",
     "overwriteDimensionWarningBody": "最大幅/高さが有効で、ファイルは .min サフィックスなしで同じフォルダに保存されます。オリジナルが上書きされます。",
     "overwriteDimensionWarningConfirm": "続行する",
+    "disableMinSuffixWarningTitle": "オリジナルを上書きしますか？",
+    "disableMinSuffixWarningBody": ".min サフィックスなしでは、最適化したファイルが同じ名前の既存ファイルを上書きすることがあります。",
+    "disableMinSuffixWarningConfirm": "サフィックスをオフにする",
     "dontAskAgain": "今後表示しない"
   }
 }

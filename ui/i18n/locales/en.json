@@ -106,6 +106,9 @@
     "overwriteDimensionWarningTitle": "Overwrite originals?",
     "overwriteDimensionWarningBody": "Max. width/height is on, and files will be saved in the same folder without a .min suffix. Originals will be overwritten.",
     "overwriteDimensionWarningConfirm": "Continue anyway",
+    "disableMinSuffixWarningTitle": "Overwrite originals?",
+    "disableMinSuffixWarningBody": "Without the .min suffix, optimized files can overwrite existing files with the same name.",
+    "disableMinSuffixWarningConfirm": "Turn off suffix",
     "dontAskAgain": "Don't ask again"
   }
 }
