@@ -2,7 +2,7 @@ use std::fs;
 use std::io::Cursor;
 use std::path::{Path, PathBuf};
 
-use dropslim_lib::optimize::{optimize_image_file, ErrorPayload};
+use dropslim_lib::optimize::{optimize_image_file, ErrorPayload, OutputFormatSetting};
 use image::codecs::gif::{GifDecoder, GifEncoder};
 use image::{AnimationDecoder, Delay, Frame, GenericImageView, ImageBuffer, Rgba};
 use tempfile::TempDir;
@@ -20,7 +20,14 @@ fn optimize_to_temp(input: &Path, ext: &str) -> (TempDir, PathBuf) {
     let output = dir.path().join(format!("output.min{ext}"));
     let input_size = fs::metadata(input).expect("input metadata").len();
 
-    optimize_image_file(input, &output, &project_root(), None).expect("optimize");
+    optimize_image_file(
+        input,
+        &output,
+        &project_root(),
+        None,
+        OutputFormatSetting::Original,
+    )
+    .expect("optimize");
 
     let output_size = fs::metadata(&output).expect("output metadata").len();
     assert!(output_size > 0);
@@ -106,8 +113,14 @@ fn rejects_animated_png() {
     let output = dir.path().join("output.min.png");
     fs::write(&input, apng_fixture_bytes()).expect("write apng");
 
-    let error =
-        optimize_image_file(&input, &output, &project_root(), None).expect_err("animated png");
+    let error = optimize_image_file(
+        &input,
+        &output,
+        &project_root(),
+        None,
+        OutputFormatSetting::Original,
+    )
+    .expect_err("animated png");
     assert_eq!(error, ErrorPayload::animated_not_supported());
 }
 
@@ -209,7 +222,14 @@ fn optimizes_animated_gif_preserving_frames() {
         "fixture should be an animated gif"
     );
 
-    optimize_image_file(&input, &output, &project_root(), None).expect("optimize animated gif");
+    optimize_image_file(
+        &input,
+        &output,
+        &project_root(),
+        None,
+        OutputFormatSetting::Original,
+    )
+    .expect("optimize animated gif");
 
     assert!(
         gif_frame_count(&output) >= 2,
@@ -233,6 +253,7 @@ fn resizes_jpeg_to_max_dimensions() {
         &output,
         &project_root(),
         Some((Some(200), Some(200))),
+        OutputFormatSetting::Original,
     )
     .expect("optimize");
 
@@ -255,8 +276,14 @@ fn ignores_dimension_limits_for_gif() {
     });
     let output = dir.path().join("sample.min.gif");
 
-    optimize_image_file(&input, &output, &project_root(), Some((Some(40), Some(40))))
-        .expect("optimize gif");
+    optimize_image_file(
+        &input,
+        &output,
+        &project_root(),
+        Some((Some(40), Some(40))),
+        OutputFormatSetting::Original,
+    )
+    .expect("optimize gif");
 
     let optimized = image::open(&output).expect("open output");
     assert_eq!(optimized.dimensions(), (120, 80));
@@ -270,7 +297,62 @@ fn optimizes_png_in_place() {
         img.save(path).expect("save png");
     });
     let input_size = fs::metadata(&input).expect("metadata").len();
-    optimize_image_file(&input, &input, &project_root(), None).expect("in-place");
+    optimize_image_file(
+        &input,
+        &input,
+        &project_root(),
+        None,
+        OutputFormatSetting::Original,
+    )
+    .expect("in-place");
     let output_size = fs::metadata(&input).expect("metadata").len();
     assert!(output_size < input_size);
+}
+
+#[test]
+fn converts_png_to_jpeg() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let input = create_raster_fixture(&dir, "sample.png", |path| {
+        let img = image::RgbaImage::from_pixel(160, 120, image::Rgba([37, 99, 235, 255]));
+        img.save(path).expect("save png");
+    });
+    let output = dir.path().join("sample.min.jpg");
+
+    optimize_image_file(
+        &input,
+        &output,
+        &project_root(),
+        None,
+        OutputFormatSetting::Jpeg,
+    )
+    .expect("convert");
+
+    let data = fs::read(&output).expect("read output");
+    assert_eq!(&data[..2], b"\xff\xd8");
+    let optimized = image::open(&output).expect("open output");
+    assert_eq!(optimized.dimensions(), (160, 120));
+}
+
+#[test]
+fn converts_jpeg_to_webp() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let input = create_raster_fixture(&dir, "sample.jpg", |path| {
+        let img = image::RgbImage::from_pixel(120, 80, image::Rgb([220, 120, 40]));
+        img.save(path).expect("save jpg");
+    });
+    let output = dir.path().join("sample.min.webp");
+
+    optimize_image_file(
+        &input,
+        &output,
+        &project_root(),
+        None,
+        OutputFormatSetting::Webp,
+    )
+    .expect("convert");
+
+    let data = fs::read(&output).expect("read output");
+    assert_eq!(&data[..4], b"RIFF");
+    let optimized = image::open(&output).expect("open output");
+    assert_eq!(optimized.dimensions(), (120, 80));
 }
