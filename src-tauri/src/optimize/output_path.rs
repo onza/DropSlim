@@ -92,10 +92,12 @@ pub fn build_output_path(input: &Path, settings: &UserSettings) -> std::io::Resu
         .file_stem()
         .and_then(|value| value.to_str())
         .unwrap_or("output");
-    let extension = input
-        .extension()
-        .and_then(|value| value.to_str())
-        .unwrap_or("");
+    let extension = settings.output_format.extension().unwrap_or_else(|| {
+        input
+            .extension()
+            .and_then(|value| value.to_str())
+            .unwrap_or("")
+    });
 
     let file_name = if settings.suffix {
         if extension.is_empty() {
@@ -272,5 +274,53 @@ mod tests {
         .expect("settings with output format");
 
         assert_eq!(settings.output_format, OutputFormatSetting::Webp);
+    }
+
+    #[test]
+    fn uses_target_extension_when_converting() {
+        let dir = tempdir().unwrap();
+        let input = dir.path().join("photo.heic");
+        fs::write(&input, b"x").unwrap();
+
+        let output = build_output_path(
+            &input,
+            &UserSettings {
+                output_format: OutputFormatSetting::Jpeg,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+        assert_eq!(output, dir.path().join("photo.min.jpg"));
+    }
+
+    #[test]
+    fn converts_extension_without_suffix() {
+        let dir = tempdir().unwrap();
+        let input = dir.path().join("photo.png");
+        fs::write(&input, b"x").unwrap();
+
+        let output = build_output_path(
+            &input,
+            &UserSettings {
+                suffix: false,
+                output_format: OutputFormatSetting::Webp,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+        assert_eq!(output, dir.path().join("photo.webp"));
+    }
+
+    #[test]
+    fn keeps_source_extension_for_original_format() {
+        let dir = tempdir().unwrap();
+        let input = dir.path().join("photo.JPEG");
+        fs::write(&input, b"x").unwrap();
+
+        let output = build_output_path(&input, &UserSettings::default()).unwrap();
+
+        assert_eq!(output, dir.path().join("photo.min.JPEG"));
     }
 }
