@@ -356,3 +356,55 @@ fn converts_jpeg_to_webp() {
     let optimized = image::open(&output).expect("open output");
     assert_eq!(optimized.dimensions(), (120, 80));
 }
+
+#[cfg(target_os = "macos")]
+#[test]
+fn converts_heic_to_jpeg() {
+    let input = fixtures_dir().join("sample.heic");
+    assert!(
+        input.is_file(),
+        "missing test/fixtures/sample.heic — run: cargo run --example write_heic_fixture"
+    );
+
+    let dir = tempfile::tempdir().expect("tempdir");
+    let output = dir.path().join("sample.min.jpg");
+
+    optimize_image_file(
+        &input,
+        &output,
+        &project_root(),
+        None,
+        OutputFormatSetting::Jpeg,
+    )
+    .expect("convert heic");
+
+    let data = fs::read(&output).expect("read output");
+    assert_eq!(&data[..2], b"\xff\xd8");
+    let optimized = image::open(&output).expect("open output");
+    assert_eq!(optimized.dimensions(), (512, 384));
+}
+
+#[cfg(target_os = "macos")]
+#[test]
+fn converts_heic_to_jpeg_with_dimension_limits() {
+    let input = fixtures_dir().join("sample.heic");
+    assert!(
+        input.is_file(),
+        "missing test/fixtures/sample.heic — run: cargo run --example write_heic_fixture"
+    );
+
+    let dir = tempfile::tempdir().expect("tempdir");
+    let output = dir.path().join("sample.min.jpg");
+
+    optimize_image_file(
+        &input,
+        &output,
+        &project_root(),
+        Some((Some(256), None)),
+        OutputFormatSetting::Jpeg,
+    )
+    .expect("convert heic with limits");
+
+    let optimized = image::open(&output).expect("open output");
+    assert_eq!(optimized.dimensions(), (256, 192));
+}

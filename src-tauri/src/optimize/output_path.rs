@@ -98,8 +98,7 @@ pub fn build_output_path(input: &Path, settings: &UserSettings) -> std::io::Resu
         .unwrap_or("");
     let source_format = ImageFormat::from_path(input);
     let target_format = settings.output_format.target_format();
-    let is_real_convert =
-        target_format.is_some() && target_format != source_format;
+    let is_real_convert = target_format.is_some() && target_format != source_format;
     let extension = if is_real_convert {
         settings.output_format.extension().unwrap_or(source_ext)
     } else {

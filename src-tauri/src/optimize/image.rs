@@ -15,7 +15,7 @@ use zenjpeg::encoder::{ChromaSubsampling, EncoderConfig, PixelLayout, Unstoppabl
 
 use super::animation::ensure_not_animated;
 use super::formats::{ImageFormat, OutputFormatSetting};
-use super::heic::optimize_heic;
+use super::heic::{decode_heic, optimize_heic};
 use super::payloads::ErrorPayload;
 use super::temp_paths::TempFile;
 use super::tools::gifsicle_path;
@@ -337,7 +337,11 @@ fn encode_avif_image(img: DynamicImage, output: &Path) -> Result<(), String> {
 fn supports_raster_convert(format: ImageFormat) -> bool {
     matches!(
         format,
-        ImageFormat::Jpeg | ImageFormat::Png | ImageFormat::Webp | ImageFormat::Avif
+        ImageFormat::Jpeg
+            | ImageFormat::Png
+            | ImageFormat::Webp
+            | ImageFormat::Avif
+            | ImageFormat::Heic
     )
 }
 
@@ -351,6 +355,22 @@ fn effective_encode_format(
     }
 }
 
+fn encode_converted_image(
+    img: DynamicImage,
+    output: &Path,
+    target: ImageFormat,
+) -> Result<(), String> {
+    match target {
+        ImageFormat::Jpeg => encode_jpeg_image(img, output),
+        ImageFormat::Png => optimize_png_from_image(img, output),
+        ImageFormat::Webp => encode_webp_image(img, output),
+        ImageFormat::Avif => encode_avif_image(img, output),
+        ImageFormat::Svg | ImageFormat::Gif | ImageFormat::Heic => {
+            Err(format!("unsupported convert target: {target:?}"))
+        }
+    }
+}
+
 fn convert_raster(
     input: &Path,
     output: &Path,
@@ -361,16 +381,17 @@ fn convert_raster(
         image::open(input).map_err(|error| error.to_string())?,
         limits,
     );
+    encode_converted_image(img, output, target)
+}
 
-    match target {
-        ImageFormat::Jpeg => encode_jpeg_image(img, output),
-        ImageFormat::Png => optimize_png_from_image(img, output),
-        ImageFormat::Webp => encode_webp_image(img, output),
-        ImageFormat::Avif => encode_avif_image(img, output),
-        ImageFormat::Svg | ImageFormat::Gif | ImageFormat::Heic => {
-            Err(format!("unsupported convert target: {target:?}"))
-        }
-    }
+fn convert_heic(
+    input: &Path,
+    output: &Path,
+    target: ImageFormat,
+    limits: Option<DimensionLimits>,
+) -> Result<(), ErrorPayload> {
+    let img = apply_dimension_limits(decode_heic(input)?, limits);
+    encode_converted_image(img, output, target).map_err(io_error)
 }
 
 pub fn optimize_image_file(
@@ -393,13 +414,18 @@ pub fn optimize_image_file(
     let encode_format = effective_encode_format(input_format, output_format);
     let gifsicle = gifsicle_path(project_root);
     let raster_limits = match input_format {
-        ImageFormat::Gif | ImageFormat::Svg | ImageFormat::Heic => None,
+        ImageFormat::Gif | ImageFormat::Svg => None,
+        ImageFormat::Heic if encode_format == ImageFormat::Heic => None,
         _ => dimension_limits,
     };
 
     if encode_format != input_format {
         return with_safe_source(input, output, |source, destination| {
-            convert_raster(source, destination, encode_format, raster_limits).map_err(io_error)
+            if input_format == ImageFormat::Heic {
+                convert_heic(source, destination, encode_format, raster_limits)
+            } else {
+                convert_raster(source, destination, encode_format, raster_limits).map_err(io_error)
+            }
         });
     }
 
@@ -547,7 +573,7 @@ mod tests {
     }
 
     #[test]
-    fn keeps_gif_svg_heic_when_convert_requested() {
+    fn keeps_gif_svg_when_convert_requested() {
         assert_eq!(
             effective_encode_format(ImageFormat::Gif, OutputFormatSetting::Jpeg),
             ImageFormat::Gif
@@ -556,8 +582,16 @@ mod tests {
             effective_encode_format(ImageFormat::Svg, OutputFormatSetting::Png),
             ImageFormat::Svg
         );
+    }
+
+    #[test]
+    fn converts_heic_when_target_requested() {
         assert_eq!(
             effective_encode_format(ImageFormat::Heic, OutputFormatSetting::Jpeg),
+            ImageFormat::Jpeg
+        );
+        assert_eq!(
+            effective_encode_format(ImageFormat::Heic, OutputFormatSetting::Original),
             ImageFormat::Heic
         );
     }

@@ -42,7 +42,7 @@ window-vibrancy = "0.6"
 objc2 = "0.6"
 objc2-foundation = { version = "0.3", features = ["NSArray", "NSString", "NSURL"] }
 objc2-app-kit = { version = "0.3", features = ["NSApplication", "NSImage", "NSOpenPanel", "NSPanel"] }
-objc2-core-foundation = { version = "0.3", features = ["CFDictionary", "CFNumber", "CFString", "CFURL"] }
+objc2-core-foundation = { version = "0.3", features = ["CFData", "CFDictionary", "CFNumber", "CFString", "CFURL"] }
 objc2-image-io = "0.3"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
