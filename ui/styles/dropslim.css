@@ -371,8 +371,18 @@ button {
   text-align: center;
 }
 
-.setting-row--locale {
+.setting-row--locale,
+.setting-row--output-format {
   align-items: center;
+}
+
+.output-format-hint {
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 0.65rem;
+  line-height: 1.35;
+  margin: 0;
+  padding: 0 0 0.75rem;
 }
 
 .locale-picker {
@@ -455,6 +465,12 @@ button {
   gap: 0.75rem;
   grid-template-columns: 1fr auto;
   padding: 0.5rem 0;
+}
+
+.setting-row:has(+ .save-path:not(.is-hidden)),
+.setting-row:has(+ .dimension-limits:not(.is-hidden)),
+.setting-row:has(+ .output-format-hint:not(.is-hidden)) {
+  border-bottom: none;
 }
 
 .setting-label {

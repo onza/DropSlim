@@ -7,6 +7,19 @@ import {
 import { confirmDisableMinSuffixWarning } from '../confirmDialog.js'
 import { cutFolderName } from '../utils/pathDisplay.js'
 
+const OUTPUT_FORMAT_OPTIONS = [
+  { value: 'original', labelKey: 'settings.outputFormatOriginal' },
+  { value: 'jpeg', labelKey: 'settings.outputFormatJpeg' },
+  { value: 'png', labelKey: 'settings.outputFormatPng' },
+  { value: 'webp', labelKey: 'settings.outputFormatWebp' },
+  { value: 'avif', labelKey: 'settings.outputFormatAvif' },
+]
+
+const normalizeOutputFormat = (value) =>
+  OUTPUT_FORMAT_OPTIONS.some((option) => option.value === value)
+    ? value
+    : 'original'
+
 const parseDimensionPx = (raw) => {
   const trimmed = String(raw ?? '').trim()
   if (!trimmed) {
@@ -38,6 +51,8 @@ export const initSettingsView = ({ api, i18n }) => {
   )
   const maxWidth = document.getElementById('max_width')
   const maxHeight = document.getElementById('max_height')
+  const outputFormatSelect = document.getElementById('outputFormatSelect')
+  const outputFormatValue = document.getElementById('outputFormatValue')
   const autoCheckUpdates = document.getElementById('autoCheckUpdates')
   const autoInstallUpdates = document.getElementById('autoInstallUpdates')
   const btnCheckUpdates = document.getElementById('btnCheckUpdates')
@@ -62,6 +77,16 @@ export const initSettingsView = ({ api, i18n }) => {
     localeValue.textContent = selected?.textContent ?? ''
   }
 
+  const updateOutputFormatDisplay = () => {
+    if (!outputFormatSelect || !outputFormatValue) {
+      return
+    }
+
+    const selected =
+      outputFormatSelect.options[outputFormatSelect.selectedIndex]
+    outputFormatValue.textContent = selected?.textContent ?? ''
+  }
+
   const populateLocaleSelect = () => {
     if (!localeSelect) {
       return
@@ -81,16 +106,46 @@ export const initSettingsView = ({ api, i18n }) => {
     updateLocaleDisplay()
   }
 
+  const populateOutputFormatSelect = () => {
+    if (!outputFormatSelect) {
+      return
+    }
+
+    const current = normalizeOutputFormat(settings.getSync().output_format)
+    outputFormatSelect.innerHTML = ''
+
+    OUTPUT_FORMAT_OPTIONS.forEach(({ value, labelKey }) => {
+      const option = document.createElement('option')
+      option.value = value
+      option.textContent = t(labelKey)
+      option.selected = value === current
+      outputFormatSelect.appendChild(option)
+    })
+
+    updateOutputFormatDisplay()
+  }
+
   populateLocaleSelect()
+  populateOutputFormatSelect()
 
   onLocaleChange(() => {
     populateLocaleSelect()
+    populateOutputFormatSelect()
   })
 
   if (localeSelect) {
     localeSelect.onchange = async (event) => {
       updateLocaleDisplay()
       await i18n.setPreference(event.target.value)
+    }
+  }
+
+  if (outputFormatSelect) {
+    outputFormatSelect.onchange = (event) => {
+      const value = normalizeOutputFormat(event.target.value)
+      event.target.value = value
+      updateOutputFormatDisplay()
+      settings.setSync('output_format', value)
     }
   }
 
@@ -135,6 +190,7 @@ export const initSettingsView = ({ api, i18n }) => {
     menuSettings?.classList.add('is--open')
     wrapper?.classList.add('is--settings-open')
     populateLocaleSelect()
+    populateOutputFormatSelect()
     api.reapplyUpdateStatus()
     syncUpdateAction(api.getPendingUpdateVersion())
   }
