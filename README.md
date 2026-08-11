@@ -3,13 +3,13 @@
   <img src="assets/dropslim_logo-dark.svg#gh-dark-mode-only" alt="DropSlim" width="200">
 </p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) [![CI](https://github.com/onza/DropSlim/actions/workflows/ci.yml/badge.svg)](https://github.com/onza/DropSlim/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) [![CI](https://github.com/onza/DropSlim/actions/workflows/ci.yml/badge.svg)](https://github.com/onza/DropSlim/actions/workflows/ci.yml) [![Latest Release](https://img.shields.io/github/v/release/onza/DropSlim)](https://github.com/onza/DropSlim/releases/latest) [![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey)](https://github.com/onza/DropSlim/releases/latest) [![Website](https://img.shields.io/badge/website-dropslim.app-0A7CFF)](https://dropslim.app/)
 
 <br>
 
-# Compress images locally with drag and drop
+# Compress and convert images locally with drag and drop
 
-Make large image files **small** — on your computer, with drag & drop. Local, fast, private, free, and open source.
+Make large image files **small** — on your computer, with drag & drop. Optionally convert formats or set a max width/height. Local, fast, private, free, and open source.
 
 Drop your images. DropSlim crunches the numbers. Done. Everything stays on your machine — no account, no server.
 
@@ -23,11 +23,12 @@ Drop your images. DropSlim crunches the numbers. Done. Everything stays on your 
 - **Privacy** — no upload, no tracking; your images never leave your machine
 - **Batch processing** — hundreds of files in one go; new file alongside the original, or replace in place
 - **Optional max width / height** — set pixel limits in settings; shrink oversized JPEG, PNG, WebP, and AVIF while keeping aspect ratio
+- **Optional output format** — convert JPEG, PNG, WebP, and AVIF in settings, or keep the original; HEIC converts on macOS; GIF and SVG stay as they are
 - **Common formats** — PNG, JPEG, GIF, SVG, WebP, and AVIF. **HEIC on macOS only**
 - **Open with DropSlim** (macOS) — right-click an image in Finder → **Open With** → DropSlim
 - **Review results** in a simple list and reveal outputs in Finder or File Explorer
-- **Open source** — [MIT](LICENSE.md)
 - **Languages** — English, German, French, Spanish, Italian, Japanese, Brazilian Portuguese
+- **Open source** — [MIT](LICENSE.md)
 
 ### Where the optimized file is saved depends on your settings
 
