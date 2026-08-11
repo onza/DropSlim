@@ -23,6 +23,7 @@ const SETTINGS_DEFAULTS = {
   autoCheckUpdates: true,
   autoInstallUpdates: false,
   skipOverwriteDimensionWarning: false,
+  skipConvertWarning: false,
   locale: 'system',
 }
 

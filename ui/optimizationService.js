@@ -1,10 +1,21 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWindow } from '@tauri-apps/api/window'
-import { confirmOverwriteDimensionWarning } from './confirmDialog.js'
+import {
+  confirmConvertOutputFormatWarning,
+  confirmOverwriteDimensionWarning,
+} from './confirmDialog.js'
 import { t } from './i18n/index.js'
 import { formatBackendError } from './i18n/backend.js'
+import { shouldWarnConvertOutputFormat } from './utils/convertWarning.js'
 import { shouldWarnOverwriteWithDimensionLimits } from './utils/overwriteWarning.js'
+
+const OUTPUT_FORMAT_LABEL_KEYS = {
+  jpeg: 'settings.outputFormatJpeg',
+  png: 'settings.outputFormatPng',
+  webp: 'settings.outputFormatWebp',
+  avif: 'settings.outputFormatAvif',
+}
 
 export const createOptimizationService = ({
   settings,
@@ -35,13 +46,31 @@ export const createOptimizationService = ({
       return false
     }
 
-    if (shouldWarnOverwriteWithDimensionLimits(settings.getSync())) {
+    const currentSettings = settings.getSync()
+
+    if (shouldWarnOverwriteWithDimensionLimits(currentSettings)) {
       const { proceed, dontAskAgain } = await confirmOverwriteDimensionWarning()
       if (!proceed) {
         return false
       }
       if (dontAskAgain) {
         settings.setSync('skipOverwriteDimensionWarning', true)
+      }
+    }
+
+    if (shouldWarnConvertOutputFormat(settings.getSync())) {
+      const outputFormat = settings.getSync().output_format
+      const formatLabel = t(
+        OUTPUT_FORMAT_LABEL_KEYS[outputFormat] ??
+          'settings.outputFormatOriginal'
+      )
+      const { proceed, dontAskAgain } =
+        await confirmConvertOutputFormatWarning(formatLabel)
+      if (!proceed) {
+        return false
+      }
+      if (dontAskAgain) {
+        settings.setSync('skipConvertWarning', true)
       }
     }
 
