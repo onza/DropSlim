@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
-use super::formats::OutputFormatSetting;
+use super::formats::{ImageFormat, OutputFormatSetting};
 
 #[derive(Debug, Clone, Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -92,12 +92,19 @@ pub fn build_output_path(input: &Path, settings: &UserSettings) -> std::io::Resu
         .file_stem()
         .and_then(|value| value.to_str())
         .unwrap_or("output");
-    let extension = settings.output_format.extension().unwrap_or_else(|| {
-        input
-            .extension()
-            .and_then(|value| value.to_str())
-            .unwrap_or("")
-    });
+    let source_ext = input
+        .extension()
+        .and_then(|value| value.to_str())
+        .unwrap_or("");
+    let source_format = ImageFormat::from_path(input);
+    let target_format = settings.output_format.target_format();
+    let is_real_convert =
+        target_format.is_some() && target_format != source_format;
+    let extension = if is_real_convert {
+        settings.output_format.extension().unwrap_or(source_ext)
+    } else {
+        source_ext
+    };
 
     let file_name = if settings.suffix {
         if extension.is_empty() {
@@ -322,5 +329,23 @@ mod tests {
         let output = build_output_path(&input, &UserSettings::default()).unwrap();
 
         assert_eq!(output, dir.path().join("photo.min.JPEG"));
+    }
+
+    #[test]
+    fn keeps_jpeg_extension_when_target_is_also_jpeg() {
+        let dir = tempdir().unwrap();
+        let input = dir.path().join("photo.jpeg");
+        fs::write(&input, b"x").unwrap();
+
+        let output = build_output_path(
+            &input,
+            &UserSettings {
+                output_format: OutputFormatSetting::Jpeg,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+        assert_eq!(output, dir.path().join("photo.min.jpeg"));
     }
 }

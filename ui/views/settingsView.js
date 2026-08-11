@@ -6,19 +6,10 @@ import {
 } from '../i18n/index.js'
 import { confirmDisableMinSuffixWarning } from '../confirmDialog.js'
 import { cutFolderName } from '../utils/pathDisplay.js'
-
-const OUTPUT_FORMAT_OPTIONS = [
-  { value: 'original', labelKey: 'settings.outputFormatOriginal' },
-  { value: 'jpeg', labelKey: 'settings.outputFormatJpeg' },
-  { value: 'png', labelKey: 'settings.outputFormatPng' },
-  { value: 'webp', labelKey: 'settings.outputFormatWebp' },
-  { value: 'avif', labelKey: 'settings.outputFormatAvif' },
-]
-
-const normalizeOutputFormat = (value) =>
-  OUTPUT_FORMAT_OPTIONS.some((option) => option.value === value)
-    ? value
-    : 'original'
+import {
+  normalizeOutputFormat,
+  OUTPUT_FORMAT_OPTIONS,
+} from '../utils/outputFormat.js'
 
 const parseDimensionPx = (raw) => {
   const trimmed = String(raw ?? '').trim()
@@ -146,6 +137,7 @@ export const initSettingsView = ({ api, i18n }) => {
       event.target.value = value
       updateOutputFormatDisplay()
       settings.setSync('output_format', value)
+      api.syncOutputFormatStatus()
     }
   }
 

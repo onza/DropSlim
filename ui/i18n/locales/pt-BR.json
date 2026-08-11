@@ -3,7 +3,8 @@
     "title": "DropSlim"
   },
   "dragzone": {
-    "title": "Solte imagens ou pastas aqui"
+    "title": "Solte imagens ou pastas aqui",
+    "outputFormat": "Saída: {{format}}"
   },
   "footer": {
     "settings": "Configurações",

@@ -178,7 +178,8 @@ button {
 
 #dragzone h1,
 #dragzone strong,
-.dragzone-status {
+.dragzone-status,
+.dragzone-output-format {
   text-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
 }
 
@@ -205,6 +206,20 @@ button {
 }
 
 .dragzone-status[hidden] {
+  display: none;
+}
+
+.dragzone-output-format {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  font-style: italic;
+  font-weight: 400;
+  margin: 0.35rem 0 0;
+  position: relative;
+  z-index: 2;
+}
+
+.dragzone-output-format[hidden] {
   display: none;
 }
 

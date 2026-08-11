@@ -8,14 +8,8 @@ import {
 import { t } from './i18n/index.js'
 import { formatBackendError } from './i18n/backend.js'
 import { shouldWarnConvertOutputFormat } from './utils/convertWarning.js'
+import { getOutputFormatLabelKey } from './utils/outputFormat.js'
 import { shouldWarnOverwriteWithDimensionLimits } from './utils/overwriteWarning.js'
-
-const OUTPUT_FORMAT_LABEL_KEYS = {
-  jpeg: 'settings.outputFormatJpeg',
-  png: 'settings.outputFormatPng',
-  webp: 'settings.outputFormatWebp',
-  avif: 'settings.outputFormatAvif',
-}
 
 export const createOptimizationService = ({
   settings,
@@ -60,10 +54,7 @@ export const createOptimizationService = ({
 
     if (shouldWarnConvertOutputFormat(settings.getSync())) {
       const outputFormat = settings.getSync().output_format
-      const formatLabel = t(
-        OUTPUT_FORMAT_LABEL_KEYS[outputFormat] ??
-          'settings.outputFormatOriginal'
-      )
+      const formatLabel = t(getOutputFormatLabelKey(outputFormat))
       const { proceed, dontAskAgain } =
         await confirmConvertOutputFormatWarning(formatLabel)
       if (!proceed) {

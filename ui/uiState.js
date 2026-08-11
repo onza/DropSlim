@@ -1,12 +1,40 @@
 import { t } from './i18n/index.js'
+import { isConvertOutputFormatActive } from './utils/convertWarning.js'
+import {
+  getOutputFormatLabelKey,
+  normalizeOutputFormat,
+} from './utils/outputFormat.js'
 
 export const createUiState = () => {
   let appVersionNumber = ''
 
   const dragzone = () => document.getElementById('dragzone')
   const dragzoneStatus = () => document.getElementById('dragzoneStatus')
+  const dragzoneOutputFormat = () =>
+    document.getElementById('dragzoneOutputFormat')
   const updateStatusEl = () => document.getElementById('updateStatus')
   const appVersionEl = () => document.getElementById('appVersion')
+
+  const syncOutputFormatStatus = (settings = {}) => {
+    const outputFormatEl = dragzoneOutputFormat()
+
+    if (!outputFormatEl) {
+      return
+    }
+
+    const outputFormat = normalizeOutputFormat(settings.output_format)
+
+    if (!isConvertOutputFormatActive({ output_format: outputFormat })) {
+      outputFormatEl.textContent = ''
+      outputFormatEl.hidden = true
+      return
+    }
+
+    outputFormatEl.textContent = t('dragzone.outputFormat', {
+      format: t(getOutputFormatLabelKey(outputFormat)),
+    })
+    outputFormatEl.hidden = false
+  }
 
   const setDragzoneStatus = (message) => {
     const status = dragzoneStatus()
@@ -67,6 +95,7 @@ export const createUiState = () => {
     setDragzoneStatus,
     setAppVersion,
     renderAppVersion,
+    syncOutputFormatStatus,
     setProcessing,
     endProcessing: () => setProcessing(false),
     updateStatusEl,

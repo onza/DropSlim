@@ -3,7 +3,8 @@
     "title": "DropSlim"
   },
   "dragzone": {
-    "title": "画像やフォルダをここにドロップ"
+    "title": "画像やフォルダをここにドロップ",
+    "outputFormat": "出力: {{format}}"
   },
   "footer": {
     "settings": "設定",

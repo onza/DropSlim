@@ -31,6 +31,7 @@ export const initApi = async () => {
 
   optimization.setupDropHandling(ui.dragzone())
   await optimization.bindStartupPaths()
+  ui.syncOutputFormatStatus(settings.getSync())
 
   const updateStatus = createStatusSink(ui.updateStatusEl())
 
@@ -58,6 +59,7 @@ export const createDropslimApi = ({
     reapplyUpdateStatus: updateStatus.reapply,
     setAppVersion: ui.setAppVersion,
     renderAppVersion: ui.renderAppVersion,
+    syncOutputFormatStatus: () => ui.syncOutputFormatStatus(settings.getSync()),
     setProcessing: ui.setProcessing,
     endProcessing: ui.endProcessing,
     pickAndOptimize: optimization.pickAndOptimize,

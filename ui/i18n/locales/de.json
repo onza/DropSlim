@@ -3,7 +3,8 @@
     "title": "DropSlim"
   },
   "dragzone": {
-    "title": "Bilder oder Ordner hier ablegen"
+    "title": "Bilder oder Ordner hier ablegen",
+    "outputFormat": "Ausgabe: {{format}}"
   },
   "footer": {
     "settings": "Einstellungen",

@@ -3,7 +3,8 @@
     "title": "DropSlim"
   },
   "dragzone": {
-    "title": "Drop images or folders here"
+    "title": "Drop images or folders here",
+    "outputFormat": "Output: {{format}}"
   },
   "footer": {
     "settings": "Settings",

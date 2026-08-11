@@ -3,7 +3,8 @@
     "title": "DropSlim"
   },
   "dragzone": {
-    "title": "Trascina immagini o cartelle qui"
+    "title": "Trascina immagini o cartelle qui",
+    "outputFormat": "Output: {{format}}"
   },
   "footer": {
     "settings": "Impostazioni",

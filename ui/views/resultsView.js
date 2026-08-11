@@ -194,6 +194,23 @@ export const initResultsView = (api) => {
     addProcessingLine(fileName)
   })
 
+  const normalizeExt = (ext) => (ext === 'jpeg' ? 'jpg' : ext)
+
+  const formatConvertBadge = (sourceFileName, outputPath) => {
+    const sourceExt = normalizeExt(
+      (sourceFileName ?? '').split('.').pop()?.toLowerCase()
+    )
+    const outputExt = normalizeExt(
+      (outputPath ?? '').split('.').pop()?.toLowerCase()
+    )
+
+    if (!sourceExt || !outputExt || sourceExt === outputExt) {
+      return null
+    }
+
+    return `${sourceExt.toUpperCase()} → ${outputExt.toUpperCase()}`
+  }
+
   api.onOptimized((path, summary, sourceFileName) => {
     finishProcessing(sourceFileName)
 
@@ -201,7 +218,11 @@ export const initResultsView = (api) => {
     resContainer.className = 'resLine'
 
     const summarySpan = document.createElement('span')
-    summarySpan.textContent = formatBackendSummary(summary)
+    const badge = formatConvertBadge(sourceFileName, path)
+    const summaryText = formatBackendSummary(summary)
+    summarySpan.textContent = badge
+      ? `${summaryText}  ·  ${badge}`
+      : summaryText
     resContainer.appendChild(summarySpan)
 
     const resElement = document.createElement('a')
