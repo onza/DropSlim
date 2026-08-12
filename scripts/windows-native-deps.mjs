@@ -19,7 +19,8 @@
  *
  * macos: no steps in this module; dav1d comes from homebrew at link time,
  * heic from imageio. beforebundlecommand exists only in tauri.windows.conf.json.
- * nsis picks up dlls via bundle.resources pointing at target/release/* after copy.
+ * nsis picks up dlls via bundle.resources (src-tauri/*.dll); beforebundlecommand
+ * copies them next to the exe in target/release/ before packaging.
  */
 
 import fs from 'node:fs'
