@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const [basePath, windowsPath, outPathArg] = process.argv.slice(2)
 
@@ -11,6 +12,11 @@ if (!basePath || !windowsPath) {
 }
 
 const outPath = outPathArg ?? basePath
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..'
+)
+const repoUpdaterPath = path.join(repoRoot, 'updater', 'latest.json')
 
 const readJson = (filePath) => {
   if (!fs.existsSync(filePath)) {
@@ -45,13 +51,20 @@ const manifest = {
   platforms: {
     ...base.platforms,
     'windows-x86_64': windowsEntry,
+    'windows-x86_64-nsis': windowsEntry,
   },
 }
 
+const body = `${JSON.stringify(manifest, null, 2)}\n`
+
 fs.mkdirSync(path.dirname(path.resolve(outPath)), { recursive: true })
-fs.writeFileSync(outPath, `${JSON.stringify(manifest, null, 2)}\n`)
+fs.writeFileSync(outPath, body)
+
+fs.mkdirSync(path.dirname(repoUpdaterPath), { recursive: true })
+fs.writeFileSync(repoUpdaterPath, body)
 
 console.log(`merge-latest-json: ok (${outPath})`)
+console.log(`merge-latest-json: mirrored (${repoUpdaterPath})`)
 console.log(
   `merge-latest-json: platforms: ${Object.keys(manifest.platforms).join(', ')}`
 )

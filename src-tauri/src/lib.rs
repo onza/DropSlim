@@ -47,6 +47,7 @@ pub fn run() {
             commands::pick_paths::pick_save_folder,
             commands::startup::consume_startup_paths,
             commands::native_ui::update_native_ui,
+            commands::updater::check_for_updates,
         ])
         .setup(|app| {
             let initial_paths = startup_paths::parse_startup_args(std::env::args().skip(1));

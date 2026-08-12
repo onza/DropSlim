@@ -62,11 +62,20 @@ node scripts/merge-latest-json.mjs dist/latest.json /tmp/dropslim-win/latest.jso
 gh release upload "$TAG" dist/latest.json --clobber
 ```
 
+The merge script also writes `updater/latest.json` (used by jsDelivr / raw.githubusercontent endpoints). Commit and push it:
+
+```bash
+git add updater/latest.json
+git commit -m "chore: sync updater latest.json for x.y.z"
+git push origin main
+```
+
 Verify both platforms:
 
 ```bash
 curl -fsSL "https://github.com/onza/DropSlim/releases/download/$TAG/latest.json" | jq '.platforms | keys'
-# > ["darwin-aarch64", "windows-x86_64"]
+# > ["darwin-aarch64", "windows-x86_64", "windows-x86_64-nsis"]
+curl -fsSL "https://raw.githubusercontent.com/onza/DropSlim/main/updater/latest.json" | jq '.version'
 ```
 
 ## 6. Publish release

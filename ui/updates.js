@@ -1,7 +1,25 @@
-import { check } from '@tauri-apps/plugin-updater'
+import { Update } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
-import { isTauri } from '@tauri-apps/api/core'
+import { invoke, isTauri } from '@tauri-apps/api/core'
 import { t } from './i18n/index.js'
+
+const checkWithRetry = async ({ attempts = 3 } = {}) => {
+  let lastError
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const metadata = await invoke('check_for_updates')
+      return metadata ? new Update(metadata) : null
+    } catch (error) {
+      lastError = error
+      if (attempt < attempts) {
+        await new Promise((resolve) => setTimeout(resolve, 400 * attempt))
+      }
+    }
+  }
+
+  throw lastError
+}
 
 let pendingUpdate = null
 let lastStatus = null
@@ -100,7 +118,7 @@ export const checkForUpdates = async ({
 
   try {
     setStatusState('updates.checkingStatus', {}, onStatus)
-    const update = await check()
+    const update = await checkWithRetry()
 
     if (!update) {
       clearPendingUpdate()
