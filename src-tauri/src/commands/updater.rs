@@ -30,10 +30,7 @@ pub async fn check_for_updates<R: Runtime>(
         .build()
         .map_err(|error| error.to_string())?;
 
-    let update = updater
-        .check()
-        .await
-        .map_err(|error| error.to_string())?;
+    let update = updater.check().await.map_err(|error| error.to_string())?;
 
     let Some(update) = update else {
         return Ok(None);
