@@ -46,7 +46,9 @@ objc2-core-foundation = { version = "0.3", features = ["CFData", "CFDictionary",
 objc2-image-io = "0.3"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-tauri-plugin-updater = "2"
+# native-tls: System-Zertifikatsspeicher (Security.framework / SChannel).
+# Default rustls-tls kann auf macOS mit "error sending request for url" scheitern.
+tauri-plugin-updater = { version = "2", default-features = false, features = ["native-tls", "zip"] }
 tauri-plugin-process = "2"
 
 [target.'cfg(not(target_os = "macos"))'.dependencies]
