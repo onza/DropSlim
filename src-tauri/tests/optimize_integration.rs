@@ -357,6 +357,31 @@ fn converts_jpeg_to_webp() {
     assert_eq!(optimized.dimensions(), (120, 80));
 }
 
+#[test]
+fn converts_png_to_avif() {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let input = create_raster_fixture(&dir, "sample.png", |path| {
+        let img = image::RgbaImage::from_pixel(160, 120, image::Rgba([37, 99, 235, 255]));
+        img.save(path).expect("save png");
+    });
+    let output = dir.path().join("sample.min.avif");
+
+    optimize_image_file(
+        &input,
+        &output,
+        &project_root(),
+        None,
+        OutputFormatSetting::Avif,
+    )
+    .expect("convert");
+
+    let data = fs::read(&output).expect("read output");
+    assert!(data.len() > 12);
+    assert_eq!(&data[4..8], b"ftyp");
+    let optimized = image::open(&output).expect("open output");
+    assert_eq!(optimized.dimensions(), (160, 120));
+}
+
 #[cfg(target_os = "macos")]
 #[test]
 fn converts_heic_to_jpeg() {

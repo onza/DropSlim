@@ -159,3 +159,6 @@ jobs:
           releaseDraft: true
           prerelease: false
           args: '--bundles nsis'
+
+      - name: Verify Windows bundle layout
+        run: node scripts/verify-windows-bundle.mjs

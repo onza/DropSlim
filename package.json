@@ -20,7 +20,7 @@
     "test:ui": "vitest run",
     "check:locales": "node scripts/check-locale-keys.mjs",
     "ci": "npm run ci:check && npm run ci:rust",
-    "ci:check": "npm run lint && npm run format:check && npm run check:locales && npm run test:ui && npm run ui:build",
+    "ci:check": "npm run lint && npm run format:check && npm run check:locales && npm run test:ui && node scripts/copy-windows-bundle-dlls.mjs && npm run ui:build",
     "ci:rust": "npm run test:rust && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings",
     "lint": "eslint .",
     "format": "prettier --write .",

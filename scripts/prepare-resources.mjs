@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { GIFSICLE_DLLS } from './windows-native-deps.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const tauriDir = path.join(root, 'src-tauri')
@@ -38,8 +39,7 @@ const copyGifsicleBundle = () => {
   }
 
   if (process.platform === 'win32') {
-    const requiredDlls = ['libwinpthread-1.dll', 'libgcc_s_seh-1.dll']
-    for (const dll of requiredDlls) {
+    for (const dll of GIFSICLE_DLLS) {
       if (!fs.existsSync(path.join(gifsicleTargetDir, dll))) {
         console.error(`prepare-resources: ${dll} missing next to gifsicle`)
         process.exit(1)
@@ -106,7 +106,7 @@ const copyWindowsNativeDeps = () => {
 }
 
 // .gitkeep satisfies tauri resources/**/* when gifsicle is skipped
-// windows still needs dav1d.dll — tauri.windows.conf.json lists it as a bundle resource
+// windows still needs dav1d.dll next to the exe — copy-windows-bundle-dlls.mjs runs before nsis
 if (process.env.CI_SKIP_GIFSICLE === '1') {
   fs.rmSync(target, { recursive: true, force: true })
   const keep = path.join(target, 'vendor', 'gifsicle', '.gitkeep')
