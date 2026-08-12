@@ -1,7 +1,4 @@
 {
-  "build": {
-    "beforeBundleCommand": "npm run copy:windows-bundle-dlls"
-  },
   "app": {
     "windows": [
       {
