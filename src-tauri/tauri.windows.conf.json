@@ -1,6 +1,6 @@
 {
   "build": {
-    "beforeBundleCommand": "node ../scripts/copy-windows-bundle-dlls.mjs"
+    "beforeBundleCommand": "npm run copy:windows-bundle-dlls"
   },
   "app": {
     "windows": [

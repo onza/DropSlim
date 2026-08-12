@@ -26,6 +26,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare:tauri": "node scripts/prepare-tauri.mjs",
+    "copy:windows-bundle-dlls": "node scripts/copy-windows-bundle-dlls.mjs",
     "version": "node scripts/sync-version.mjs",
     "ui:dev": "vite",
     "ui:build": "vite build",
