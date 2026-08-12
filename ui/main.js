@@ -32,6 +32,7 @@ const boot = async () => {
 
   onLocaleChange(() => {
     api.renderAppVersion()
+    api.syncOutputFormatStatus()
     api.reapplyUpdateStatus()
     syncUpdateAction(api.getPendingUpdateVersion())
     void syncNativeUi()

@@ -3,7 +3,8 @@
     "title": "DropSlim"
   },
   "dragzone": {
-    "title": "画像やフォルダをここにドロップ"
+    "title": "画像やフォルダをここにドロップ",
+    "outputFormat": "出力: {{format}}"
   },
   "footer": {
     "settings": "設定",
@@ -22,6 +23,13 @@
     "limitDimensionsHint": "JPEG、PNG、WebP、AVIF",
     "maxWidth": "最大幅 (px)",
     "maxHeight": "最大高さ (px)",
+    "outputFormat": "出力形式",
+    "outputFormatOriginal": "元の形式を保持",
+    "outputFormatJpeg": "JPEG",
+    "outputFormatPng": "PNG",
+    "outputFormatWebp": "WebP",
+    "outputFormatAvif": "AVIF",
+    "outputFormatHint": "JPEG、PNG、WebP、AVIF、および HEIC（macOS）を変換します。GIF と SVG は形式を維持します。",
     "clearOnNew": "新しい画像を最適化するときに結果リストをクリア",
     "autoCheckUpdates": "自動的にアップデートを確認",
     "autoInstallUpdates": "確認なしでアップデートをインストール",
@@ -107,6 +115,9 @@
     "overwriteDimensionWarningTitle": "オリジナルを上書きしますか？",
     "overwriteDimensionWarningBody": "最大幅/高さが有効で、ファイルは .min サフィックスなしで同じフォルダに保存されます。オリジナルが上書きされます。",
     "overwriteDimensionWarningConfirm": "続行する",
+    "convertOutputFormatWarningTitle": "形式を変換しますか？",
+    "convertOutputFormatWarningBody": "出力形式 {{format}} が有効です。JPEG、PNG、WebP、AVIF、および HEIC（macOS）は変換されます。GIF と SVG は形式を維持します。",
+    "convertOutputFormatWarningConfirm": "続行する",
     "disableMinSuffixWarningTitle": "オリジナルを上書きしますか？",
     "disableMinSuffixWarningBody": ".min サフィックスなしでは、最適化したファイルが同じ名前の既存ファイルを上書きすることがあります。",
     "disableMinSuffixWarningConfirm": "サフィックスをオフにする",

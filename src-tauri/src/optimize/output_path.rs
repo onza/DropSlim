@@ -2,6 +2,8 @@ use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
+use super::formats::{ImageFormat, OutputFormatSetting};
+
 #[derive(Debug, Clone, Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct UserSettings {
@@ -18,6 +20,8 @@ pub struct UserSettings {
     pub max_width: Option<u32>,
     #[serde(default)]
     pub max_height: Option<u32>,
+    #[serde(default)]
+    pub output_format: OutputFormatSetting,
 }
 
 impl Default for UserSettings {
@@ -30,6 +34,7 @@ impl Default for UserSettings {
             limit_dimensions: false,
             max_width: None,
             max_height: None,
+            output_format: OutputFormatSetting::Original,
         }
     }
 }
@@ -87,10 +92,18 @@ pub fn build_output_path(input: &Path, settings: &UserSettings) -> std::io::Resu
         .file_stem()
         .and_then(|value| value.to_str())
         .unwrap_or("output");
-    let extension = input
+    let source_ext = input
         .extension()
         .and_then(|value| value.to_str())
         .unwrap_or("");
+    let source_format = ImageFormat::from_path(input);
+    let target_format = settings.output_format.target_format();
+    let is_real_convert = target_format.is_some() && target_format != source_format;
+    let extension = if is_real_convert {
+        settings.output_format.extension().unwrap_or(source_ext)
+    } else {
+        source_ext
+    };
 
     let file_name = if settings.suffix {
         if extension.is_empty() {
@@ -248,5 +261,90 @@ mod tests {
         assert_eq!(settings.max_width, None);
         assert_eq!(settings.max_height, None);
         assert!(settings.dimension_limits().is_none());
+        assert_eq!(settings.output_format, OutputFormatSetting::Original);
+    }
+
+    #[test]
+    fn output_format_defaults_to_original() {
+        assert_eq!(
+            UserSettings::default().output_format,
+            OutputFormatSetting::Original
+        );
+    }
+
+    #[test]
+    fn deserializes_output_format() {
+        let settings: UserSettings = serde_json::from_str(
+            r#"{"folderswitch":true,"suffix":true,"subfolder":false,"output_format":"webp"}"#,
+        )
+        .expect("settings with output format");
+
+        assert_eq!(settings.output_format, OutputFormatSetting::Webp);
+    }
+
+    #[test]
+    fn uses_target_extension_when_converting() {
+        let dir = tempdir().unwrap();
+        let input = dir.path().join("photo.heic");
+        fs::write(&input, b"x").unwrap();
+
+        let output = build_output_path(
+            &input,
+            &UserSettings {
+                output_format: OutputFormatSetting::Jpeg,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+        assert_eq!(output, dir.path().join("photo.min.jpg"));
+    }
+
+    #[test]
+    fn converts_extension_without_suffix() {
+        let dir = tempdir().unwrap();
+        let input = dir.path().join("photo.png");
+        fs::write(&input, b"x").unwrap();
+
+        let output = build_output_path(
+            &input,
+            &UserSettings {
+                suffix: false,
+                output_format: OutputFormatSetting::Webp,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+        assert_eq!(output, dir.path().join("photo.webp"));
+    }
+
+    #[test]
+    fn keeps_source_extension_for_original_format() {
+        let dir = tempdir().unwrap();
+        let input = dir.path().join("photo.JPEG");
+        fs::write(&input, b"x").unwrap();
+
+        let output = build_output_path(&input, &UserSettings::default()).unwrap();
+
+        assert_eq!(output, dir.path().join("photo.min.JPEG"));
+    }
+
+    #[test]
+    fn keeps_jpeg_extension_when_target_is_also_jpeg() {
+        let dir = tempdir().unwrap();
+        let input = dir.path().join("photo.jpeg");
+        fs::write(&input, b"x").unwrap();
+
+        let output = build_output_path(
+            &input,
+            &UserSettings {
+                output_format: OutputFormatSetting::Jpeg,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+        assert_eq!(output, dir.path().join("photo.min.jpeg"));
     }
 }

@@ -3,7 +3,8 @@
     "title": "DropSlim"
   },
   "dragzone": {
-    "title": "Déposez des images ou des dossiers ici"
+    "title": "Déposez des images ou des dossiers ici",
+    "outputFormat": "Sortie : {{format}}"
   },
   "footer": {
     "settings": "Réglages",
@@ -22,6 +23,13 @@
     "limitDimensionsHint": "JPEG, PNG, WebP et AVIF",
     "maxWidth": "Largeur max. (px)",
     "maxHeight": "Hauteur max. (px)",
+    "outputFormat": "Format de sortie",
+    "outputFormatOriginal": "Conserver le format d'origine",
+    "outputFormatJpeg": "JPEG",
+    "outputFormatPng": "PNG",
+    "outputFormatWebp": "WebP",
+    "outputFormatAvif": "AVIF",
+    "outputFormatHint": "Convertit JPEG, PNG, WebP, AVIF et HEIC (macOS). GIF et SVG gardent leur format.",
     "clearOnNew": "Vider la liste lors d'une nouvelle optimisation",
     "autoCheckUpdates": "Rechercher les mises à jour automatiquement",
     "autoInstallUpdates": "Installer les mises à jour sans demander",
@@ -107,6 +115,9 @@
     "overwriteDimensionWarningTitle": "Écraser les originaux ?",
     "overwriteDimensionWarningBody": "La largeur/hauteur max. est activée, et les fichiers seront enregistrés dans le même dossier sans suffixe .min. Les originaux seront écrasés.",
     "overwriteDimensionWarningConfirm": "Continuer quand même",
+    "convertOutputFormatWarningTitle": "Convertir le format ?",
+    "convertOutputFormatWarningBody": "Le format de sortie {{format}} est actif. JPEG, PNG, WebP, AVIF et HEIC (macOS) seront convertis. GIF et SVG conservent leur format.",
+    "convertOutputFormatWarningConfirm": "Continuer quand même",
     "disableMinSuffixWarningTitle": "Écraser les originaux ?",
     "disableMinSuffixWarningBody": "Sans le suffixe .min, les fichiers optimisés peuvent écraser des fichiers existants portant le même nom.",
     "disableMinSuffixWarningConfirm": "Désactiver le suffixe",

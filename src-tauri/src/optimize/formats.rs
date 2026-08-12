@@ -1,5 +1,7 @@
 use std::path::Path;
 
+use serde::{Deserialize, Serialize};
+
 pub const SUPPORTED_EXTENSIONS: &[&str] = &[
     "svg", "jpg", "jpeg", "png", "gif", "webp", "avif", "heic", "heif",
 ];
@@ -46,6 +48,39 @@ impl ImageFormat {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum OutputFormatSetting {
+    #[default]
+    Original,
+    Jpeg,
+    Png,
+    Webp,
+    Avif,
+}
+
+impl OutputFormatSetting {
+    pub fn target_format(self) -> Option<ImageFormat> {
+        match self {
+            Self::Original => None,
+            Self::Jpeg => Some(ImageFormat::Jpeg),
+            Self::Png => Some(ImageFormat::Png),
+            Self::Webp => Some(ImageFormat::Webp),
+            Self::Avif => Some(ImageFormat::Avif),
+        }
+    }
+
+    pub fn extension(self) -> Option<&'static str> {
+        match self {
+            Self::Original => None,
+            Self::Jpeg => Some("jpg"),
+            Self::Png => Some("png"),
+            Self::Webp => Some("webp"),
+            Self::Avif => Some("avif"),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -66,5 +101,53 @@ mod tests {
             Some(ImageFormat::Jpeg)
         );
         assert_eq!(ImageFormat::from_path(&PathBuf::from("notes.txt")), None);
+    }
+
+    #[test]
+    fn output_format_defaults_to_original() {
+        assert_eq!(
+            OutputFormatSetting::default(),
+            OutputFormatSetting::Original
+        );
+        assert!(OutputFormatSetting::Original.target_format().is_none());
+        assert!(OutputFormatSetting::Original.extension().is_none());
+    }
+
+    #[test]
+    fn output_format_maps_targets() {
+        assert_eq!(
+            OutputFormatSetting::Jpeg.target_format(),
+            Some(ImageFormat::Jpeg)
+        );
+        assert_eq!(OutputFormatSetting::Jpeg.extension(), Some("jpg"));
+        assert_eq!(
+            OutputFormatSetting::Png.target_format(),
+            Some(ImageFormat::Png)
+        );
+        assert_eq!(OutputFormatSetting::Png.extension(), Some("png"));
+        assert_eq!(
+            OutputFormatSetting::Webp.target_format(),
+            Some(ImageFormat::Webp)
+        );
+        assert_eq!(OutputFormatSetting::Webp.extension(), Some("webp"));
+        assert_eq!(
+            OutputFormatSetting::Avif.target_format(),
+            Some(ImageFormat::Avif)
+        );
+        assert_eq!(OutputFormatSetting::Avif.extension(), Some("avif"));
+    }
+
+    #[test]
+    fn deserializes_output_format_values() {
+        assert_eq!(
+            serde_json::from_str::<OutputFormatSetting>("\"original\"").unwrap(),
+            OutputFormatSetting::Original
+        );
+        assert_eq!(
+            serde_json::from_str::<OutputFormatSetting>("\"jpeg\"").unwrap(),
+            OutputFormatSetting::Jpeg
+        );
+        assert!(serde_json::from_str::<OutputFormatSetting>("\"gif\"").is_err());
+        assert!(serde_json::from_str::<OutputFormatSetting>("\"heic\"").is_err());
     }
 }

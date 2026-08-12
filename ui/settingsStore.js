@@ -8,6 +8,7 @@ const OPTIMIZE_SETTING_KEYS = [
   'limit_dimensions',
   'max_width',
   'max_height',
+  'output_format',
 ]
 
 const SETTINGS_DEFAULTS = {
@@ -18,9 +19,11 @@ const SETTINGS_DEFAULTS = {
   limit_dimensions: false,
   max_width: null,
   max_height: null,
+  output_format: 'original',
   autoCheckUpdates: true,
   autoInstallUpdates: false,
   skipOverwriteDimensionWarning: false,
+  skipConvertWarning: false,
   locale: 'system',
 }
 

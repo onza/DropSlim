@@ -7,6 +7,7 @@ use tokio::task::JoinSet;
 
 use super::collect;
 use super::events::{app_event_sink, EventSink, ProcessorEvent};
+use super::formats::{ImageFormat, OutputFormatSetting};
 use super::image::optimize_image_file;
 use super::output_path::{build_output_path, custom_save_folder_missing, UserSettings};
 use super::payloads::ErrorPayload;
@@ -116,6 +117,21 @@ fn report_output_path(
     }
 }
 
+fn is_real_format_convert(file_path: &std::path::Path, output_format: OutputFormatSetting) -> bool {
+    let Some(source) = ImageFormat::from_path(file_path) else {
+        return false;
+    };
+
+    if matches!(source, ImageFormat::Gif | ImageFormat::Svg) {
+        return false;
+    }
+
+    match output_format.target_format() {
+        Some(target) => target != source,
+        None => false,
+    }
+}
+
 struct ResolvedOptimization {
     output_path: PathBuf,
     summary: super::payloads::SummaryPayload,
@@ -127,19 +143,30 @@ fn resolve_optimization(
     output_path: &std::path::Path,
     project_root: &std::path::Path,
     dimension_limits: Option<super::image::DimensionLimits>,
+    output_format: OutputFormatSetting,
 ) -> Result<ResolvedOptimization, ErrorPayload> {
     let size_orig = file_size(file_path).map_err(|error| ErrorPayload::io(error.to_string()))?;
     let previous_output_size = file_size(output_path).ok();
     let threshold = previous_output_size.unwrap_or(size_orig);
     let candidate = TempFile::at(output_path);
     let candidate_path = candidate.path();
+    let force_keep = is_real_format_convert(file_path, output_format);
 
-    optimize_image_file(file_path, candidate_path, project_root, dimension_limits)?;
+    optimize_image_file(
+        file_path,
+        candidate_path,
+        project_root,
+        dimension_limits,
+        output_format,
+    )?;
 
     let candidate_size =
         file_size(candidate_path).map_err(|error| ErrorPayload::io(error.to_string()))?;
 
-    if should_keep_optimized_output(candidate_size, size_orig, previous_output_size) {
+    let keep =
+        force_keep || should_keep_optimized_output(candidate_size, size_orig, previous_output_size);
+
+    if keep {
         commit_candidate(candidate_path, output_path)?;
         Ok(ResolvedOptimization {
             output_path: output_path.to_path_buf(),
@@ -198,6 +225,7 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
             &output_path,
             &project_root,
             settings.dimension_limits(),
+            settings.output_format,
         )?;
 
         Ok::<_, ErrorPayload>((
@@ -634,7 +662,14 @@ mod tests {
         write_png(&file);
         let output = dir.path().join("photo.min.png");
 
-        optimize_image_file(&file, &output, &project_root(), None).expect("seed output");
+        optimize_image_file(
+            &file,
+            &output,
+            &project_root(),
+            None,
+            crate::optimize::formats::OutputFormatSetting::Original,
+        )
+        .expect("seed output");
         let first_size = fs::metadata(&output).expect("output metadata").len();
 
         let recording = Arc::new(RecordingEventSink::new());
@@ -698,6 +733,79 @@ mod tests {
             .expect("optimized event");
 
         assert!(matches!(summary, SummaryPayload::AlreadyOptimized { .. }));
+    }
+
+    #[test]
+    fn detects_real_format_convert() {
+        assert!(is_real_format_convert(
+            std::path::Path::new("photo.png"),
+            OutputFormatSetting::Avif
+        ));
+        assert!(is_real_format_convert(
+            std::path::Path::new("photo.jpeg"),
+            OutputFormatSetting::Webp
+        ));
+        assert!(!is_real_format_convert(
+            std::path::Path::new("photo.png"),
+            OutputFormatSetting::Original
+        ));
+        assert!(!is_real_format_convert(
+            std::path::Path::new("photo.jpeg"),
+            OutputFormatSetting::Jpeg
+        ));
+        assert!(!is_real_format_convert(
+            std::path::Path::new("anim.gif"),
+            OutputFormatSetting::Avif
+        ));
+    }
+
+    #[tokio::test]
+    async fn keeps_convert_output_even_when_larger_than_source() {
+        let dir = tempdir().expect("tempdir");
+        let file = dir.path().join("tiny.png");
+        let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
+            ImageBuffer::from_pixel(2, 2, Rgba([255, 0, 0, 255]));
+        img.save(&file).expect("write tiny png");
+        let source_size = fs::metadata(&file).expect("source metadata").len();
+
+        let recording = Arc::new(RecordingEventSink::new());
+        process_paths_with_sink(
+            Arc::clone(&recording),
+            vec![file.to_string_lossy().to_string()],
+            UserSettings {
+                output_format: OutputFormatSetting::Avif,
+                ..Default::default()
+            },
+            project_root(),
+            no_cancel(),
+        )
+        .await
+        .expect("process paths");
+
+        let avif = dir.path().join("tiny.min.avif");
+        assert!(
+            avif.is_file(),
+            "convert to avif must keep output even if larger than source ({source_size} bytes)"
+        );
+        let avif_size = fs::metadata(&avif).expect("avif metadata").len();
+        assert!(avif_size > 12, "avif output should contain data");
+
+        let output_path = recording
+            .events()
+            .into_iter()
+            .find_map(|event| match event {
+                ProcessorEvent::ImageOptimized { output_path, .. } => Some(output_path),
+                _ => None,
+            })
+            .expect("optimized event");
+
+        assert_eq!(PathBuf::from(&output_path).file_name(), avif.file_name());
+        assert!(
+            PathBuf::from(&output_path)
+                .extension()
+                .and_then(|e| e.to_str())
+                == Some("avif")
+        );
     }
 
     #[tokio::test]

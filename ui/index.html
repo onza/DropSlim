@@ -13,6 +13,11 @@
           <p id="dragzoneStatus" class="dragzone-status" hidden></p>
           <h1 data-i18n="dragzone.title"></h1>
           <strong data-i18n="formats.supported"></strong>
+          <p
+            id="dragzoneOutputFormat"
+            class="dragzone-output-format"
+            hidden
+          ></p>
         </section>
         <div class="results-panel">
           <p id="batchSummary" class="batch-summary" hidden></p>
@@ -114,6 +119,41 @@
               />
             </label>
           </div>
+          <div class="setting-row setting-row--output-format">
+            <span
+              id="settingsOutputFormatLabel"
+              class="setting-label"
+              data-i18n="settings.outputFormat"
+            ></span>
+            <label class="locale-picker" for="outputFormatSelect">
+              <span class="locale-picker-display">
+                <span id="outputFormatValue" class="locale-picker-value"></span>
+                <span class="locale-picker-icon" aria-hidden="true">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </span>
+              </span>
+              <select
+                id="outputFormatSelect"
+                class="locale-picker-select"
+                name="output_format"
+                aria-labelledby="settingsOutputFormatLabel"
+              ></select>
+            </label>
+          </div>
+          <p
+            class="output-format-hint"
+            data-i18n="settings.outputFormatHint"
+          ></p>
           <div class="setting-row">
             <span class="setting-label" data-i18n="settings.clearOnNew"></span>
             <label class="toggle">

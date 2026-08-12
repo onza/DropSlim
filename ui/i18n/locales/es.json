@@ -3,7 +3,8 @@
     "title": "DropSlim"
   },
   "dragzone": {
-    "title": "Suelta imágenes o carpetas aquí"
+    "title": "Suelta imágenes o carpetas aquí",
+    "outputFormat": "Salida: {{format}}"
   },
   "footer": {
     "settings": "Ajustes",
@@ -22,6 +23,13 @@
     "limitDimensionsHint": "JPEG, PNG, WebP y AVIF",
     "maxWidth": "Ancho máx. (px)",
     "maxHeight": "Alto máx. (px)",
+    "outputFormat": "Formato de salida",
+    "outputFormatOriginal": "Mantener formato original",
+    "outputFormatJpeg": "JPEG",
+    "outputFormatPng": "PNG",
+    "outputFormatWebp": "WebP",
+    "outputFormatAvif": "AVIF",
+    "outputFormatHint": "Convierte JPEG, PNG, WebP, AVIF y HEIC (macOS). GIF y SVG conservan su formato.",
     "clearOnNew": "Vaciar la lista al optimizar nuevas imágenes",
     "autoCheckUpdates": "Buscar actualizaciones automáticamente",
     "autoInstallUpdates": "Instalar actualizaciones sin preguntar",
@@ -107,6 +115,9 @@
     "overwriteDimensionWarningTitle": "¿Sobrescribir originales?",
     "overwriteDimensionWarningBody": "El ancho/alto máx. está activo y los archivos se guardarán en la misma carpeta sin el sufijo .min. Se sobrescribirán los originales.",
     "overwriteDimensionWarningConfirm": "Continuar de todos modos",
+    "convertOutputFormatWarningTitle": "¿Convertir formato?",
+    "convertOutputFormatWarningBody": "El formato de salida {{format}} está activo. Se convertirán JPEG, PNG, WebP, AVIF y HEIC (macOS). GIF y SVG conservan su formato.",
+    "convertOutputFormatWarningConfirm": "Continuar de todos modos",
     "disableMinSuffixWarningTitle": "¿Sobrescribir originales?",
     "disableMinSuffixWarningBody": "Sin el sufijo .min, los archivos optimizados pueden sobrescribir archivos existentes con el mismo nombre.",
     "disableMinSuffixWarningConfirm": "Desactivar sufijo",

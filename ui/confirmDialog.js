@@ -93,6 +93,15 @@ export const confirmOverwriteDimensionWarning = () =>
     dontAskAgainLabel: t('dialog.dontAskAgain'),
   })
 
+export const confirmConvertOutputFormatWarning = (formatLabel) =>
+  showConfirmDialog({
+    title: t('dialog.convertOutputFormatWarningTitle'),
+    body: t('dialog.convertOutputFormatWarningBody', { format: formatLabel }),
+    confirmLabel: t('dialog.convertOutputFormatWarningConfirm'),
+    cancelLabel: t('footer.cancel'),
+    dontAskAgainLabel: t('dialog.dontAskAgain'),
+  })
+
 export const confirmDisableMinSuffixWarning = () =>
   showConfirmDialog({
     title: t('dialog.disableMinSuffixWarningTitle'),
