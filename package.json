@@ -27,6 +27,7 @@
     "format:check": "prettier --check .",
     "prepare:tauri": "node scripts/prepare-tauri.mjs",
     "version": "node scripts/sync-version.mjs",
+    "release": "bash scripts/release.sh",
     "ui:dev": "vite",
     "ui:build": "vite build",
     "tauri": "tauri"

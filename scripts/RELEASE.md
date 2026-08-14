@@ -1,101 +1,125 @@
-# Release checklist
+# Release
 
-## Order matters
+Runs via **`bash scripts/release.sh`** on the Mac — notarize and updater key stay local. Don’t click around in the GitHub UI unless the script is broken.
 
-```
-push version > Windows Actions > Mac build > upload Mac > merge latest.json > publish
-```
+<br>
 
-Mac build can run while Windows Actions is running. **Upload** only after the draft release exists.
+## What happens
 
-## 1. Version bump
+**Full on `main`:** GitHub latest + `updater/latest.json` on `main` + website (dropslim.app).
 
-```bash
-# Edit package.json > "version": "x.y.z"
-npm run version
-git add package.json src-tauri/Cargo.toml src-tauri/Cargo.lock
-git commit -m "release: bump version to x.y.z"
-git push origin main
-```
+**Draft:** stays draft. No latest, no updater sync, no website.
 
-## 2. Windows build (GitHub Actions)
+| Branch         | Mode         | Version              | Live? |
+| -------------- | ------------ | -------------------- | ----- |
+| `main`         | full         | `x.y.z`              | yes   |
+| `main`         | draft        | `x.y.z`              | no    |
+| Feature branch | always draft | `x.y.z-<branch>.<n>` | no    |
 
-1. GitHub > **Actions** > **publish** > **Run workflow** (branch `main`)
-2. Wait until green
-3. Check draft release exists:
+Feature drafts are for pipeline testing only. Never latest.
 
-```bash
-gh release view vX.Y.Z --repo onza/DropSlim
-```
+<br>
 
-Expected assets: `DropSlim_X.Y.Z_x64-setup.exe`, `.sig`, `latest.json`.
+## Before
 
-## 3. macOS build (local)
+- `git`, `gh`, `jq`, `node`, `npm`
+- `gh` as **onza**, origin **onza/DropSlim**
+- Working tree clean (stash WIP)
+- `.release.env` in the repo root (header in `scripts/build.sh`)
+- Test Apple: `bash scripts/verify-notarize-credentials.sh`
 
-Requires `.release.env` (see header in `scripts/build.sh`).
+Windows signing comes from repo secrets. Apple stays on the Mac.
 
-```bash
-git pull origin main
-bash scripts/build.sh
-```
+<br>
 
-Output in `dist/`:
-
-- `DropSlim_X.Y.Z_aarch64.dmg`
-- `DropSlim.app.tar.gz` + `.sig`
-- `latest.json` (macOS only)
-
-## 4. Upload macOS assets
+## Start
 
 ```bash
-TAG=vX.Y.Z
-gh release upload "$TAG" dist/DropSlim_*_aarch64.dmg
-gh release upload "$TAG" dist/DropSlim.app.tar.gz dist/DropSlim.app.tar.gz.sig
+bash scripts/release.sh
 ```
 
-## 5. Merge updater manifest
+Dialog: version, full/draft, Mac yes/no. Then it runs through; type the version for full.
+
+Without dialog:
 
 ```bash
-TAG=vX.Y.Z
-gh release download "$TAG" -p latest.json -D /tmp/dropslim-win
-node scripts/merge-latest-json.mjs dist/latest.json /tmp/dropslim-win/latest.json
-gh release upload "$TAG" dist/latest.json --clobber
+bash scripts/release.sh 1.6.2
+bash scripts/release.sh 1.6.2 --draft-only
+bash scripts/release.sh --continue          # version already in package.json
 ```
 
-The merge script also writes `updater/latest.json` (used by jsDelivr / raw.githubusercontent endpoints). Commit and push it:
+Feature branch: dialog suggests the next `x.y.z-<branch>.<n>` and forces draft.
+
+<br>
+
+### Flags
+
+- `--continue` — no bump, wait for CI on the current commit
+- `--draft-only` — leave as draft on `main`
+- `--skip-mac` — skip the Mac build (resume if Mac is already uploaded)
+- `--yes` — skip the start confirm; still type the version to undraft
+- `--skip-ci-wait` — don’t wait for CI (usually don’t)
+
+Undraft without typing:
 
 ```bash
-git add updater/latest.json
-git commit -m "chore: sync updater latest.json for x.y.z"
-git push origin main
+DROPSLIM_RELEASE_YES=1 bash scripts/release.sh 1.6.2 --yes
 ```
 
-Verify both platforms:
+<br>
 
-```bash
-curl -fsSL "https://github.com/onza/DropSlim/releases/download/$TAG/latest.json" | jq '.platforms | keys'
-# > ["darwin-aarch64", "windows-x86_64", "windows-x86_64-nsis"]
-curl -fsSL "https://raw.githubusercontent.com/onza/DropSlim/main/updater/latest.json" | jq '.version'
+## Flow
+
+```
+Bump → CI → Windows draft → Mac → upload/merge → undraft (full only)
 ```
 
-## 6. Publish release
+1. **Bump** — `package.json`, `npm run version` (Cargo.toml), commit, push. Same version as already in the file → script refuses, use `--continue`.
+2. **CI** — waits for the CI run. Feature branch without a PR to `main` often has no run; then it continues.
+3. **Windows** — `publish.yml` on the current branch. Draft `v…` with NSIS. Draft already exists → resume. Tag already published → abort, new version.
+4. **Mac** — `scripts/build.sh`, upload dmg + `DropSlim.app.tar.gz` + `.sig`, merge `latest.json`.
+5. **Full** — release `latest.json` must have Mac **and** Windows, type the version, `--draft=false` (notes stay). Then commit `updater/latest.json`.
 
-```bash
-gh release edit "$TAG" --draft=false
-```
+`--skip-mac` + full only works if the merged manifest is already on the release. Otherwise the draft stays. `--skip-mac` does not touch the updater file.
 
-Optional release notes:
+<br>
 
-```bash
-gh release edit "$TAG" --notes "…"
-```
+## If it blows up
 
-## 7. Checklist after publish
+Working tree must be clean again (bump is already on the remote).
 
-Go through these after step 6 (`gh release edit --draft=false`):
+- Stopped mid-way, draft exists: `bash scripts/release.sh --continue`
+- Mac already up, only undraft left: `--continue --skip-mac` on `main`
+- Tag already live: don’t reuse, next version
 
-- Website redeploys automatically (`trigger-website.yml` > `DropSlim_Website`)
-- Check [dropslim.app](https://dropslim.app/) download links and version
-- Optional: update fallback in `DropSlim_Website` > `src/_data/site.js`
-- macOS DMG and Windows installer
-- In-app updater on both platforms (should show up to date on fresh install)
+Dirty: `git stash push -u`, script, `git stash pop`.
+
+`full publish needs darwin-aarch64 and windows-x86_64` → Mac merge missing. Run again without `--skip-mac`, or merge by hand, then `--continue --skip-mac`.
+
+Notarize: `bash scripts/verify-notarize-credentials.sh`.
+
+<br>
+
+## After (full)
+
+- https://github.com/onza/DropSlim/releases/latest
+- dropslim.app should pick up the tag
+- In-app updater: jsDelivr → raw `updater/latest.json` → GitHub latest asset
+
+Apps only update if `updater/latest.json` on `main` is correct and signed with the production key.
+
+<br>
+
+## Emergency without the script
+
+Same order:
+
+1. Version in `package.json` → `npm run version` → commit/push
+2. Wait for CI
+3. Actions → publish on that branch → draft
+4. `bash scripts/build.sh`
+5. Upload dmg + `DropSlim.app.tar.gz` (+ `.sig`)
+6. `node scripts/merge-latest-json.mjs dist/latest.json <windows-latest.json> dist/latest.json`  
+   then `gh release upload vX.Y.Z dist/latest.json --clobber`
+7. Full on main only: `gh release edit vX.Y.Z --draft=false`  
+   plus commit `updater/latest.json`

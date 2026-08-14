@@ -1,9 +1,5 @@
 name: publish
 
-# Windows release build. Trigger manually after version bump is on main.
-# Creates a draft GitHub release for v<package.json version>.
-# Then: Mac build locally, upload assets, merge latest.json, publish release.
-
 on:
   workflow_dispatch:
 

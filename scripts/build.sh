@@ -79,7 +79,5 @@ node "$root/scripts/generate-latest-json.mjs"
 echo "build: ok (dist/$(basename "$dmg"))"
 if [[ -f "$root/dist/latest.json" ]]; then
   echo "build: updater manifest (dist/latest.json, macOS only)"
-  echo "build: after Windows publish workflow, merge updater manifest:"
-  echo "build: gh release download <tag> -p latest.json -D /tmp/dropslim-win"
-  echo "build: node scripts/merge-latest-json.mjs dist/latest.json /tmp/dropslim-win/latest.json"
+  echo "build: merge with Windows via bash scripts/release.sh (or scripts/merge-latest-json.mjs)"
 fi
