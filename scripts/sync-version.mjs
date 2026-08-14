@@ -15,7 +15,7 @@ if (!version) {
 }
 
 const versionLine = /^version\s*=\s*"([^"]*)"/m
-const lockPackage = /\[\[package\]\]\nname = "dropslim"\nversion = "([^"]*)"/
+const lockPackage = /^name = "dropslim"\r?\nversion = "([^"]*)"/m
 
 const cargoToml = fs.readFileSync(cargoTomlPath, 'utf8')
 const tomlMatch = cargoToml.match(versionLine)
@@ -47,11 +47,12 @@ if (tomlMatch[1] !== version) {
 }
 
 if (lockMatch[1] !== version) {
+  const nl = lockMatch[0].includes('\r\n') ? '\r\n' : '\n'
   fs.writeFileSync(
     cargoLockPath,
     cargoLock.replace(
       lockPackage,
-      `[[package]]\nname = "dropslim"\nversion = "${version}"`
+      `name = "dropslim"${nl}version = "${version}"`
     )
   )
   console.log(`sync-version: updated Cargo.lock → ${version}`)
