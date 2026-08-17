@@ -1,19 +1,19 @@
 {
-  "version": "1.6.1",
-  "notes": "DropSlim 1.6.1",
-  "pub_date": "2026-08-12T22:08:01.042Z",
+  "version": "1.6.2",
+  "notes": "DropSlim 1.6.2",
+  "pub_date": "2026-08-17T21:16:24.738Z",
   "platforms": {
     "darwin-aarch64": {
-      "url": "https://github.com/onza/DropSlim/releases/download/v1.6.1/DropSlim.app.tar.gz",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTZklDbWh4VjFZRzcvZjlWK0VTODIrRnRpa0dFcU4wS1hUYmdSb0RXWm1hdnNSWGtrUVlyWEF1WjZGZmtNQmhmSE5Lbm1jMXNaUHBHVVdwWjNURlBBOGVOa21JdFIvZUFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NTcyNDY0CWZpbGU6RHJvcFNsaW0uYXBwLnRhci5negpFbnM3VDVBZ2FsSmNMVlh6N2lQYk8yQ2dxVkFvTVBOUU0rRkhnTkZac1RjbmZTVGlTNW1Ed09vZTVHN0NGMnRubklydGRTZHRaM0JrYXJFZ0tIZlJCQT09Cg=="
+      "url": "https://github.com/onza/DropSlim/releases/download/v1.6.2/DropSlim.app.tar.gz",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTZklDbWh4VjFZRy92eWUzTzNyNmhCZExoa1FxbFl6QzkwTU9tcUR4WlB1bWJ5WHlaUkdvWjFQdU5zSzRVU2ZCaEdsa0VRdXJEanRKUkZwUG9TSmc4em5hdDdRN1M4UGc4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2OTk5OTI4CWZpbGU6RHJvcFNsaW0uYXBwLnRhci5nego4RTlzYzVkQjRMSWNZeDZLbWFXc2NTZ2luQ3lBSlIyVXIvaHBadHk5Y0w0SlNRNll1MEdFNVlCQ0l5Znh6UXM5b1VBSm5uTDJ5bytIUWo1amZaY3RBQT09Cg=="
     },
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTZklDbWh4VjFZR3pmNGltR2sybzBFTVl3dUlOaGFtVHpNM24wRlB6N2l0ajBmWG1YRXFMMnNUT0ZYQnlyelE1c1lLcHBqV2tKNlVyUkVBemEwRUkzNG1yVjVRZGpuRWdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NTcyMjgzCWZpbGU6RHJvcFNsaW1fMS42LjFfeDY0LXNldHVwLmV4ZQphRUNTQUV0VkExMGIwdldOK1N5MlE4cnZlVWZrZlJVc2NCK1NVSjBiblNydTBFbzRMQ3RhU2VDbE1mV0x3bFJaMUZOa3c3UDF3VGl6a2tycDJNekJDUT09Cg==",
-      "url": "https://github.com/onza/DropSlim/releases/download/v1.6.1/DropSlim_1.6.1_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTZklDbWh4VjFZRzBMWVhhM0MrQ1dPYm9LbkpPcUUzYmJUVTgzRFE5YitydjYrV0lISGRSV1l5RUNhVEpUdlNDNWJ0Y3dyM0x6UTN3YklUT1ZxZTZIdUdPcXJhbUc4ZUFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3MDAxMzYzCWZpbGU6RHJvcFNsaW1fMS42LjJfeDY0LXNldHVwLmV4ZQo3Q1NUeXZ0TkxHSzJVOTVjcEd6VGNEalE5ZitBV0E5ekN1UUoxaGRkdFRYSnFFODdUVWtwQ0lHSHl0dWJSL2lBcUQvMk9hK0FTREdDQ0NiTXM2cnlEZz09Cg==",
+      "url": "https://github.com/onza/DropSlim/releases/download/v1.6.2/DropSlim_1.6.2_x64-setup.exe"
     },
     "windows-x86_64-nsis": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTZklDbWh4VjFZR3pmNGltR2sybzBFTVl3dUlOaGFtVHpNM24wRlB6N2l0ajBmWG1YRXFMMnNUT0ZYQnlyelE1c1lLcHBqV2tKNlVyUkVBemEwRUkzNG1yVjVRZGpuRWdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2NTcyMjgzCWZpbGU6RHJvcFNsaW1fMS42LjFfeDY0LXNldHVwLmV4ZQphRUNTQUV0VkExMGIwdldOK1N5MlE4cnZlVWZrZlJVc2NCK1NVSjBiblNydTBFbzRMQ3RhU2VDbE1mV0x3bFJaMUZOa3c3UDF3VGl6a2tycDJNekJDUT09Cg==",
-      "url": "https://github.com/onza/DropSlim/releases/download/v1.6.1/DropSlim_1.6.1_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTZklDbWh4VjFZRzBMWVhhM0MrQ1dPYm9LbkpPcUUzYmJUVTgzRFE5YitydjYrV0lISGRSV1l5RUNhVEpUdlNDNWJ0Y3dyM0x6UTN3YklUT1ZxZTZIdUdPcXJhbUc4ZUFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3MDAxMzYzCWZpbGU6RHJvcFNsaW1fMS42LjJfeDY0LXNldHVwLmV4ZQo3Q1NUeXZ0TkxHSzJVOTVjcEd6VGNEalE5ZitBV0E5ekN1UUoxaGRkdFRYSnFFODdUVWtwQ0lHSHl0dWJSL2lBcUQvMk9hK0FTREdDQ0NiTXM2cnlEZz09Cg==",
+      "url": "https://github.com/onza/DropSlim/releases/download/v1.6.2/DropSlim_1.6.2_x64-setup.exe"
     }
   }
 }
