@@ -65,6 +65,84 @@ confirm() {
   [[ "$answer" == "y" || "$answer" == "Y" ]]
 }
 
+# GitHub 502/503/429 — retry, then ask (Enter = try again). --yes: no prompt, abort.
+is_github_transient() {
+  grep -Eqi 'HTTP 502|HTTP 503|HTTP 429|Service Unavailable|try resubmitting|no server is currently available'
+}
+
+confirm_github_retry() {
+  local answer
+  if [[ "$CLI_YES" -eq 1 ]]; then
+    return 1
+  fi
+  read -r -p "release: GitHub did not respond — try again? [Y/n] " answer
+  [[ -z "$answer" || "$answer" == "y" || "$answer" == "Y" ]]
+}
+
+gh_retry() {
+  local attempt=1 max=5 delay=5 rc err
+  err="$(mktemp "${TMPDIR:-/tmp}/dropslim-gh.XXXXXX")"
+  while true; do
+    set +e
+    "$@" 2>"$err"
+    rc=$?
+    set -e
+    if [[ "$rc" -eq 0 ]]; then
+      rm -f "$err"
+      return 0
+    fi
+    if is_github_transient <"$err"; then
+      cat "$err" >&2
+      if ((attempt < max)); then
+        printf 'release: GitHub temporarily unavailable — retry %s/%s in %ss\n' \
+          "$attempt" "$max" "$delay" >&2
+        sleep "$delay"
+        delay=$((delay * 2))
+        attempt=$((attempt + 1))
+        continue
+      fi
+      printf 'release: GitHub still unavailable after %s tries\n' "$max" >&2
+      if confirm_github_retry; then
+        attempt=1
+        delay=5
+        continue
+      fi
+      rm -f "$err"
+      die "GitHub request failed"
+    fi
+    cat "$err" >&2
+    rm -f "$err"
+    return "$rc"
+  done
+}
+
+# drafts often have no git tag yet (html_url = .../untagged-…). look up by tag_name.
+releases_json() {
+  gh_retry gh api "repos/${REPO}/releases"
+}
+
+release_id_for_tag() {
+  local tag="$1"
+  local id
+  id="$(releases_json | jq -r --arg tag "$tag" \
+    '.[] | select(.tag_name == $tag) | .id' | head -n1)"
+  [[ -n "$id" && "$id" != "null" ]] || return 1
+  printf '%s' "$id"
+}
+
+# argument gh release view/upload/download can resolve (tag or untagged-…)
+release_gh_ref() {
+  local tag="$1"
+  local slug
+  slug="$(releases_json | jq -r --arg tag "$tag" \
+    '.[] | select(.tag_name == $tag) | .html_url' | sed 's#.*/##' | head -n1)"
+  if [[ -n "$slug" && "$slug" != "null" ]]; then
+    printf '%s' "$slug"
+  else
+    printf '%s' "$tag"
+  fi
+}
+
 # full/latest undraft: --yes is not enough; also set DROPSLIM_RELEASE_YES=1
 confirm_full_publish() {
   local version="$1"
@@ -181,7 +259,7 @@ wait_for_workflow() {
   log "waiting for $name on $sha"
   for i in $(seq 1 60); do
     run_id="$(
-      gh run list --repo "$REPO" --workflow "$name" --limit 30 \
+      gh_retry gh run list --repo "$REPO" --workflow "$name" --limit 30 \
         --json databaseId,headSha,event \
         --jq "$jq_filter"
     )"
@@ -221,9 +299,14 @@ wait_for_publish_workflow() {
 }
 
 wait_for_draft_release() {
-  local tag="$1" i
+  local tag="$1" i id
+  log "waiting for draft $tag"
   for i in $(seq 1 60); do
-    gh release view "$tag" --repo "$REPO" >/dev/null 2>&1 && return 0
+    id="$(release_id_for_tag "$tag" || true)"
+    if [[ -n "$id" ]]; then
+      log "found $tag (id $id)"
+      return 0
+    fi
     sleep 5
   done
   die "draft release $tag did not appear"
@@ -231,7 +314,30 @@ wait_for_draft_release() {
 
 release_is_draft() {
   local tag="$1"
-  [[ "$(gh release view "$tag" --repo "$REPO" --json isDraft -q .isDraft)" == "true" ]]
+  [[ "$(releases_json | jq -r --arg tag "$tag" \
+    '.[] | select(.tag_name == $tag) | .draft')" == "true" ]]
+}
+
+mark_prerelease() {
+  local tag="$1"
+  local id
+  id="$(release_id_for_tag "$tag" || true)"
+  if [[ -z "$id" ]]; then
+    log "WARNING: cannot mark prerelease — $tag not found, continuing"
+    return 0
+  fi
+  if gh_retry gh api --method PATCH "repos/${REPO}/releases/${id}" -F prerelease=true >/dev/null; then
+    log "marked $tag as prerelease"
+  else
+    log "WARNING: could not mark $tag as prerelease — continuing"
+  fi
+}
+
+undraft_release() {
+  local tag="$1"
+  local id
+  id="$(release_id_for_tag "$tag")" || die "cannot publish — $tag not found"
+  gh_retry gh api --method PATCH "repos/${REPO}/releases/${id}" -F draft=false >/dev/null
 }
 
 push_current_branch() {
@@ -288,7 +394,7 @@ assert_github_manifest_complete() {
   dir="$(mktemp -d "${TMPDIR:-/tmp}/dropslim-manifest.XXXXXX")"
   trap 'rm -rf "$dir"' EXIT
   for i in 1 2 3 4 5; do
-    gh release download "$tag" -p latest.json -D "$dir" --repo "$REPO" --clobber ||
+    gh_retry gh release download "$(release_gh_ref "$tag")" -p latest.json -D "$dir" --repo "$REPO" --clobber ||
       die "could not download latest.json from $tag"
     log "release manifest platforms: $(jq -c '.platforms | keys' "$dir/latest.json")"
     if manifest_has_required_platforms "$dir/latest.json"; then
@@ -324,15 +430,15 @@ upload_and_merge_mac() {
   [[ -f "dist/${archive}.sig" ]] || die "missing dist/${archive}.sig"
 
   log "uploading macOS assets"
-  gh release upload "$tag" "$dmg" --repo "$REPO" --clobber
-  gh release upload "$tag" "dist/$archive" "dist/${archive}.sig" --repo "$REPO" --clobber
+  gh_retry gh release upload "$(release_gh_ref "$tag")" "$dmg" --repo "$REPO" --clobber
+  gh_retry gh release upload "$(release_gh_ref "$tag")" "dist/$archive" "dist/${archive}.sig" --repo "$REPO" --clobber
 
   log "merging latest.json"
   win_dir="$(mktemp -d "${TMPDIR:-/tmp}/dropslim-win.XXXXXX")"
   trap 'rm -rf "$win_dir"' EXIT
-  gh release download "$tag" -p latest.json -D "$win_dir" --repo "$REPO" --clobber
+  gh_retry gh release download "$(release_gh_ref "$tag")" -p latest.json -D "$win_dir" --repo "$REPO" --clobber
   node scripts/merge-latest-json.mjs dist/latest.json "$win_dir/latest.json" dist/latest.json
-  gh release upload "$tag" dist/latest.json --clobber --repo "$REPO"
+  gh_retry gh release upload "$(release_gh_ref "$tag")" dist/latest.json --clobber --repo "$REPO"
   rm -rf "$win_dir"
   trap - EXIT
 
@@ -513,22 +619,23 @@ log "releasing $TAG (mode=$MODE, branch=$branch)"
 
 # --- 2. windows publish workflow --------------------------------------------
 
-if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+if release_id="$(release_id_for_tag "$TAG" || true)" && [[ -n "$release_id" ]]; then
   release_is_draft "$TAG" ||
     die "$TAG is already published — bump the version or delete the github release first"
   log "draft $TAG already exists — skipping workflow_dispatch"
 else
   log "starting publish workflow on ref $branch"
-  gh workflow run publish.yml --repo "$REPO" --ref "$branch"
+  gh_retry gh workflow run publish.yml --repo "$REPO" --ref "$branch"
   wait_for_publish_workflow "$(git rev-parse HEAD)"
 fi
 
 wait_for_draft_release "$TAG"
 if [[ "$branch" != "main" || "$VERSION" == *-* ]]; then
-  gh release edit "$TAG" --repo "$REPO" --prerelease >/dev/null
-  log "marked $TAG as prerelease"
+  mark_prerelease "$TAG"
 fi
-log "draft release ready: $(gh release view "$TAG" --repo "$REPO" --json url -q .url)"
+log "draft release ready: https://github.com/$REPO/releases (tag $TAG)"
+log "draft url: $(releases_json | jq -r --arg tag "$TAG" \
+  '.[] | select(.tag_name == $tag) | .html_url')"
 
 # --- 3-5. mac build, upload, merge ------------------------------------------
 
@@ -556,7 +663,7 @@ fi
 
 confirm_full_publish "$VERSION" || die "aborted before publish — draft remains"
 
-gh release edit "$TAG" --repo "$REPO" --draft=false
+undraft_release "$TAG"
 if [[ "$SKIP_MAC" -eq 0 ]]; then
   sync_updater_manifest "$VERSION"
 fi
