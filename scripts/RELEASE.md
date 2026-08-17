@@ -89,7 +89,7 @@ Bump → CI → Windows draft → Mac → upload/merge → undraft (full only)
 Working tree must be clean again (bump is already on the remote).
 
 - Stopped mid-way, draft exists: `bash scripts/release.sh --continue` (reuses `dist/` dmg if already built)
-- GitHub 502/503/429 / `release not found`: retries, then asks. Drafts are uploaded by **release id** (untagged drafts have no git tag)
+- GitHub 502/503/429 / `release not found`: retries, then asks. Drafts are uploaded by **release id**. Lookup is exact tag or title only (`DropSlim v1.6.2` must not match `…-feature-…`).
 - Mac already up, only undraft left: `--continue --skip-mac` on `main`
 - Tag already live: don’t reuse, next version
 

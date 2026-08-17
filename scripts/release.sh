@@ -121,21 +121,16 @@ releases_json() {
   gh_retry gh api "repos/${REPO}/releases?per_page=100"
 }
 
-# one release object: tag_name, name "DropSlim v…", or an asset with this version
+# one release object: exact tag_name or exact title (never substring — 1.6.2 must not match 1.6.2-feature-…)
 find_release() {
   local tag="$1"
-  local version="${tag#v}"
   local title="DropSlim ${tag}"
-  releases_json | jq -c --arg tag "$tag" --arg version "$version" --arg title "$title" '
+  releases_json | jq -c --arg tag "$tag" --arg title "$title" '
     [
       .[] | select(
         .tag_name == $tag
         or .name == $title
         or .name == $tag
-        or (
-          (.assets | type == "array")
-          and ([.assets[].name] | any(contains($version)))
-        )
       )
     ] | .[0] // empty
   '
