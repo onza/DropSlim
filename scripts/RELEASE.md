@@ -89,6 +89,7 @@ Bump → CI → Windows draft → Mac → upload/merge → undraft (full only)
 Working tree must be clean again (bump is already on the remote).
 
 - Stopped mid-way, draft exists: `bash scripts/release.sh --continue`
+- GitHub 502/503/429: retries, then asks to try again. Drafts are found by `tag_name` even when the URL is `untagged-…`
 - Mac already up, only undraft left: `--continue --skip-mac` on `main`
 - Tag already live: don’t reuse, next version
 
