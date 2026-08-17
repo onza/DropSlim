@@ -67,7 +67,7 @@ confirm() {
 
 # GitHub 502/503/429 — retry, then ask (Enter = try again). --yes: no prompt, abort.
 is_github_transient() {
-  grep -Eqi 'HTTP 502|HTTP 503|HTTP 429|Service Unavailable|try resubmitting|no server is currently available'
+  grep -Eqi 'HTTP 502|HTTP 503|HTTP 429|Service Unavailable|try resubmitting|no server is currently available|release not found'
 }
 
 confirm_github_retry() {
@@ -116,31 +116,95 @@ gh_retry() {
   done
 }
 
-# drafts often have no git tag yet (html_url = .../untagged-…). look up by tag_name.
+# drafts often have no git tag (list tag_name = untagged-…). never use `gh release upload <tag>`.
 releases_json() {
-  gh_retry gh api "repos/${REPO}/releases"
+  gh_retry gh api "repos/${REPO}/releases?per_page=100"
+}
+
+# one release object: tag_name, name "DropSlim v…", or an asset with this version
+find_release() {
+  local tag="$1"
+  local version="${tag#v}"
+  local title="DropSlim ${tag}"
+  releases_json | jq -c --arg tag "$tag" --arg version "$version" --arg title "$title" '
+    [
+      .[] | select(
+        .tag_name == $tag
+        or .name == $title
+        or .name == $tag
+        or (
+          (.assets | type == "array")
+          and ([.assets[].name] | any(contains($version)))
+        )
+      )
+    ] | .[0] // empty
+  '
 }
 
 release_id_for_tag() {
-  local tag="$1"
-  local id
-  id="$(releases_json | jq -r --arg tag "$tag" \
-    '.[] | select(.tag_name == $tag) | .id' | head -n1)"
+  local obj id
+  obj="$(find_release "$1")"
+  [[ -n "$obj" && "$obj" != "null" ]] || return 1
+  id="$(jq -r '.id // empty' <<<"$obj")"
   [[ -n "$id" && "$id" != "null" ]] || return 1
   printf '%s' "$id"
 }
 
-# argument gh release view/upload/download can resolve (tag or untagged-…)
-release_gh_ref() {
-  local tag="$1"
-  local slug
-  slug="$(releases_json | jq -r --arg tag "$tag" \
-    '.[] | select(.tag_name == $tag) | .html_url' | sed 's#.*/##' | head -n1)"
-  if [[ -n "$slug" && "$slug" != "null" ]]; then
-    printf '%s' "$slug"
-  else
-    printf '%s' "$tag"
+release_html_url() {
+  local obj url
+  obj="$(find_release "$1")"
+  [[ -n "$obj" && "$obj" != "null" ]] || return 1
+  url="$(jq -r '.html_url // empty' <<<"$obj")"
+  [[ -n "$url" && "$url" != "null" ]] || return 1
+  printf '%s' "$url"
+}
+
+delete_release_asset_named() {
+  local id="$1"
+  local name="$2"
+  local asset_id
+  asset_id="$(
+    gh_retry gh api "repos/${REPO}/releases/${id}/assets" |
+      jq -r --arg n "$name" '.[] | select(.name == $n) | .id' | head -n1
+  )"
+  if [[ -n "$asset_id" && "$asset_id" != "null" ]]; then
+    log "replacing existing $name"
+    gh_retry gh api --method DELETE "repos/${REPO}/releases/assets/${asset_id}" >/dev/null
   fi
+}
+
+# upload by release id (works for untagged drafts)
+upload_release_file() {
+  local id="$1"
+  local file="$2"
+  local name encoded token
+  [[ -f "$file" ]] || die "missing file $file"
+  name="$(basename "$file")"
+  encoded="$(jq -nr --arg n "$name" '$n | @uri')"
+  token="$(gh auth token)"
+  delete_release_asset_named "$id" "$name"
+  log "uploading $name"
+  gh_retry curl -fsS -X POST \
+    -H "Authorization: Bearer ${token}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "Content-Type: application/octet-stream" \
+    --data-binary "@${file}" \
+    "https://uploads.github.com/repos/${REPO}/releases/${id}/assets?name=${encoded}" >/dev/null
+}
+
+download_release_asset() {
+  local id="$1"
+  local name="$2"
+  local dest="$3"
+  local asset_id
+  asset_id="$(
+    gh_retry gh api "repos/${REPO}/releases/${id}/assets" |
+      jq -r --arg n "$name" '.[] | select(.name == $n) | .id' | head -n1
+  )"
+  [[ -n "$asset_id" && "$asset_id" != "null" ]] || return 1
+  mkdir -p "$(dirname "$dest")"
+  gh_retry gh api -H "Accept: application/octet-stream" \
+    "repos/${REPO}/releases/assets/${asset_id}" >"$dest"
 }
 
 # full/latest undraft: --yes is not enough; also set DROPSLIM_RELEASE_YES=1
@@ -299,12 +363,14 @@ wait_for_publish_workflow() {
 }
 
 wait_for_draft_release() {
-  local tag="$1" i id
+  local tag="$1" i id url
   log "waiting for draft $tag"
   for i in $(seq 1 60); do
     id="$(release_id_for_tag "$tag" || true)"
     if [[ -n "$id" ]]; then
+      url="$(release_html_url "$tag" || true)"
       log "found $tag (id $id)"
+      [[ -n "$url" ]] && log "draft url: $url"
       return 0
     fi
     sleep 5
@@ -314,8 +380,7 @@ wait_for_draft_release() {
 
 release_is_draft() {
   local tag="$1"
-  [[ "$(releases_json | jq -r --arg tag "$tag" \
-    '.[] | select(.tag_name == $tag) | .draft')" == "true" ]]
+  [[ "$(find_release "$tag" | jq -r '.draft // empty')" == "true" ]]
 }
 
 mark_prerelease() {
@@ -390,11 +455,12 @@ manifest_has_required_platforms() {
 # full publish: github latest.json must have mac + windows (source of truth)
 assert_github_manifest_complete() {
   local tag="$1"
-  local dir i
+  local id dir i
+  id="$(release_id_for_tag "$tag")" || die "release $tag not found"
   dir="$(mktemp -d "${TMPDIR:-/tmp}/dropslim-manifest.XXXXXX")"
   trap 'rm -rf "$dir"' EXIT
   for i in 1 2 3 4 5; do
-    gh_retry gh release download "$(release_gh_ref "$tag")" -p latest.json -D "$dir" --repo "$REPO" --clobber ||
+    download_release_asset "$id" latest.json "$dir/latest.json" ||
       die "could not download latest.json from $tag"
     log "release manifest platforms: $(jq -c '.platforms | keys' "$dir/latest.json")"
     if manifest_has_required_platforms "$dir/latest.json"; then
@@ -407,11 +473,38 @@ assert_github_manifest_complete() {
   die "full publish needs darwin-aarch64 and windows-x86_64 in $tag latest.json — draft remains"
 }
 
+mac_artifacts_present() {
+  local version="$1"
+  local dmg archive
+  dmg="dist/DropSlim_${version}_aarch64.dmg"
+  [[ -f "$dmg" ]] || return 1
+  [[ -f dist/latest.json ]] || return 1
+  archive="$(jq -r '.platforms["darwin-aarch64"].url // empty' dist/latest.json)"
+  archive="$(basename "$archive")"
+  [[ -n "$archive" && -f "dist/$archive" && -f "dist/${archive}.sig" ]]
+}
+
+assert_mac_assets_on_release() {
+  local tag="$1"
+  local id names
+  id="$(release_id_for_tag "$tag")" || die "release $tag not found after upload"
+  names="$(gh_retry gh api "repos/${REPO}/releases/${id}/assets" | jq -r '.[].name')"
+  printf '%s\n' "$names" | grep -q '_aarch64.dmg$' ||
+    die "mac dmg missing on $tag — draft is incomplete"
+  printf '%s\n' "$names" | grep -q 'DropSlim.app.tar.gz$' ||
+    die "updater archive missing on $tag — draft is incomplete"
+  printf '%s\n' "$names" | grep -qx 'latest.json' ||
+    die "latest.json missing on $tag — draft is incomplete"
+}
+
 upload_and_merge_mac() {
   local tag="$1"
   local version="$2"
-  local dmg win_dir platforms archive
+  local id dmg win_dir platforms archive
   local dmgs=()
+
+  id="$(release_id_for_tag "$tag")" ||
+    die "cannot upload mac — $tag not found (draft may be untagged; lookup by name/assets failed)"
 
   dmg="dist/DropSlim_${version}_aarch64.dmg"
   if [[ ! -f "$dmg" ]]; then
@@ -429,16 +522,18 @@ upload_and_merge_mac() {
     die "missing updater archive dist/$archive (from latest.json)"
   [[ -f "dist/${archive}.sig" ]] || die "missing dist/${archive}.sig"
 
-  log "uploading macOS assets"
-  gh_retry gh release upload "$(release_gh_ref "$tag")" "$dmg" --repo "$REPO" --clobber
-  gh_retry gh release upload "$(release_gh_ref "$tag")" "dist/$archive" "dist/${archive}.sig" --repo "$REPO" --clobber
+  log "uploading macOS assets to release $id"
+  upload_release_file "$id" "$dmg"
+  upload_release_file "$id" "dist/$archive"
+  upload_release_file "$id" "dist/${archive}.sig"
 
   log "merging latest.json"
   win_dir="$(mktemp -d "${TMPDIR:-/tmp}/dropslim-win.XXXXXX")"
   trap 'rm -rf "$win_dir"' EXIT
-  gh_retry gh release download "$(release_gh_ref "$tag")" -p latest.json -D "$win_dir" --repo "$REPO" --clobber
+  download_release_asset "$id" latest.json "$win_dir/latest.json" ||
+    die "could not download windows latest.json from $tag"
   node scripts/merge-latest-json.mjs dist/latest.json "$win_dir/latest.json" dist/latest.json
-  gh_retry gh release upload "$(release_gh_ref "$tag")" dist/latest.json --clobber --repo "$REPO"
+  upload_release_file "$id" dist/latest.json
   rm -rf "$win_dir"
   trap - EXIT
 
@@ -576,6 +671,7 @@ need_cmd gh
 need_cmd jq
 need_cmd npm
 need_cmd node
+need_cmd curl
 
 [[ "$(uname -s)" == "Darwin" ]] || [[ "$SKIP_MAC" -eq 1 ]] ||
   die "macOS build requires Darwin (use --skip-mac on other hosts)"
@@ -633,18 +729,22 @@ wait_for_draft_release "$TAG"
 if [[ "$branch" != "main" || "$VERSION" == *-* ]]; then
   mark_prerelease "$TAG"
 fi
-log "draft release ready: https://github.com/$REPO/releases (tag $TAG)"
-log "draft url: $(releases_json | jq -r --arg tag "$TAG" \
-  '.[] | select(.tag_name == $tag) | .html_url')"
+log "draft release ready: $(release_html_url "$TAG" || printf 'https://github.com/%s/releases' "$REPO")"
 
 # --- 3-5. mac build, upload, merge ------------------------------------------
 
 if [[ "$SKIP_MAC" -eq 1 ]]; then
-  log "skipping macOS build/upload (--skip-mac)"
+  log "skipping macOS build/upload (skip mac = yes)"
 else
-  log "macOS release build (notarization may take several minutes)"
-  bash "$root/scripts/build.sh"
+  if mac_artifacts_present "$VERSION"; then
+    log "mac artifacts already in dist — skipping notarize, uploading"
+  else
+    log "macOS release build (notarization may take several minutes)"
+    bash "$root/scripts/build.sh"
+  fi
   upload_and_merge_mac "$TAG" "$VERSION"
+  assert_mac_assets_on_release "$TAG"
+  log "macOS assets on draft: dmg + updater archive + latest.json"
 fi
 
 # --- 6. publish or keep draft -----------------------------------------------
