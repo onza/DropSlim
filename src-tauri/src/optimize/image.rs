@@ -11,6 +11,7 @@ use oxvg_ast::serialize::Node;
 use oxvg_ast::visitor::Info;
 use oxvg_optimiser::Jobs;
 use ravif::{Encoder, Img, RGBA8};
+use serde::{Deserialize, Serialize};
 use zenjpeg::encoder::{ChromaSubsampling, EncoderConfig, PixelLayout, Unstoppable};
 
 use super::animation::ensure_not_animated;
@@ -29,6 +30,15 @@ const AVIF_QUALITY: f32 = 50.0;
 const AVIF_SPEED: u8 = 4;
 
 pub type DimensionLimits = (Option<u32>, Option<u32>);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DimensionChange {
+    pub from_width: u32,
+    pub from_height: u32,
+    pub to_width: u32,
+    pub to_height: u32,
+}
 
 fn scaled_dimensions(
     width: u32,
@@ -54,23 +64,36 @@ fn scaled_dimensions(
     Some((new_width, new_height))
 }
 
-fn apply_dimension_limits(img: DynamicImage, limits: Option<DimensionLimits>) -> DynamicImage {
+fn apply_dimension_limits(
+    img: DynamicImage,
+    limits: Option<DimensionLimits>,
+) -> (DynamicImage, Option<DimensionChange>) {
     let Some((max_width, max_height)) = limits else {
-        return img;
+        return (img, None);
     };
 
     let (width, height) = img.dimensions();
     let Some((new_width, new_height)) = scaled_dimensions(width, height, max_width, max_height)
     else {
-        return img;
+        return (img, None);
     };
 
-    img.resize_exact(new_width, new_height, FilterType::Lanczos3)
+    let change = DimensionChange {
+        from_width: width,
+        from_height: height,
+        to_width: new_width,
+        to_height: new_height,
+    };
+
+    (
+        img.resize_exact(new_width, new_height, FilterType::Lanczos3),
+        Some(change),
+    )
 }
 
-fn with_safe_source<F>(input: &Path, output: &Path, optimize: F) -> Result<(), ErrorPayload>
+fn with_safe_source<F, T>(input: &Path, output: &Path, optimize: F) -> Result<T, ErrorPayload>
 where
-    F: FnOnce(&Path, &Path) -> Result<(), ErrorPayload>,
+    F: FnOnce(&Path, &Path) -> Result<T, ErrorPayload>,
 {
     if input == output {
         let tmp = TempFile::at(output);
@@ -106,12 +129,13 @@ fn optimize_jpeg(
     input: &Path,
     output: &Path,
     limits: Option<DimensionLimits>,
-) -> Result<(), String> {
-    let img = apply_dimension_limits(
+) -> Result<Option<DimensionChange>, String> {
+    let (img, change) = apply_dimension_limits(
         image::open(input).map_err(|error| error.to_string())?,
         limits,
     );
-    encode_jpeg_image(img, output)
+    encode_jpeg_image(img, output)?;
+    Ok(change)
 }
 
 fn encode_jpeg_image(img: DynamicImage, output: &Path) -> Result<(), String> {
@@ -231,25 +255,26 @@ fn optimize_png(
     input: &Path,
     output: &Path,
     limits: Option<DimensionLimits>,
-) -> Result<(), String> {
+) -> Result<Option<DimensionChange>, String> {
     if limits.is_some() {
         let original = image::open(input).map_err(|error| error.to_string())?;
-        let before = original.dimensions();
-        let img = apply_dimension_limits(original, limits);
-        if img.dimensions() != before {
-            return if png_uses_palette(input)? {
-                optimize_png_quantized_image(img, output)
+        let (img, change) = apply_dimension_limits(original, limits);
+        if let Some(change) = change {
+            if png_uses_palette(input)? {
+                optimize_png_quantized_image(img, output)?;
             } else {
-                optimize_png_from_image(img, output)
-            };
+                optimize_png_from_image(img, output)?;
+            }
+            return Ok(Some(change));
         }
     }
 
     if png_uses_palette(input)? {
-        optimize_png_quantized(input, output)
+        optimize_png_quantized(input, output)?;
     } else {
-        optimize_png_oxipng_only(input, output)
+        optimize_png_oxipng_only(input, output)?;
     }
+    Ok(None)
 }
 
 fn optimize_gif(input: &Path, output: &Path, gifsicle: &Path) -> Result<(), String> {
@@ -285,12 +310,13 @@ fn optimize_webp(
     input: &Path,
     output: &Path,
     limits: Option<DimensionLimits>,
-) -> Result<(), String> {
-    let img = apply_dimension_limits(
+) -> Result<Option<DimensionChange>, String> {
+    let (img, change) = apply_dimension_limits(
         image::open(input).map_err(|error| error.to_string())?,
         limits,
     );
-    encode_webp_image(img, output)
+    encode_webp_image(img, output)?;
+    Ok(change)
 }
 
 fn encode_webp_image(img: DynamicImage, output: &Path) -> Result<(), String> {
@@ -307,12 +333,13 @@ fn optimize_avif(
     input: &Path,
     output: &Path,
     limits: Option<DimensionLimits>,
-) -> Result<(), String> {
-    let img = apply_dimension_limits(
+) -> Result<Option<DimensionChange>, String> {
+    let (img, change) = apply_dimension_limits(
         image::open(input).map_err(|error| error.to_string())?,
         limits,
     );
-    encode_avif_image(img, output)
+    encode_avif_image(img, output)?;
+    Ok(change)
 }
 
 fn encode_avif_image(img: DynamicImage, output: &Path) -> Result<(), String> {
@@ -376,12 +403,13 @@ fn convert_raster(
     output: &Path,
     target: ImageFormat,
     limits: Option<DimensionLimits>,
-) -> Result<(), String> {
-    let img = apply_dimension_limits(
+) -> Result<Option<DimensionChange>, String> {
+    let (img, change) = apply_dimension_limits(
         image::open(input).map_err(|error| error.to_string())?,
         limits,
     );
-    encode_converted_image(img, output, target)
+    encode_converted_image(img, output, target)?;
+    Ok(change)
 }
 
 fn convert_heic(
@@ -389,9 +417,10 @@ fn convert_heic(
     output: &Path,
     target: ImageFormat,
     limits: Option<DimensionLimits>,
-) -> Result<(), ErrorPayload> {
-    let img = apply_dimension_limits(decode_heic(input)?, limits);
-    encode_converted_image(img, output, target).map_err(io_error)
+) -> Result<Option<DimensionChange>, ErrorPayload> {
+    let (img, change) = apply_dimension_limits(decode_heic(input)?, limits);
+    encode_converted_image(img, output, target).map_err(io_error)?;
+    Ok(change)
 }
 
 pub fn optimize_image_file(
@@ -400,7 +429,7 @@ pub fn optimize_image_file(
     project_root: &Path,
     dimension_limits: Option<DimensionLimits>,
     output_format: OutputFormatSetting,
-) -> Result<(), ErrorPayload> {
+) -> Result<Option<DimensionChange>, ErrorPayload> {
     let input_format =
         ImageFormat::from_path(input).ok_or_else(ErrorPayload::unsupported_format)?;
 
@@ -430,7 +459,9 @@ pub fn optimize_image_file(
     }
 
     with_safe_source(input, output, |source, destination| match input_format {
-        ImageFormat::Svg => optimize_svg(source, destination).map_err(io_error),
+        ImageFormat::Svg => optimize_svg(source, destination)
+            .map_err(io_error)
+            .map(|()| None),
         ImageFormat::Jpeg => optimize_jpeg(source, destination, raster_limits).map_err(io_error),
         ImageFormat::Png => optimize_png(source, destination, raster_limits).map_err(io_error),
         ImageFormat::Gif => {
@@ -439,10 +470,11 @@ pub fn optimize_image_file(
                 .ok_or_else(ErrorPayload::gif_optimizer_unavailable)?;
             optimize_gif(source, destination, gifsicle)
                 .map_err(|message| ErrorPayload::from_message(&message))
+                .map(|()| None)
         }
         ImageFormat::Webp => optimize_webp(source, destination, raster_limits).map_err(io_error),
         ImageFormat::Avif => optimize_avif(source, destination, raster_limits).map_err(io_error),
-        ImageFormat::Heic => optimize_heic(source, destination),
+        ImageFormat::Heic => optimize_heic(source, destination).map(|()| None),
     })
 }
 
@@ -521,6 +553,30 @@ mod tests {
             .color_type;
 
         assert_eq!(info, png::ColorType::Indexed);
+    }
+
+    #[test]
+    fn reports_dimension_change_only_when_downscaled() {
+        let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
+            ImageBuffer::from_pixel(80, 60, Rgba([12, 34, 56, 255]));
+        let dynamic = DynamicImage::ImageRgba8(img);
+
+        let (unchanged, no_change) =
+            apply_dimension_limits(dynamic.clone(), Some((Some(800), None)));
+        assert_eq!(unchanged.dimensions(), (80, 60));
+        assert_eq!(no_change, None);
+
+        let (scaled, change) = apply_dimension_limits(dynamic, Some((Some(40), None)));
+        assert_eq!(scaled.dimensions(), (40, 30));
+        assert_eq!(
+            change,
+            Some(DimensionChange {
+                from_width: 80,
+                from_height: 60,
+                to_width: 40,
+                to_height: 30,
+            })
+        );
     }
 
     #[test]

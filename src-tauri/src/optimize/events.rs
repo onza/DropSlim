@@ -24,6 +24,7 @@ pub(crate) enum ProcessorEvent {
         output_path: String,
         summary: SummaryPayload,
         source_name: String,
+        resized: Option<crate::optimize::DimensionChange>,
     },
     DropError {
         file_name: String,
@@ -44,6 +45,8 @@ struct ImageOptimizedEvent {
     output_path: String,
     summary: SummaryPayload,
     source_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    resized: Option<crate::optimize::DimensionChange>,
 }
 
 #[derive(Serialize, Clone)]
@@ -84,6 +87,7 @@ impl EventSink for AppEventSink {
                 output_path,
                 summary,
                 source_name,
+                resized,
             } => {
                 if let Err(error) = self.0.emit(
                     "image-optimized",
@@ -91,6 +95,7 @@ impl EventSink for AppEventSink {
                         output_path,
                         summary,
                         source_name,
+                        resized,
                     },
                 ) {
                     eprintln!("image-optimized emit failed: {error}");
@@ -208,6 +213,7 @@ mod tests {
                 size: "40 KB".to_string(),
             },
             source_name: "photo.png".to_string(),
+            resized: None,
         });
 
         assert!(matches!(
