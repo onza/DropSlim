@@ -140,6 +140,13 @@ base_semver() {
   printf '%s' "${1%%-*}"
 }
 
+# 1.6.1 → 1.6.2 (feature drafts you install should sort after the live version)
+increment_patch() {
+  local major minor patch
+  IFS=. read -r major minor patch <<< "$1"
+  printf '%s.%s.%s' "$major" "$minor" "$((patch + 1))"
+}
+
 # base 1.6.2 + slug fix-updater → next free 1.6.2-fix-updater.N
 next_branch_version() {
   local base="$1"
@@ -343,8 +350,8 @@ run_interactive() {
   [[ -z "$(git status --porcelain)" ]] ||
     die "working tree is dirty — stash or commit wip first (e.g. git stash push -u)"
 
-  log "interactive release"
-  log "branch: $branch"
+  log "on branch $branch"
+  log "Enter accepts the value in [brackets]"
 
   if [[ "$branch" == "main" ]]; then
     version_answer="$(ask "version (enter = continue with ${current})" "$current")"
@@ -366,6 +373,9 @@ run_interactive() {
     summary_mode="$MODE"
   else
     base="$(base_semver "$current")"
+    if [[ "$current" != *-* ]]; then
+      base="$(increment_patch "$base")"
+    fi
     base="$(ask "base version for test release" "$base")"
     [[ "$base" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "base version must be x.y.z (got: $base)"
     slug="$(branch_slug "$branch")"

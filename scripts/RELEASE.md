@@ -48,7 +48,7 @@ bash scripts/release.sh 1.6.2 --draft-only
 bash scripts/release.sh --continue          # version already in package.json
 ```
 
-Feature branch: dialog suggests the next `x.y.z-<branch>.<n>` and forces draft.
+Feature branch: dialog defaults the base to the **next patch** (`1.6.1` → `1.6.2`) so the draft sorts after the live app, then `x.y.z-<branch>.<n>`. Always draft. Already a prerelease in `package.json` → keep that `x.y.z` and bump `.n`.
 
 <br>
 
