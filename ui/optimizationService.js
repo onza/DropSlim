@@ -165,7 +165,12 @@ export const createEventSubscriptions = () => ({
     emitEvent('batch-progress', (done, total) => callback(done, total)),
   onOptimized: (callback) =>
     emitEvent('image-optimized', (payload) =>
-      callback(payload.outputPath, payload.summary, payload.sourceName)
+      callback(
+        payload.outputPath,
+        payload.summary,
+        payload.sourceName,
+        payload.resized ?? null
+      )
     ),
   onFileProcessing: (callback) =>
     emitEvent('file-processing', (fileName) => callback(fileName)),

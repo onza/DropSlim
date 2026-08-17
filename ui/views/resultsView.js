@@ -1,5 +1,6 @@
 import { t, tCount } from '../i18n/index.js'
 import { formatBackendError, formatBackendSummary } from '../i18n/backend.js'
+import { formatResultSummaryLine } from '../utils/resultBadges.js'
 
 const MAX_RESULT_ROWS = 100
 
@@ -194,35 +195,19 @@ export const initResultsView = (api) => {
     addProcessingLine(fileName)
   })
 
-  const normalizeExt = (ext) => (ext === 'jpeg' ? 'jpg' : ext)
-
-  const formatConvertBadge = (sourceFileName, outputPath) => {
-    const sourceExt = normalizeExt(
-      (sourceFileName ?? '').split('.').pop()?.toLowerCase()
-    )
-    const outputExt = normalizeExt(
-      (outputPath ?? '').split('.').pop()?.toLowerCase()
-    )
-
-    if (!sourceExt || !outputExt || sourceExt === outputExt) {
-      return null
-    }
-
-    return `${sourceExt.toUpperCase()} → ${outputExt.toUpperCase()}`
-  }
-
-  api.onOptimized((path, summary, sourceFileName) => {
+  api.onOptimized((path, summary, sourceFileName, resized) => {
     finishProcessing(sourceFileName)
 
     const resContainer = document.createElement('div')
     resContainer.className = 'resLine'
 
     const summarySpan = document.createElement('span')
-    const badge = formatConvertBadge(sourceFileName, path)
-    const summaryText = formatBackendSummary(summary)
-    summarySpan.textContent = badge
-      ? `${summaryText}  ·  ${badge}`
-      : summaryText
+    summarySpan.textContent = formatResultSummaryLine(
+      formatBackendSummary(summary),
+      sourceFileName,
+      path,
+      resized
+    )
     resContainer.appendChild(summarySpan)
 
     const resElement = document.createElement('a')

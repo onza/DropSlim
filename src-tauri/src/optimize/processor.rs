@@ -8,7 +8,7 @@ use tokio::task::JoinSet;
 use super::collect;
 use super::events::{app_event_sink, EventSink, ProcessorEvent};
 use super::formats::{ImageFormat, OutputFormatSetting};
-use super::image::optimize_image_file;
+use super::image::{optimize_image_file, DimensionChange};
 use super::output_path::{build_output_path, custom_save_folder_missing, UserSettings};
 use super::payloads::ErrorPayload;
 use super::summary::{
@@ -136,6 +136,7 @@ struct ResolvedOptimization {
     output_path: PathBuf,
     summary: super::payloads::SummaryPayload,
     size_after: u64,
+    resized: Option<DimensionChange>,
 }
 
 fn resolve_optimization(
@@ -152,7 +153,7 @@ fn resolve_optimization(
     let candidate_path = candidate.path();
     let force_keep = is_real_format_convert(file_path, output_format);
 
-    optimize_image_file(
+    let resized = optimize_image_file(
         file_path,
         candidate_path,
         project_root,
@@ -176,12 +177,14 @@ fn resolve_optimization(
                 previous_output_size,
             ),
             size_after: candidate_size,
+            resized,
         })
     } else {
         Ok(ResolvedOptimization {
             output_path: report_output_path(file_path, output_path, previous_output_size, false),
             summary: build_optimize_summary_payload(size_orig, threshold, previous_output_size),
             size_after: threshold,
+            resized: None,
         })
     }
 }
@@ -234,6 +237,7 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
             file_name,
             size_orig,
             resolved.size_after,
+            resolved.resized,
         ))
     })
     .await
@@ -243,11 +247,12 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
     let mut batch = batch.lock().await;
 
     match result {
-        Ok((output_path, summary, source_name, size_orig, size_optimized)) => {
+        Ok((output_path, summary, source_name, size_orig, size_optimized, resized)) => {
             sink.send(ProcessorEvent::ImageOptimized {
                 output_path: output_path.to_string_lossy().to_string(),
                 summary,
                 source_name,
+                resized,
             });
             batch.complete_success(size_orig, size_optimized);
         }
@@ -805,6 +810,50 @@ mod tests {
                 .extension()
                 .and_then(|e| e.to_str())
                 == Some("avif")
+        );
+    }
+
+    #[tokio::test]
+    async fn emits_resized_when_dimension_limits_scale_image() {
+        let dir = tempdir().expect("tempdir");
+        let file = dir.path().join("large.png");
+        let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
+            ImageBuffer::from_pixel(80, 60, Rgba([12, 34, 56, 255]));
+        img.save(&file).expect("write png");
+
+        let recording = Arc::new(RecordingEventSink::new());
+        process_paths_with_sink(
+            Arc::clone(&recording),
+            vec![file.to_string_lossy().to_string()],
+            UserSettings {
+                limit_dimensions: true,
+                max_width: Some(40),
+                max_height: None,
+                ..Default::default()
+            },
+            project_root(),
+            no_cancel(),
+        )
+        .await
+        .expect("process paths");
+
+        let resized = recording
+            .events()
+            .into_iter()
+            .find_map(|event| match event {
+                ProcessorEvent::ImageOptimized { resized, .. } => resized,
+                _ => None,
+            })
+            .expect("resized payload");
+
+        assert_eq!(
+            resized,
+            DimensionChange {
+                from_width: 80,
+                from_height: 60,
+                to_width: 40,
+                to_height: 30,
+            }
         );
     }
 
