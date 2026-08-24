@@ -55,9 +55,9 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFCNTg1REM1QTEyOTIwOUYKUldTZklDbWh4VjFZRzJkN2JmZTU1TzhFbkpMbldQSjMrSzJVYVNCU0lEWXNSb0hHa25Sd3VZbHQK",
       "endpoints": [
-        "https://cdn.jsdelivr.net/gh/onza/DropSlim@main/updater/latest.json",
         "https://raw.githubusercontent.com/onza/DropSlim/main/updater/latest.json",
-        "https://github.com/onza/DropSlim/releases/latest/download/latest.json"
+        "https://github.com/onza/DropSlim/releases/latest/download/latest.json",
+        "https://cdn.jsdelivr.net/gh/onza/DropSlim@main/updater/latest.json"
       ]
     }
   }
