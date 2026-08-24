@@ -2,11 +2,10 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 
-use tauri::AppHandle;
 use tokio::task::JoinSet;
 
 use super::collect;
-use super::events::{app_event_sink, EventSink, ProcessorEvent};
+use super::events::{EventSink, ProcessorEvent};
 use super::formats::{ImageFormat, OutputFormatSetting};
 use super::image::{optimize_image_file, DimensionChange};
 use super::output_path::{build_output_path, custom_save_folder_missing, UserSettings};
@@ -376,23 +375,6 @@ pub(crate) async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
     }
 
     Ok(())
-}
-
-pub async fn process_paths(
-    app: AppHandle,
-    input_paths: Vec<String>,
-    settings: UserSettings,
-    project_root: PathBuf,
-    cancel: Arc<AtomicBool>,
-) -> Result<(), String> {
-    process_paths_with_sink(
-        app_event_sink(app),
-        input_paths,
-        settings,
-        project_root,
-        cancel,
-    )
-    .await
 }
 
 #[cfg(test)]

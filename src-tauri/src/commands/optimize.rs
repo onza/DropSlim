@@ -1,5 +1,5 @@
 use super::shared::project_root;
-use crate::optimize::{process_paths, ErrorPayload, UserSettings};
+use crate::optimize::{app_event_sink, process_paths_with_sink, ErrorPayload, UserSettings};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tauri::{AppHandle, Manager};
@@ -33,8 +33,8 @@ pub async fn optimize_paths(
 
     state.cancel.store(false, Ordering::SeqCst);
     let project_root = project_root(&app).map_err(ErrorPayload::io)?;
-    process_paths(
-        app.clone(),
+    process_paths_with_sink(
+        app_event_sink(app.clone()),
         paths,
         settings,
         project_root,

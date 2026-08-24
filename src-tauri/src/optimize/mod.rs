@@ -15,4 +15,5 @@ pub use formats::OutputFormatSetting;
 pub use image::{optimize_image_file, DimensionChange, DimensionLimits};
 pub use output_path::UserSettings;
 pub use payloads::ErrorPayload;
-pub use processor::process_paths;
+pub(crate) use events::app_event_sink;
+pub(crate) use processor::process_paths_with_sink;
