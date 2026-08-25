@@ -24,6 +24,8 @@ jobs:
           filters: |
             rust:
               - 'src-tauri/**'
+              - 'crates/**'
+              - 'Cargo.toml'
               - 'scripts/**'
               - 'package.json'
               - 'package-lock.json'
@@ -85,7 +87,10 @@ jobs:
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: src-tauri
+          workspaces: |
+            .
+            src-tauri
+            crates/dropslim-core
 
       - name: Cache Homebrew
         if: runner.os == 'macOS'

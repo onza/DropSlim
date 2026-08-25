@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-ui/
+target/
 src-tauri/target/
 src-tauri/resources/
 src-tauri/dav1d.dll

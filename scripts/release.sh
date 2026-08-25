@@ -417,9 +417,9 @@ bump_version() {
     fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
   " "$next"
   npm run version
-  git add package.json src-tauri/Cargo.toml
-  if [[ -n "$(git status --porcelain -- src-tauri/Cargo.lock)" ]]; then
-    git add src-tauri/Cargo.lock
+  git add package.json src-tauri/Cargo.toml crates/dropslim-core/Cargo.toml
+  if [[ -n "$(git status --porcelain -- Cargo.lock)" ]]; then
+    git add Cargo.lock
   fi
   git commit -m "$(printf 'release: bump version to %s\n' "$next")"
   push_current_branch

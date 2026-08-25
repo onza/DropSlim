@@ -1350,19 +1350,13 @@ dependencies = [
 name = "dropslim"
 version = "1.6.2"
 dependencies = [
+ "dropslim-core",
  "image",
- "imagequant",
- "mp4parse",
  "objc2",
  "objc2-app-kit",
  "objc2-core-foundation",
  "objc2-foundation",
  "objc2-image-io",
- "oxipng",
- "oxvg_ast",
- "oxvg_optimiser",
- "png 0.18.1",
- "ravif",
  "rfd",
  "serde",
  "serde_json",
@@ -1376,9 +1370,31 @@ dependencies = [
  "tauri-plugin-updater",
  "tempfile",
  "tokio",
+ "window-vibrancy",
+]
+
+[[package]]
+name = "dropslim-core"
+version = "1.6.2"
+dependencies = [
+ "image",
+ "imagequant",
+ "mp4parse",
+ "objc2",
+ "objc2-core-foundation",
+ "objc2-foundation",
+ "objc2-image-io",
+ "oxipng",
+ "oxvg_ast",
+ "oxvg_optimiser",
+ "png 0.18.1",
+ "ravif",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
  "walkdir",
  "webp",
- "window-vibrancy",
  "zenjpeg",
 ]
 

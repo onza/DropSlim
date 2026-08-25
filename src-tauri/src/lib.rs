@@ -2,6 +2,7 @@ mod app_menu;
 mod commands;
 mod native_ui;
 pub mod optimize;
+mod optimize_events;
 mod platform;
 mod startup_paths;
 
