@@ -7,6 +7,7 @@ const packageJsonPath = path.join(root, 'package.json')
 const cargoTomlPaths = [
   path.join(root, 'src-tauri', 'Cargo.toml'),
   path.join(root, 'crates', 'dropslim-core', 'Cargo.toml'),
+  path.join(root, 'crates', 'dropslim-cli', 'Cargo.toml'),
 ]
 const cargoLockPath = path.join(root, 'Cargo.lock')
 
@@ -21,6 +22,7 @@ const versionLine = /^version\s*=\s*"([^"]*)"/m
 const lockPackages = [
   /^name = "dropslim"\r?\nversion = "([^"]*)"/m,
   /^name = "dropslim-core"\r?\nversion = "([^"]*)"/m,
+  /^name = "dropslim-cli"\r?\nversion = "([^"]*)"/m,
 ]
 
 let changed = false

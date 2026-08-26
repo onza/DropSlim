@@ -417,7 +417,7 @@ bump_version() {
     fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
   " "$next"
   npm run version
-  git add package.json src-tauri/Cargo.toml crates/dropslim-core/Cargo.toml
+  git add package.json src-tauri/Cargo.toml crates/dropslim-core/Cargo.toml crates/dropslim-cli/Cargo.toml
   if [[ -n "$(git status --porcelain -- Cargo.lock)" ]]; then
     git add Cargo.lock
   fi

@@ -91,6 +91,7 @@ jobs:
             .
             src-tauri
             crates/dropslim-core
+            crates/dropslim-cli
 
       - name: Cache Homebrew
         if: runner.os == 'macOS'

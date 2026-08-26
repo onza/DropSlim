@@ -9,6 +9,10 @@ edition = "2021"
 name = "dropslim_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
+[[bin]]
+name = "dropslim-app"
+path = "src/main.rs"
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
