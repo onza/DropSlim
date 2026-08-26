@@ -19,6 +19,7 @@ set -euo pipefail
 # flags:
 #   --continue         skip bump; use package.json version
 #   --skip-mac         skip local mac build/upload
+#   --skip-cli         skip cli tarball build/upload (updater untouched either way)
 #   --draft-only       leave github release as draft
 #   --yes              skip start confirms
 #   --skip-ci-wait     do not wait for ci
@@ -34,6 +35,7 @@ REPO="${DROPSLIM_REPO:-onza/DropSlim}"
 BUMP_VERSION=""
 CONTINUE=0
 SKIP_MAC=0
+SKIP_CLI=0
 CLI_YES=0
 SKIP_CI_WAIT=0
 MODE="full" # full | draft
@@ -492,6 +494,47 @@ assert_mac_assets_on_release() {
     die "latest.json missing on $tag — draft is incomplete"
 }
 
+cli_arch_name() {
+  case "$(uname -m)" in
+    arm64 | aarch64) printf 'aarch64' ;;
+    x86_64) printf 'x86_64' ;;
+    *) die "unsupported architecture for cli: $(uname -m)" ;;
+  esac
+}
+
+cli_tarball_path() {
+  local version="$1"
+  printf 'dist/dropslim-cli_%s_%s.tar.gz' "$version" "$(cli_arch_name)"
+}
+
+cli_artifact_present() {
+  local version="$1"
+  [[ -f "$(cli_tarball_path "$version")" ]]
+}
+
+assert_cli_asset_on_release() {
+  local tag="$1"
+  local version="$2"
+  local id names expected
+  id="$(release_id_for_tag "$tag")" || die "release $tag not found after cli upload"
+  expected="$(basename "$(cli_tarball_path "$version")")"
+  names="$(gh_retry gh api "repos/${REPO}/releases/${id}/assets" | jq -r '.[].name')"
+  printf '%s\n' "$names" | grep -qx "$expected" ||
+    die "cli asset $expected missing on $tag"
+}
+
+upload_cli() {
+  local tag="$1"
+  local version="$2"
+  local id tarball
+  id="$(release_id_for_tag "$tag")" ||
+    die "cannot upload cli — $tag not found (draft may be untagged; lookup by name/assets failed)"
+  tarball="$(cli_tarball_path "$version")"
+  [[ -f "$tarball" ]] || die "missing cli tarball $tarball"
+  log "uploading cli asset to release $id (updater/latest.json untouched)"
+  upload_release_file "$id" "$tarball"
+}
+
 upload_and_merge_mac() {
   local tag="$1"
   local version="$2"
@@ -590,6 +633,11 @@ run_interactive() {
     SKIP_MAC=1
   fi
 
+  skip_cli_answer="$(ask "skip cli tarball? [y/N]" "N")"
+  if [[ "$skip_cli_answer" == "y" || "$skip_cli_answer" == "Y" ]]; then
+    SKIP_CLI=1
+  fi
+
   printf '\n'
   log "summary"
   log "  branch:  $branch"
@@ -600,6 +648,7 @@ run_interactive() {
   fi
   log "  mode:    $summary_mode"
   log "  mac:     $([[ "$SKIP_MAC" -eq 1 ]] && echo skip || echo build+upload)"
+  log "  cli:     $([[ "$SKIP_CLI" -eq 1 ]] && echo skip || echo build+upload)"
   printf '\n'
 
   if [[ "$MODE" == "full" ]]; then
@@ -627,6 +676,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --skip-mac)
       SKIP_MAC=1
+      shift
+      ;;
+    --skip-cli)
+      SKIP_CLI=1
       shift
       ;;
     --draft-only)
@@ -668,8 +721,10 @@ need_cmd npm
 need_cmd node
 need_cmd curl
 
-[[ "$(uname -s)" == "Darwin" ]] || [[ "$SKIP_MAC" -eq 1 ]] ||
-  die "macOS build requires Darwin (use --skip-mac on other hosts)"
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  [[ "$SKIP_MAC" -eq 1 ]] || die "macOS app build requires Darwin (use --skip-mac)"
+  [[ "$SKIP_CLI" -eq 1 ]] || die "cli packaging requires Darwin for now (use --skip-cli)"
+fi
 
 # --- guards -----------------------------------------------------------------
 
@@ -740,6 +795,22 @@ else
   upload_and_merge_mac "$TAG" "$VERSION"
   assert_mac_assets_on_release "$TAG"
   log "macOS assets on draft: dmg + updater archive + latest.json"
+fi
+
+# --- 5b. cli tarball (separate asset; does not touch updater) ---------------
+
+if [[ "$SKIP_CLI" -eq 1 ]]; then
+  log "skipping cli tarball build/upload (skip cli = yes)"
+else
+  if cli_artifact_present "$VERSION"; then
+    log "cli tarball already in dist — uploading"
+  else
+    log "building cli release tarball"
+    bash "$root/scripts/package-cli.sh" "$VERSION"
+  fi
+  upload_cli "$TAG" "$VERSION"
+  assert_cli_asset_on_release "$TAG" "$VERSION"
+  log "cli asset on draft: $(basename "$(cli_tarball_path "$VERSION")")"
 fi
 
 # --- 6. publish or keep draft -----------------------------------------------
