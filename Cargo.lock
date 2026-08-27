@@ -1393,7 +1393,7 @@ dependencies = [
 
 [[package]]
 name = "dropslim"
-version = "1.6.3-feature-cli.1"
+version = "1.6.3"
 dependencies = [
  "dropslim-core",
  "image",
@@ -1420,7 +1420,7 @@ dependencies = [
 
 [[package]]
 name = "dropslim-cli"
-version = "1.6.3-feature-cli.1"
+version = "1.6.3"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -1435,7 +1435,7 @@ dependencies = [
 
 [[package]]
 name = "dropslim-core"
-version = "1.6.3-feature-cli.1"
+version = "1.6.3"
 dependencies = [
  "image",
  "imagequant",
