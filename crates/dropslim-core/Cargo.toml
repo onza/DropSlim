@@ -1,6 +1,6 @@
 [package]
 name = "dropslim-core"
-version = "1.6.2"
+version = "1.6.3-feature-cli.1"
 description = "DropSlim image optimization core (shared by app and CLI)"
 authors = ["Martin Farkas"]
 edition = "2021"
