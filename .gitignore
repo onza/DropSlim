@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-ui/
+target/
 src-tauri/target/
 src-tauri/resources/
 src-tauri/dav1d.dll
@@ -29,6 +30,7 @@ src-tauri/icons/icon.ico
 .DS_Store
 .vscode/
 roadmap.md
+cli-roadmap.md
 *.swp
 *.swo
 *~

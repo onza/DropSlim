@@ -1,0 +1,33 @@
+[package]
+name = "dropslim-core"
+version = "1.6.3-feature-cli.1"
+description = "DropSlim image optimization core (shared by app and CLI)"
+authors = ["Martin Farkas"]
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time"] }
+image = { version = "0.25.10", features = ["avif-native", "webp", "jpeg", "png", "gif"] }
+imagequant = "4.4.1"
+png = "0.18.1"
+zenjpeg = "0.8"
+webp = "0.3.1"
+ravif = "0.13.0"
+walkdir = "2.5.0"
+oxvg_ast = { version = "0.0.5", features = ["parse", "roxmltree", "visitor", "serialize"] }
+oxvg_optimiser = "0.0.5"
+oxipng = "10.1.1"
+mp4parse = "0.17"
+
+[dev-dependencies]
+tempfile = "3.27.0"
+image = { version = "0.25.10", features = ["avif-native", "webp", "jpeg", "png", "gif"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSArray", "NSString", "NSURL"] }
+objc2-core-foundation = { version = "0.3", features = ["CFData", "CFDictionary", "CFNumber", "CFString", "CFURL"] }
+objc2-image-io = "0.3"

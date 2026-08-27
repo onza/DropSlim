@@ -146,7 +146,7 @@ mod tests {
     use image::GenericImageView;
 
     fn heic_fixture() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../test/fixtures/sample.heic")
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../test/fixtures/sample.heic")
     }
 
     #[test]

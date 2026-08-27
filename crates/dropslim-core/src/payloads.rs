@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "kind", rename_all = "camelCase")]
-pub(crate) enum SummaryPayload {
+pub enum SummaryPayload {
     AlreadyOptimized {
         size: String,
     },
@@ -20,7 +20,7 @@ pub(crate) enum SummaryPayload {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct BatchSummaryPayload {
+pub struct BatchSummaryPayload {
     pub total: u32,
     pub succeeded: u32,
     pub failed: u32,

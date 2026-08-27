@@ -2,11 +2,10 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 
-use tauri::AppHandle;
 use tokio::task::JoinSet;
 
 use super::collect;
-use super::events::{app_event_sink, EventSink, ProcessorEvent};
+use super::events::{EventSink, ProcessorEvent};
 use super::formats::{ImageFormat, OutputFormatSetting};
 use super::image::{optimize_image_file, DimensionChange};
 use super::output_path::{build_output_path, custom_save_folder_missing, UserSettings};
@@ -266,7 +265,7 @@ async fn process_file<E: EventSink + ?Sized + 'static>(
     batch.finish_if_done(sink.as_ref());
 }
 
-pub(crate) async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
+pub async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
     sink: Arc<E>,
     input_paths: Vec<String>,
     settings: UserSettings,
@@ -378,29 +377,12 @@ pub(crate) async fn process_paths_with_sink<E: EventSink + ?Sized + 'static>(
     Ok(())
 }
 
-pub async fn process_paths(
-    app: AppHandle,
-    input_paths: Vec<String>,
-    settings: UserSettings,
-    project_root: PathBuf,
-    cancel: Arc<AtomicBool>,
-) -> Result<(), String> {
-    process_paths_with_sink(
-        app_event_sink(app),
-        input_paths,
-        settings,
-        project_root,
-        cancel,
-    )
-    .await
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::optimize::events::RecordingEventSink;
-    use crate::optimize::optimize_image_file;
-    use crate::optimize::payloads::{BatchSummaryPayload, ErrorPayload, SummaryPayload};
+    use crate::events::RecordingEventSink;
+    use crate::optimize_image_file;
+    use crate::payloads::{BatchSummaryPayload, ErrorPayload, SummaryPayload};
     use image::{ImageBuffer, Rgba};
     use std::fs;
     use std::sync::Arc;
@@ -417,7 +399,7 @@ mod tests {
     }
 
     fn project_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..")
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
     }
 
     #[test]
@@ -672,7 +654,7 @@ mod tests {
             &output,
             &project_root(),
             None,
-            crate::optimize::formats::OutputFormatSetting::Original,
+            crate::formats::OutputFormatSetting::Original,
         )
         .expect("seed output");
         let first_size = fs::metadata(&output).expect("output metadata").len();

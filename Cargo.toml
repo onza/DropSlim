@@ -1,0 +1,9 @@
+[workspace]
+members = ["crates/dropslim-core", "crates/dropslim-cli", "src-tauri"]
+resolver = "2"
+
+[workspace.package]
+version = "1.6.2"
+edition = "2021"
+authors = ["Martin Farkas"]
+license = "MIT"

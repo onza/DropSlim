@@ -105,7 +105,7 @@ Notarize: `bash scripts/verify-notarize-credentials.sh`.
 
 - https://github.com/onza/DropSlim/releases/latest
 - dropslim.app should pick up the tag
-- In-app updater: jsDelivr → raw `updater/latest.json` → GitHub latest asset
+- In-app updater: raw `updater/latest.json` → GitHub latest asset → jsDelivr (CDN fallback; `@main` can lag)
 
 Apps only update if `updater/latest.json` on `main` is correct and signed with the production key.
 
