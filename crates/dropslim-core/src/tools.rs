@@ -60,6 +60,9 @@ mod tests {
         fs::create_dir_all(bundled.parent().unwrap()).expect("mkdir");
         fs::write(&bundled, b"bundled").expect("write bundled");
 
-        assert_eq!(gifsicle_path(dir.path()).as_deref(), Some(bundled.as_path()));
+        assert_eq!(
+            gifsicle_path(dir.path()).as_deref(),
+            Some(bundled.as_path())
+        );
     }
 }

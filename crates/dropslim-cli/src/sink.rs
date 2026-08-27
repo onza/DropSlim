@@ -150,10 +150,9 @@ impl CliEventSink {
                     resized: resized.as_ref(),
                 }
             }
-            ProcessorEvent::DropError { file_name, error } => JsonEvent::DropError {
-                file_name,
-                error,
-            },
+            ProcessorEvent::DropError { file_name, error } => {
+                JsonEvent::DropError { file_name, error }
+            }
             ProcessorEvent::BatchComplete(summary) => JsonEvent::BatchComplete {
                 total: summary.total,
                 succeeded: summary.succeeded,
@@ -240,10 +239,7 @@ impl CliEventSink {
                 }
                 self.write_stderr(&format!(
                     "done: {} ok, {} failed ({} → {})",
-                    summary.succeeded,
-                    summary.failed,
-                    summary.bytes_before,
-                    summary.bytes_after
+                    summary.succeeded, summary.failed, summary.bytes_before, summary.bytes_after
                 ));
             }
             ProcessorEvent::BatchCancelled {

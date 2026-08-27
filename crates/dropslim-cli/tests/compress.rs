@@ -7,8 +7,9 @@ use predicates::prelude::*;
 use tempfile::TempDir;
 
 fn write_png(path: &Path, size: u32) {
-    let img: ImageBuffer<Rgba<u8>, Vec<u8>> =
-        ImageBuffer::from_fn(size, size, |x, y| Rgba([(x % 256) as u8, (y % 256) as u8, 80, 255]));
+    let img: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::from_fn(size, size, |x, y| {
+        Rgba([(x % 256) as u8, (y % 256) as u8, 80, 255])
+    });
     img.save(path).expect("write png");
 }
 
@@ -45,12 +46,8 @@ fn dropslim() -> Command {
 }
 
 fn copy_fixture(name: &str, dest: &Path) {
-    fs::copy(fixtures_dir().join(name), dest).unwrap_or_else(|error| {
-        panic!(
-            "copy fixture {name} → {}: {error}",
-            dest.display()
-        )
-    });
+    fs::copy(fixtures_dir().join(name), dest)
+        .unwrap_or_else(|error| panic!("copy fixture {name} → {}: {error}", dest.display()));
 }
 
 #[test]
@@ -145,7 +142,12 @@ fn compress_subfolder_writes_minified() {
     write_png(&input, 40);
 
     dropslim()
-        .args(["compress", "--quiet", "--subfolder", input.to_str().unwrap()])
+        .args([
+            "compress",
+            "--quiet",
+            "--subfolder",
+            input.to_str().unwrap(),
+        ])
         .assert()
         .success();
 
@@ -162,7 +164,12 @@ fn compress_no_suffix_overwrites_in_place() {
     let before = fs::metadata(&input).expect("input metadata").len();
 
     dropslim()
-        .args(["compress", "--quiet", "--no-suffix", input.to_str().unwrap()])
+        .args([
+            "compress",
+            "--quiet",
+            "--no-suffix",
+            input.to_str().unwrap(),
+        ])
         .assert()
         .success();
 
@@ -186,7 +193,12 @@ fn compress_folder_batch_optimizes_all_pngs() {
     fs::write(dir.path().join("readme.txt"), b"not an image").expect("write txt");
 
     let assert = dropslim()
-        .args(["compress", "--quiet", "--json", dir.path().to_str().unwrap()])
+        .args([
+            "compress",
+            "--quiet",
+            "--json",
+            dir.path().to_str().unwrap(),
+        ])
         .assert()
         .success();
 

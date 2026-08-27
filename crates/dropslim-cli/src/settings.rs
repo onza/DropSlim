@@ -74,7 +74,10 @@ mod tests {
         assert!(!settings.folderswitch);
         assert!(!settings.suffix);
         assert!(settings.subfolder);
-        assert_eq!(settings.savepath.as_deref(), Some(&["/tmp/out".to_string()][..]));
+        assert_eq!(
+            settings.savepath.as_deref(),
+            Some(&["/tmp/out".to_string()][..])
+        );
         assert!(settings.limit_dimensions);
         assert_eq!(settings.max_width, Some(800));
         assert_eq!(settings.output_format, OutputFormatSetting::Webp);
