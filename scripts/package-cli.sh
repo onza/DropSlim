@@ -79,4 +79,7 @@ out="$root/dist/${asset_stem}.tar.gz"
 tar -C "$stage" -czf "$out" "$asset_stem"
 
 log "wrote $out"
+if command -v shasum >/dev/null 2>&1; then
+  log "homebrew sha256: $(shasum -a 256 "$out" | awk '{print $1}')"
+fi
 printf '%s\n' "$out"
