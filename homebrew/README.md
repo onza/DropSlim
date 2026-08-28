@@ -22,3 +22,11 @@ Edit `Formula/dropslim.rb` here, then copy to `onza/homebrew-tap` and push:
 - `version`
 
 Tarball includes gifsicle under `vendor/` — no `depends_on "gifsicle"`.
+
+<br>
+
+## homebrew-core (later)
+
+Keep the tap until a PR to [homebrew-core](https://github.com/Homebrew/homebrew-core) is merged. Then users can run `brew install dropslim` without a tap; deprecate the tap or keep it as a fallback.
+
+Requirements include building from source (not a prebuilt tarball), Linux support, and meeting Homebrew’s popularity threshold. Until then, keep the current tap workflow — migration can happen anytime.

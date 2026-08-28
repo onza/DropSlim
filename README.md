@@ -51,6 +51,22 @@ Requires **`macOS 11 (Big Sur)`** or later and an **Apple Silicon** Mac (M1 or n
 
 <br>
 
+## CLI (macOS)
+
+Command-line tool for batch compression — same engine as the app, no GUI. **Apple Silicon only** (aarch64).
+
+```bash
+brew tap onza/tap
+brew install dropslim
+dropslim compress photo.png images/
+```
+
+Or download **`dropslim-cli_*_aarch64.tar.gz`** from **[GitHub Releases](https://github.com/onza/DropSlim/releases)**.
+
+Run `dropslim compress --help` for options (output folder, format, max dimensions, JSON output).
+
+<br>
+
 ## Install (Windows)
 
 Requires **Windows 10 or later** (64-bit).
