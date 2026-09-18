@@ -3,7 +3,7 @@
   <img src="assets/dropslim_logo-dark.svg#gh-dark-mode-only" alt="DropSlim" width="200">
 </p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) [![CI](https://github.com/onza/DropSlim/actions/workflows/ci.yml/badge.svg)](https://github.com/onza/DropSlim/actions/workflows/ci.yml) [![Latest Release](https://img.shields.io/github/v/release/onza/DropSlim)](https://github.com/onza/DropSlim/releases/latest) [![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey)](https://github.com/onza/DropSlim/releases/latest) [![Website](https://img.shields.io/badge/website-dropslim.app-0A7CFF)](https://dropslim.app/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md) [![CI](https://github.com/onza/DropSlim/actions/workflows/ci.yml/badge.svg)](https://github.com/onza/DropSlim/actions/workflows/ci.yml) [![Latest Release](https://img.shields.io/github/v/release/onza/DropSlim)](https://github.com/onza/DropSlim/releases/latest) [![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey)](https://github.com/onza/DropSlim/releases/latest) [![CLI](https://img.shields.io/badge/CLI-macOS%20%7C%20Linux-lightgrey)](#cli) [![Website](https://img.shields.io/badge/website-dropslim.app-0A7CFF)](https://dropslim.app/)
 
 <br>
 
@@ -51,22 +51,6 @@ Requires **`macOS 11 (Big Sur)`** or later and an **Apple Silicon** Mac (M1 or n
 
 <br>
 
-## CLI (macOS)
-
-Command-line tool for batch compression — same engine as the app, no GUI. **Apple Silicon only** (aarch64).
-
-```bash
-brew tap onza/tap
-brew install dropslim
-dropslim compress photo.png images/
-```
-
-Or download **`dropslim-cli_*_aarch64.tar.gz`** from **[GitHub Releases](https://github.com/onza/DropSlim/releases)**.
-
-Run `dropslim compress --help` for options (output folder, format, max dimensions, JSON output).
-
-<br>
-
 ## Install (Windows)
 
 Requires **Windows 10 or later** (64-bit).
@@ -81,9 +65,44 @@ Requires **Windows 10 or later** (64-bit).
 
 <br>
 
-## Linux (planned)
+## CLI
 
-A Linux version is **planned but not released yet**. Work is happening on the [`feature/linux`](https://github.com/onza/DropSlim/tree/feature/linux) branch, where CI already builds an **AppImage** (x86_64). For now it is **on hold** because of limited testing capacity. If you'd like to help test, please [open an issue](https://github.com/onza/DropSlim/issues).
+Command-line tool for batch compression — same engine as the app, no GUI. Run `dropslim compress --help` for options (output folder, format, max dimensions, JSON output).
+
+### macOS
+
+**Apple Silicon only** (aarch64).
+
+```bash
+brew tap onza/tap
+brew install dropslim
+dropslim compress photo.png images/
+```
+
+Or download **`dropslim-cli_*_aarch64.tar.gz`** from **[GitHub Releases](https://github.com/onza/DropSlim/releases)**.
+
+### Linux
+
+**x86_64 (glibc)** only for now. HEIC is not supported on Linux.
+
+1. Download **`dropslim-cli_*_linux_x86_64.tar.gz`** from **[GitHub Releases](https://github.com/onza/DropSlim/releases)**.
+2. Extract and run:
+
+```bash
+tar -xzf dropslim-cli_*_linux_x86_64.tar.gz
+cd dropslim-cli_*_linux_x86_64
+./dropslim compress photo.png images/
+```
+
+The archive includes a bundled `vendor/gifsicle` for GIF optimization.
+
+<br>
+
+## Linux (GUI planned)
+
+A **Linux GUI** is **planned but not released yet**. Work is happening on the [`feature/linux`](https://github.com/onza/DropSlim/tree/feature/linux) branch, where CI already builds an **AppImage** (x86_64). For now it is **on hold** because of limited testing capacity. If you'd like to help test, please [open an issue](https://github.com/onza/DropSlim/issues).
+
+The **CLI for Linux (x86_64)** is available from [GitHub Releases](https://github.com/onza/DropSlim/releases) — see [CLI](#cli) above.
 
 <br>
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# builds a standalone dropslim cli release tarball (macos first).
+# builds a standalone dropslim cli release tarball (macos + linux x86_64).
 # does not touch updater/latest.json or the gui app bundle.
 #
 # usage:
@@ -9,7 +9,8 @@ set -euo pipefail
 #   bash scripts/package-cli.sh 1.6.3     # override version in the archive name
 #
 # output:
-#   dist/dropslim-cli_<version>_<arch>.tar.gz
+#   macos: dist/dropslim-cli_<version>_<arch>.tar.gz
+#   linux: dist/dropslim-cli_<version>_linux_<arch>.tar.gz
 #   layout: dropslim, LICENSE.md, README.md, optional vendor/gifsicle/gifsicle
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -30,11 +31,25 @@ cli_arch() {
   esac
 }
 
+cli_os() {
+  case "$(uname -s)" in
+    Darwin) printf 'darwin' ;;
+    Linux) printf 'linux' ;;
+    *) die "unsupported OS for cli packaging: $(uname -s) (macOS or Linux only)" ;;
+  esac
+}
+
 need_cmd cargo
 need_cmd tar
 need_cmd node
 
-[[ "$(uname -s)" == "Darwin" ]] || die "cli packaging currently supports macOS only"
+os="$(cli_os)"
+if [[ "$os" == "linux" ]]; then
+  case "$(uname -m)" in
+    x86_64) ;;
+    *) die "linux cli packaging currently supports x86_64 only (got $(uname -m))" ;;
+  esac
+fi
 
 version="${1:-}"
 if [[ -z "$version" ]]; then
@@ -45,7 +60,11 @@ fi
 arch="$(cli_arch)"
 target_dir="${CARGO_TARGET_DIR:-$root/target}"
 bin="$target_dir/release/dropslim"
-asset_stem="dropslim-cli_${version}_${arch}"
+if [[ "$os" == "linux" ]]; then
+  asset_stem="dropslim-cli_${version}_linux_${arch}"
+else
+  asset_stem="dropslim-cli_${version}_${arch}"
+fi
 stage="$(mktemp -d "${TMPDIR:-/tmp}/dropslim-cli-pack.XXXXXX")"
 trap 'rm -rf "$stage"' EXIT
 
@@ -54,7 +73,11 @@ CARGO_TARGET_DIR="$target_dir" cargo build -p dropslim-cli --release
 [[ -f "$bin" ]] || die "missing binary: $bin"
 
 if command -v strip >/dev/null 2>&1; then
-  strip -x "$bin" 2>/dev/null || true
+  if [[ "$os" == "darwin" ]]; then
+    strip -x "$bin" 2>/dev/null || true
+  else
+    strip "$bin" 2>/dev/null || true
+  fi
 fi
 
 bundle="$stage/$asset_stem"
@@ -71,7 +94,7 @@ if [[ -f "$gifsicle_src" ]]; then
   chmod 755 "$bundle/vendor/gifsicle/gifsicle"
   log "bundled vendor/gifsicle/gifsicle"
 else
-  log "WARNING: vendor/gifsicle/gifsicle missing — tarball relies on PATH / Homebrew"
+  log "WARNING: vendor/gifsicle/gifsicle missing — tarball relies on PATH"
 fi
 
 mkdir -p "$root/dist"
@@ -79,7 +102,9 @@ out="$root/dist/${asset_stem}.tar.gz"
 tar -C "$stage" -czf "$out" "$asset_stem"
 
 log "wrote $out"
-if command -v shasum >/dev/null 2>&1; then
+if [[ "$os" == "darwin" ]] && command -v shasum >/dev/null 2>&1; then
   log "homebrew sha256: $(shasum -a 256 "$out" | awk '{print $1}')"
+elif command -v sha256sum >/dev/null 2>&1; then
+  log "sha256: $(sha256sum "$out" | awk '{print $1}')"
 fi
 printf '%s\n' "$out"

@@ -60,6 +60,8 @@ Feature branch: dialog defaults the base to the **next patch** (`1.6.1` → `1.6
 - `--yes` — skip the start confirm; still type the version to undraft
 - `--skip-ci-wait` — don’t wait for CI (usually don’t)
 
+**CLI assets:** macOS CLI tarball is built/uploaded by `release.sh` (`dropslim-cli_*_aarch64.tar.gz`). Linux x86_64 is separate — after the draft exists, run Actions → **package-cli-linux** with the release tag (`vX.Y.Z`) to upload `dropslim-cli_*_linux_x86_64.tar.gz`. Does not touch the updater.
+
 Undraft without typing:
 
 ```bash

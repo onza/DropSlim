@@ -1,0 +1,84 @@
+name: package-cli-linux
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to attach the Linux CLI asset to (e.g. v1.6.3)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Resolve version
+        id: ver
+        run: |
+          tag="${{ inputs.tag }}"
+          version="${tag#v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [[ "$version" != "$pkg" ]]; then
+            echo "tag version $version does not match package.json $pkg" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "asset=dropslim-cli_${version}_linux_x86_64.tar.gz" >> "$GITHUB_OUTPUT"
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            .
+            crates/dropslim-core
+            crates/dropslim-cli
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libdav1d-dev \
+            nasm \
+            pkg-config
+
+      - name: Cache gifsicle binary
+        uses: actions/cache@v5
+        with:
+          path: vendor/gifsicle/gifsicle
+          key: gifsicle-${{ runner.os }}-${{ runner.arch }}-1.96
+
+      - name: Install dependencies
+        run: npm ci
+        env:
+          HUSKY: 0
+
+      - name: Build CLI tarball
+        run: bash scripts/package-cli.sh "${{ steps.ver.outputs.version }}"
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          asset="dist/${{ steps.ver.outputs.asset }}"
+          test -f "$asset"
+          gh release upload "${{ inputs.tag }}" "$asset" --clobber
+          echo "uploaded $asset to ${{ inputs.tag }}"
