@@ -156,4 +156,12 @@ jobs:
           HUSKY: 0
 
       - name: Rust tests
+        if: runner.os != 'Linux'
         run: npm run ci:rust
+
+      - name: Rust tests (Linux core + CLI)
+        if: runner.os == 'Linux'
+        run: |
+          cargo test -p dropslim-core -p dropslim-cli
+          cargo fmt --all -- --check
+          cargo clippy -p dropslim-core -p dropslim-cli -- -D warnings
