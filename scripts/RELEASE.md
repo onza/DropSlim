@@ -60,6 +60,8 @@ Feature branch: dialog defaults the base to the **next patch** (`1.6.1` → `1.6
 - `--yes` — skip the start confirm; still type the version to undraft
 - `--skip-ci-wait` — don’t wait for CI (usually don’t)
 
+**CLI assets:** `release.sh` uploads **macOS** (`dropslim-cli_*_aarch64.tar.gz`) and then runs Actions **package-cli-linux** for **Linux** (`dropslim-cli_*_linux_x86_64.tar.gz`) on the same draft. `--skip-cli` skips both. Does not touch the updater.
+
 Undraft without typing:
 
 ```bash
@@ -71,14 +73,15 @@ DROPSLIM_RELEASE_YES=1 bash scripts/release.sh 1.6.2 --yes
 ## Flow
 
 ```
-Bump → CI → Windows draft → Mac → upload/merge → undraft (full only)
+Bump → CI → Windows draft → Mac → CLI (macOS + Linux) → undraft (full only)
 ```
 
 1. **Bump** — `package.json`, `npm run version` (Cargo.toml), commit, push. Same version as already in the file → script refuses, use `--continue`.
 2. **CI** — waits for the CI run. Feature branch without a PR to `main` often has no run; then it continues.
 3. **Windows** — `publish.yml` on the current branch. Draft `v…` with NSIS. Draft already exists → resume. Tag already published → abort, new version.
-4. **Mac** — `scripts/build.sh`, upload dmg + `DropSlim.app.tar.gz` + `.sig`, merge `latest.json`.
-5. **Full** — release `latest.json` must have Mac **and** Windows, type the version, `--draft=false` (notes stay). Then commit `updater/latest.json`.
+4. **Mac** — `scripts/build.sh`, upload dmg + `DropSlim.app.tar.gz` (+ `.sig`), merge `latest.json`.
+5. **CLI** — macOS tarball via `package-cli.sh`; Linux x86_64 via Actions `package-cli-linux` (same draft).
+6. **Full** — release `latest.json` must have Mac **and** Windows, type the version, `--draft=false` (notes stay). Then commit `updater/latest.json`.
 
 `--skip-mac` + full only works if the merged manifest is already on the release. Otherwise the draft stays. `--skip-mac` does not touch the updater file.
 

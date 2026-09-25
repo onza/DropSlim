@@ -19,7 +19,7 @@ set -euo pipefail
 # flags:
 #   --continue         skip bump; use package.json version
 #   --skip-mac         skip local mac build/upload
-#   --skip-cli         skip cli tarball build/upload (updater untouched either way)
+#   --skip-cli         skip mac + linux cli tarball build/upload (updater untouched)
 #   --draft-only       leave github release as draft
 #   --yes              skip start confirms
 #   --skip-ci-wait     do not wait for ci
@@ -507,6 +507,11 @@ cli_tarball_path() {
   printf 'dist/dropslim-cli_%s_%s.tar.gz' "$version" "$(cli_arch_name)"
 }
 
+cli_linux_asset_name() {
+  local version="$1"
+  printf 'dropslim-cli_%s_linux_x86_64.tar.gz' "$version"
+}
+
 cli_artifact_present() {
   local version="$1"
   [[ -f "$(cli_tarball_path "$version")" ]]
@@ -523,6 +528,17 @@ assert_cli_asset_on_release() {
     die "cli asset $expected missing on $tag"
 }
 
+assert_cli_linux_asset_on_release() {
+  local tag="$1"
+  local version="$2"
+  local id names expected
+  id="$(release_id_for_tag "$tag")" || die "release $tag not found after linux cli upload"
+  expected="$(cli_linux_asset_name "$version")"
+  names="$(gh_retry gh api "repos/${REPO}/releases/${id}/assets" | jq -r '.[].name')"
+  printf '%s\n' "$names" | grep -qx "$expected" ||
+    die "linux cli asset $expected missing on $tag"
+}
+
 upload_cli() {
   local tag="$1"
   local version="$2"
@@ -533,6 +549,93 @@ upload_cli() {
   [[ -f "$tarball" ]] || die "missing cli tarball $tarball"
   log "uploading cli asset to release $id (updater/latest.json untouched)"
   upload_release_file "$id" "$tarball"
+}
+
+# package-cli-linux checks out the git tag and uploads by tag name — drafts are often untagged.
+ensure_release_git_tag() {
+  local tag="$1"
+  local sha obj id tag_name draft prerelease
+  sha="$(git rev-parse HEAD)"
+
+  if git rev-parse "$tag" >/dev/null 2>&1 && [[ "$(git rev-parse "$tag^{}")" == "$sha" ]]; then
+    if ! git ls-remote --tags origin "refs/tags/$tag" | grep -q .; then
+      log "pushing git tag $tag"
+      git push origin "refs/tags/$tag"
+    fi
+  else
+    log "pointing git tag $tag at $sha"
+    git tag -f "$tag" "$sha"
+    git push origin "refs/tags/$tag" --force
+  fi
+
+  obj="$(find_release "$tag")"
+  [[ -n "$obj" && "$obj" != "null" ]] || die "release $tag not found — cannot attach git tag"
+  id="$(jq -r '.id // empty' <<<"$obj")"
+  tag_name="$(jq -r '.tag_name // empty' <<<"$obj")"
+  draft="$(jq -r '.draft // false' <<<"$obj")"
+  prerelease="$(jq -r '.prerelease // false' <<<"$obj")"
+  if [[ "$tag_name" != "$tag" ]]; then
+    log "attaching $tag to release $id (was $tag_name)"
+    gh_retry gh api --method PATCH "repos/${REPO}/releases/${id}" \
+      -f tag_name="$tag" \
+      -F draft="$draft" \
+      -F prerelease="$prerelease" >/dev/null
+  fi
+}
+
+wait_for_package_cli_linux_workflow() {
+  local run_id i status
+  log "waiting for package-cli-linux workflow"
+  for i in $(seq 1 60); do
+    run_id="$(
+      gh_retry gh run list --repo "$REPO" --workflow package-cli-linux.yml --limit 5 \
+        --json databaseId,event,status \
+        --jq '
+          map(select(
+            .event == "workflow_dispatch"
+            and (.status == "queued" or .status == "waiting" or .status == "in_progress")
+          ))
+          | .[0].databaseId // empty
+        '
+    )"
+    if [[ -z "$run_id" ]]; then
+      # already finished (fast) — take newest dispatch
+      run_id="$(
+        gh_retry gh run list --repo "$REPO" --workflow package-cli-linux.yml --limit 1 \
+          --json databaseId,event \
+          --jq 'map(select(.event == "workflow_dispatch")) | .[0].databaseId // empty'
+      )"
+    fi
+    if [[ -n "$run_id" ]]; then
+      status="$(
+        gh_retry gh run view "$run_id" --repo "$REPO" --json status --jq '.status // empty'
+      )"
+      log "package-cli-linux run: https://github.com/$REPO/actions/runs/$run_id ($status)"
+      if [[ "$status" == "completed" ]]; then
+        gh_retry gh run view "$run_id" --repo "$REPO" --json conclusion \
+          --jq '.conclusion' | grep -qx success ||
+          die "package-cli-linux failed — see https://github.com/$REPO/actions/runs/$run_id"
+        log "package-cli-linux green"
+        return 0
+      fi
+      gh run watch "$run_id" --repo "$REPO" --exit-status
+      log "package-cli-linux green"
+      return 0
+    fi
+    sleep 5
+  done
+  die "no package-cli-linux run found"
+}
+
+run_package_cli_linux() {
+  local tag="$1"
+  local version="$2"
+  ensure_release_git_tag "$tag"
+  log "starting package-cli-linux for $tag"
+  gh_retry gh workflow run package-cli-linux.yml --repo "$REPO" -f "tag=$tag"
+  wait_for_package_cli_linux_workflow
+  assert_cli_linux_asset_on_release "$tag" "$version"
+  log "linux cli asset on draft: $(cli_linux_asset_name "$version")"
 }
 
 upload_and_merge_mac() {
@@ -648,7 +751,7 @@ run_interactive() {
   fi
   log "  mode:    $summary_mode"
   log "  mac:     $([[ "$SKIP_MAC" -eq 1 ]] && echo skip || echo build+upload)"
-  log "  cli:     $([[ "$SKIP_CLI" -eq 1 ]] && echo skip || echo build+upload)"
+  log "  cli:     $([[ "$SKIP_CLI" -eq 1 ]] && echo skip || echo 'macOS build+upload + Linux Actions')"
   printf '\n'
 
   if [[ "$MODE" == "full" ]]; then
@@ -805,12 +908,14 @@ else
   if cli_artifact_present "$VERSION"; then
     log "cli tarball already in dist — uploading"
   else
-    log "building cli release tarball"
+    log "building macOS cli release tarball"
     bash "$root/scripts/package-cli.sh" "$VERSION"
   fi
   upload_cli "$TAG" "$VERSION"
   assert_cli_asset_on_release "$TAG" "$VERSION"
-  log "cli asset on draft: $(basename "$(cli_tarball_path "$VERSION")")"
+  log "macOS cli asset on draft: $(basename "$(cli_tarball_path "$VERSION")")"
+
+  run_package_cli_linux "$TAG" "$VERSION"
 fi
 
 # --- 6. publish or keep draft -----------------------------------------------
