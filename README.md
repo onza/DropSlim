@@ -86,16 +86,16 @@ Or download **`dropslim-cli_*_aarch64.tar.gz`** from **[GitHub Releases](https:/
 **x86_64 (glibc)** only for now. HEIC is not supported on Linux.
 
 1. Download **`dropslim-cli_*_linux_x86_64.tar.gz`** from **[GitHub Releases](https://github.com/onza/DropSlim/releases)**.
-2. Extract and run:
+2. Install:
 
 ```bash
 tar -xzf dropslim-cli_*_linux_x86_64.tar.gz
-cd dropslim-cli_*_linux_x86_64
-./dropslim compress photo.png images/
+sudo mv dropslim-cli_*_linux_x86_64 /opt/dropslim
+sudo ln -sf /opt/dropslim/dropslim /usr/local/bin/dropslim
+dropslim compress photo.png images/
 ```
 
-The archive includes a bundled `vendor/gifsicle` for GIF optimization.
-
+The archive includes bundled `vendor/gifsicle` (GIF) and `vendor/dav1d` (AVIF). No extra `apt` packages required.
 <br>
 
 ## Linux (GUI planned)

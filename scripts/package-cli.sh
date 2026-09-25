@@ -11,7 +11,8 @@ set -euo pipefail
 # output:
 #   macos: dist/dropslim-cli_<version>_<arch>.tar.gz
 #   linux: dist/dropslim-cli_<version>_linux_<arch>.tar.gz
-#   layout: dropslim, LICENSE.md, README.md, optional vendor/gifsicle/gifsicle
+#   layout: dropslim, LICENSE.md, README.md, vendor/gifsicle (optional),
+#           vendor/dav1d (linux — libdav1d.so.*)
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
@@ -95,6 +96,23 @@ if [[ -f "$gifsicle_src" ]]; then
   log "bundled vendor/gifsicle/gifsicle"
 else
   log "WARNING: vendor/gifsicle/gifsicle missing — tarball relies on PATH"
+fi
+
+# Linux: ship libdav1d next to the binary (AVIF decode) so apt install is not required.
+if [[ "$os" == "linux" ]]; then
+  need_cmd ldd
+  need_cmd patchelf
+  mkdir -p "$bundle/vendor/dav1d"
+  mapfile -t dav1d_libs < <(ldd "$bundle/dropslim" | awk '/libdav1d\.so/ {print $3}' | sort -u)
+  [[ "${#dav1d_libs[@]}" -gt 0 ]] || die "libdav1d not linked — install libdav1d-dev before packaging"
+  for lib in "${dav1d_libs[@]}"; do
+    [[ -f "$lib" ]] || die "missing linked library: $lib"
+    cp -L "$lib" "$bundle/vendor/dav1d/"
+    chmod 755 "$bundle/vendor/dav1d/$(basename "$lib")"
+    log "bundled vendor/dav1d/$(basename "$lib")"
+  done
+  patchelf --set-rpath '$ORIGIN/vendor/dav1d' "$bundle/dropslim"
+  log "set rpath \$ORIGIN/vendor/dav1d"
 fi
 
 mkdir -p "$root/dist"
