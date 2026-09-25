@@ -67,7 +67,33 @@ Requires **Windows 10 or later** (64-bit).
 
 ## CLI
 
-Command-line tool for batch compression — same engine as the app, no GUI. Run `dropslim compress --help` for options (output folder, format, max dimensions, JSON output).
+Command-line tool for batch compression — same engine as the app, no GUI. Run
+`dropslim compress --help` for options (output folder, format, max
+dimensions, JSON output).
+
+### Usage
+
+```bash
+# default: write foto.min.png next to the original (.min suffix on)
+dropslim compress photo.png
+dropslim compress ./images
+
+# .min off — overwrite in place
+dropslim compress photo.png --no-suffix
+
+# save into a minified/ subfolder
+dropslim compress ./images --subfolder
+
+# custom output folder
+dropslim compress ./images --out ./export
+
+# max size / convert format
+dropslim compress photo.png --max-width 2000 --max-height 2000
+dropslim compress photo.png --format webp
+
+# CI / scripts
+dropslim compress ./assets --json -q
+```
 
 ### macOS
 
@@ -95,7 +121,6 @@ sudo ln -sf /opt/dropslim/dropslim /usr/local/bin/dropslim
 dropslim compress photo.png images/
 ```
 
-The archive includes bundled `vendor/gifsicle` (GIF) and `vendor/dav1d` (AVIF). No extra `apt` packages required.
 <br>
 
 ## Linux (GUI planned)
