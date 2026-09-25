@@ -58,7 +58,8 @@ jobs:
             build-essential \
             libdav1d-dev \
             nasm \
-            pkg-config
+            pkg-config \
+            patchelf
 
       - name: Cache gifsicle binary
         uses: actions/cache@v5
