@@ -1,6 +1,6 @@
 [package]
 name = "dropslim-cli"
-version = "1.6.4-feature-linux-cli.1"
+version = "1.7.0"
 description = "DropSlim command-line image optimizer"
 authors = ["Martin Farkas"]
 edition = "2021"
